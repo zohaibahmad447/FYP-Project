@@ -1,0 +1,472 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category_display }} Doctors - Quick Care Connect{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== MARHAM-STYLE DOCTOR LISTING ===== */
+    body { background-color: #f5f7fa; }
+
+    /* 1. Compact headline strip - like Marham's bg-marham-light-border */
+    .listing-strip {
+        background: #ffffff;
+        border: 1px solid #eef4f6;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin: 10px 0 8px 0;
+    }
+    .listing-strip h1 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #222;
+        margin: 0 0 2px 0;
+        line-height: 1.3;
+    }
+    .listing-strip .breadcrumb-row {
+        font-size: 11.5px;
+        color: #aaa;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .listing-strip .breadcrumb-row a {
+        color: #004D71;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .listing-strip .breadcrumb-row .sep { color: #ccc; font-size: 9px; }
+    .doctors-count-badge {
+        font-size: 12px;
+        font-weight: 600;
+        color: #10b981;
+        white-space: nowrap;
+    }
+
+    /* 2. Compact filter bar - Marham search-bar style */
+    .filters-bar {
+        background: #ffffff;
+        border: 1px solid #eef4f6;
+        border-radius: 8px;
+        padding: 8px 14px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .filter-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #555;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        white-space: nowrap;
+    }
+    .filter-dropdown {
+        background: #ffffff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 22px 5px 8px;
+        font-size: 12px;
+        color: #333;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%23495057' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 5px center;
+        background-size: 10px;
+        min-width: 120px;
+    }
+    .filter-dropdown:focus {
+        outline: none;
+        border-color: #10b981;
+    }
+    .clear-filters-btn {
+        background: transparent;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 12px;
+        font-size: 11.5px;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        margin-left: auto;
+        text-decoration: none;
+        display: inline-block;
+    }
+    .clear-filters-btn:hover { background: #f8f9fa; border-color: #aaa; color: #333; }
+
+    /* 3. Doctor cards - Marham shadow-card style */
+    .doctor-card {
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0px 1px 30px rgba(0,0,0,.03), 0 .275rem .75rem -.0625rem rgba(0,0,0,.06);
+        border: 0;
+        padding: 14px 16px;
+        margin-bottom: 8px;
+        transition: box-shadow 0.2s;
+    }
+    .doctor-card:hover {
+        box-shadow: 0px 4px 20px rgba(0,0,0,.08), 0 .275rem .75rem -.0625rem rgba(0,0,0,.08);
+    }
+
+    /* Doctor card top row */
+    .doctor-card-main {
+        display: flex;
+        gap: 24px;
+        align-items: stretch;
+    }
+
+    /* Avatar */
+    .doctor-avatar {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #e8f6f9 0%, #cce7ff 100%);
+        flex-shrink: 0;
+        overflow: hidden;
+        border: 1px solid #eef4f6;
+    }
+    .doctor-avatar img {
+        width: 100%; height: 100%;
+        object-fit: cover; border-radius: 50%;
+    }
+    .avatar-placeholder {
+        width: 100%; height: 100%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.6rem; font-weight: 700; color: #10b981;
+    }
+
+    /* Doctor info */
+    .doctor-info-main { flex: 1; min-width: 0; padding-top: 4px; }
+
+    .doctor-name {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #004D71;
+        margin-bottom: 2px;
+        line-height: 1.3;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .online-badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        background: #d1fae5; color: #065f46;
+        font-size: 10px; font-weight: 700;
+        padding: 2px 7px; border-radius: 999px; letter-spacing: 0.3px;
+    }
+    .online-badge .dot {
+        width: 6px; height: 6px; background: #10b981;
+        border-radius: 50%; display: inline-block;
+        animation: pulse-dot 1.5s infinite;
+    }
+
+    .doctor-specialization {
+        font-size: 13px; color: #10b981; font-weight: 600;
+        margin-bottom: 4px;
+    }
+    .doctor-qualifications {
+        font-size: 13px; color: #444; margin-bottom: 8px; line-height: 1.5;
+    }
+
+    /* Stats row - Reviews / Experience / Satisfaction */
+    .doctor-stats {
+        display: flex; gap: 40px; flex-wrap: wrap; margin-top: 12px;
+        border-top: 1px transparent; padding-top: 8px; /* Marham places stats a bit further down */
+    }
+    .stat-item { display: flex; flex-direction: column; gap: 2px; }
+    .stat-label { font-size: 12px; color: #666; font-weight: 500; }
+    .stat-value { font-size: 14px; font-weight: 700; color: #222; }
+
+    /* Action buttons column */
+    .doctor-actions {
+        display: flex; flex-direction: column; gap: 8px; align-items: stretch; flex-shrink: 0; width: 220px;
+    }
+    .action-btn {
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-weight: 600; font-size: 14px;
+        text-decoration: none; display: flex;
+        align-items: center; justify-content: center; gap: 8px;
+        transition: all 0.2s; border: none;
+        cursor: pointer; white-space: nowrap; width: 100%;
+    }
+    .action-btn-primary { background: #378864; color: #fff; }
+    .action-btn-primary:hover { background: #245f46; color: #fff; }
+    .action-btn-secondary { background: #004D71; border: none; color: #fff; }
+    .action-btn-secondary:hover { background: #003855; color: #fff; }
+
+    /* 4. Appointment boxes - Marham's "border-card" style */
+    .appointment-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(0,0,0,0.04);
+    }
+    .appointment-box {
+        flex: 1;
+        min-width: 250px;
+        border: 1px solid #579c88;
+        border-radius: 6px;
+        padding: 12px 16px;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        text-decoration: none !important;
+        transition: all 0.2s;
+    }
+    .appointment-box:hover {
+        background: #fcfdfc;
+        border-color: #2E7D5A;
+        box-shadow: 0 4px 12px rgba(46,125,90,0.08);
+    }
+    .appointment-box.video { border-color: rgba(46,125,90,0.4); }
+    .appointment-box.physical { border-color: rgba(16,185,129,0.35); }
+    
+    .appointment-header-row {
+        display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;
+    }
+    .appointment-type { font-size: 12px; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 0.3px; }
+    .fast-confirm-pill {
+        background: #e8f5e9; color: #388e3c; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px;
+    }
+    .appointment-availability { font-size: 11.5px; color: #666; margin-bottom: 6px; }
+    .appointment-price { font-size: 14px; font-weight: 700; color: #222; }
+    .appointment-location { font-size: 11.5px; color: #666; display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+    .appointment-location i { color: #10b981; font-size: 10px; }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 3rem 2rem; background: #fff; border-radius: 8px; }
+    .empty-state-icon { font-size: 3.5rem; color: #ddd; margin-bottom: 1rem; }
+    .empty-state-title { font-size: 1rem; font-weight: 700; color: #333; margin-bottom: 0.5rem; }
+    .empty-state-text { color: #888; font-size: 12px; margin-bottom: 1.5rem; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .doctor-card-main { flex-direction: column; }
+        .doctor-actions { align-items: stretch; flex-direction: row; flex-wrap: wrap; }
+        .action-btn { min-width: unset; flex: 1; }
+        .appointment-options { grid-template-columns: 1fr; }
+        .filters-bar { flex-direction: column; align-items: stretch; gap: 6px; }
+        .filter-group { justify-content: space-between; }
+        .filter-dropdown { flex: 1; }
+        .clear-filters-btn { width: 100%; text-align: center; margin-left: 0; }
+    }
+
+    @keyframes pulse-dot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.4); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5" style="max-width: 1400px; padding-top: 8px; padding-bottom: 20px;">
+
+    <!-- 1. Compact Headline Strip (Marham style) -->
+    <div class="listing-strip">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1>{{ category_display }} Doctors In Pakistan</h1>
+                <div class="breadcrumb-row">
+                    <a href="{{ url_for('home.index') }}">Home</a>
+                    <span class="sep">❯</span>
+                    <a href="{{ url_for('patients.find_doctors') }}">Find Doctors</a>
+                    <span class="sep">❯</span>
+                    <span>{{ category_display }}</span>
+                </div>
+            </div>
+            <span class="doctors-count-badge">{{ doctors|length }} Doctor{{ 's' if doctors|length != 1 else '' }} Found</span>
+        </div>
+    </div>
+
+    <!-- 2. Compact Filters Bar -->
+    <form method="GET" class="filters-bar">
+        <div class="filter-group">
+            <span class="filter-label">Type</span>
+            <select name="type" class="filter-dropdown" onchange="this.form.submit()">
+                <option value="all" {{ 'selected' if current_type=='all' }}>All Types</option>
+                <option value="video" {{ 'selected' if current_type=='video' }}>Video Call</option>
+                <option value="physical" {{ 'selected' if current_type=='physical' }}>Physical</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Fee</span>
+            <select name="fee_range" class="filter-dropdown" onchange="this.form.submit()">
+                <option value="all" {{ 'selected' if current_fee_range=='all' }}>All Fees</option>
+                <option value="below_1000" {{ 'selected' if current_fee_range=='below_1000' }}>Below Rs. 1,000</option>
+                <option value="1000_2000" {{ 'selected' if current_fee_range=='1000_2000' }}>Rs. 1,000 - 2,000</option>
+                <option value="2000_3000" {{ 'selected' if current_fee_range=='2000_3000' }}>Rs. 2,000 - 3,000</option>
+                <option value="3000_5000" {{ 'selected' if current_fee_range=='3000_5000' }}>Rs. 3,000 - 5,000</option>
+                <option value="above_5000" {{ 'selected' if current_fee_range=='above_5000' }}>Above Rs. 5,000</option>
+            </select>
+        </div>
+        {% if cities %}
+        <div class="filter-group">
+            <span class="filter-label">City</span>
+            <select name="city" class="filter-dropdown" onchange="this.form.submit()">
+                <option value="all" {{ 'selected' if current_city=='all' }}>All Cities</option>
+                {% for city in cities %}
+                <option value="{{ city }}" {{ 'selected' if current_city==city }}>{{ city|title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        <div class="filter-group">
+            <span class="filter-label">Gender</span>
+            <select name="gender" class="filter-dropdown" onchange="this.form.submit()">
+                <option value="all" {{ 'selected' if current_gender=='all' }}>All</option>
+                <option value="male" {{ 'selected' if current_gender=='male' }}>Male</option>
+                <option value="female" {{ 'selected' if current_gender=='female' }}>Female</option>
+            </select>
+        </div>
+        <a href="{{ url_for('patients.doctors_by_category', category=category) }}" class="clear-filters-btn">Clear Filters</a>
+    </form>
+
+    <!-- 3. Doctor Cards -->
+    {% if doctors %}
+    {% for doctor in doctors %}
+    {% set user = doctor.user %}
+    <div class="doctor-card">
+        <div class="doctor-card-main">
+            <!-- Avatar -->
+            <div class="doctor-avatar">
+                {% if user.profile_picture %}
+                <img src="{{ url_for('static', filename='uploads/' + user.profile_picture) }}"
+                    alt="{{ user.name }}"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="avatar-placeholder" style="display:none;">{{ user.name[0].upper() }}</div>
+                {% else %}
+                <div class="avatar-placeholder">{{ user.name[0].upper() }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Info Column -->
+            <div class="doctor-info-main">
+                <div class="doctor-name">
+                    {{ user.name }}
+                    {% if user.is_online %}
+                    <span class="online-badge"><span class="dot"></span>Online</span>
+                    {% endif %}
+                </div>
+                {% if doctor.is_verified %}
+                <div style="margin-bottom: 4px;">
+                    <span style="color: #10b981; font-size: 12px; font-weight: 600;">
+                        <i class="fas fa-check-circle" style="font-size: 11px;"></i> PMDC Verified
+                    </span>
+                </div>
+                {% endif %}
+                <div class="doctor-specialization">{{ doctor.specialization or doctor.category }}</div>
+                {% if doctor.education %}
+                <div class="doctor-qualifications">{{ doctor.education }}</div>
+                {% endif %}
+                {% if doctor.services %}
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; margin-bottom: 2px;">
+                    {% for service in doctor.services.split(',') %}
+                    {% if service.strip() %}
+                    <span style="display: inline-block; background: #f0f7f4; color: #2E7D5A; border: 1px solid #c3e6da;
+                                font-size: 11.5px; font-weight: 500; padding: 2px 10px; border-radius: 20px;">{{ service.strip() }}</span>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="doctor-stats">
+                    {% set reviews_count = doctor.reviews|list|length %}
+                    <div class="stat-item">
+                        <span class="stat-label">Reviews</span>
+                        <span class="stat-value">{{ reviews_count }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Experience</span>
+                        <span class="stat-value">{{ doctor.experience|int }} Yrs</span>
+                    </div>
+                    {% if reviews_count > 0 %}
+                    <div class="stat-item">
+                        <span class="stat-label">Satisfaction</span>
+                        <span class="stat-value">97%</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="doctor-actions">
+                {% if doctor.has_video %}
+                <a href="{{ url_for('patients.book_appointment', doctor_id=doctor.id) }}?type=video"
+                    class="action-btn action-btn-primary">
+                    <i class="fas fa-video"></i> Video Call
+                </a>
+                {% endif %}
+                <a href="{{ url_for('patients.doctor_profile', doctor_id=doctor.id) }}"
+                    class="action-btn action-btn-secondary">
+                    <i class="fas fa-user"></i> View Profile
+                </a>
+            </div>
+        </div>
+
+        <!-- Appointment Boxes -->
+        {% if doctor.practices %}
+        <div class="appointment-options">
+            {% for practice_name, practice_data in doctor.practices.items() %}
+            {% if practice_data.get('video_price') %}
+            <a href="{{ url_for('patients.book_appointment', doctor_id=doctor.id) }}?type=video&practice={{ practice_name|urlencode }}" class="appointment-box video">
+                <div>
+                    <div class="appointment-header-row">
+                        <div class="appointment-type">Video Consultation</div>
+                        <div class="fast-confirm-pill">Fast Confirm</div>
+                    </div>
+                    <div class="appointment-availability">{{ practice_data.get('availability_label', 'Available Today') }}</div>
+                </div>
+                <div class="appointment-price">Rs. {{ "%.0f"|format(practice_data.video_price) }}</div>
+            </a>
+            {% endif %}
+            
+            {% if practice_data.get('physical_price') %}
+            <a href="{{ url_for('patients.book_appointment', doctor_id=doctor.id) }}?type=physical&practice={{ practice_name|urlencode }}" class="appointment-box physical">
+                <div>
+                    <div class="appointment-header-row">
+                        <div class="appointment-type" style="color:#004D71;">{{ practice_name }}</div>
+                        <div class="fast-confirm-pill">Fast Confirm</div>
+                    </div>
+                    {% if practice_data.get('location') %}
+                    <div class="appointment-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        {{ practice_data.location }}{% if doctor.city %}, {{ doctor.city|title }}{% endif %}
+                    </div>
+                    {% endif %}
+                    <div class="appointment-availability">{{ practice_data.get('availability_label', 'Available Today') }}</div>
+                </div>
+                <div class="appointment-price">Rs. {{ "%.0f"|format(practice_data.physical_price) }}</div>
+            </a>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon"><i class="fas fa-user-md"></i></div>
+        <div class="empty-state-title">No Doctors Found</div>
+        <div class="empty-state-text">No {{ category_display.lower() }} doctors match your filters. Try adjusting them.</div>
+        <a href="{{ url_for('patients.find_doctors') }}" class="btn btn-primary">
+            <i class="fas fa-arrow-left me-2"></i>Browse All Categories
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

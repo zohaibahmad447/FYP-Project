@@ -1,0 +1,1350 @@
+{% extends "base.html" %}
+
+{% block title %}{{ doctor.user.name }} - {{ doctor.specialization }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern Doctor Profile - InstaCare/Marham Style */
+    body {
+        background-color: #f5f7fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Hero Section - Glassy White Background (Emerald Green Theme) */
+    .doctor-profile-header {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        color: #1a1a1a;
+        padding: 2.5rem 0;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        border-bottom: 3px solid rgba(16, 185, 129, 0.8);
+        border-radius: 0 0 16px 16px;
+    }
+
+    .doctor-profile-header .row {
+        align-items: center;
+        min-height: 200px;
+        padding: 1.5rem 0;
+    }
+
+    .doctor-profile-header .col-md-3 {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 0;
+    }
+
+    .header-content-wrapper {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding-left: 1rem;
+        padding-top: 0;
+        align-items: flex-start;
+    }
+
+    @media (max-width: 768px) {
+        .doctor-profile-header .row {
+            min-height: auto;
+        }
+
+        .header-content-wrapper {
+            padding-left: 0;
+            padding-top: 1.5rem;
+        }
+
+        .doctor-profile-header .col-md-3 {
+            padding-top: 0;
+        }
+    }
+
+    .doctor-avatar {
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.9) 0%, rgba(5, 150, 105, 0.85) 100%);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4.5rem;
+        font-weight: 700;
+        margin: 0 auto;
+        border: 5px solid rgba(255, 255, 255, 0.9);
+        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .doctor-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .doctor-avatar .avatar-initial {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #ffffff;
+        color: #10b981;
+    }
+
+    .doctor-name {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        margin-top: 0;
+        color: #1a1a1a;
+        line-height: 1.3;
+    }
+
+    .doctor-specialization {
+        font-size: 1.2rem;
+        color: #666;
+        margin-bottom: 0.75rem;
+        font-weight: 500;
+    }
+
+    .doctor-qualifications {
+        font-size: 1rem;
+        color: #555;
+        margin-bottom: 1rem;
+        font-style: italic;
+        line-height: 1.6;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.5rem 1.2rem;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        border: 1px solid transparent;
+    }
+
+    .status-approved {
+        background: #d4edda;
+        color: #155724;
+        border-color: #c3e6cb;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+        border-color: #ffeaa7;
+    }
+
+    .status-rejected {
+        background: #f8d7da;
+        color: #721c24;
+        border-color: #f5c6cb;
+    }
+
+    .status-suspended {
+        background: #d1ecf1;
+        color: #0c5460;
+        border-color: #bee5eb;
+    }
+
+    .doctor-stats {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .stat-item {
+        text-align: center;
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        display: block;
+        color: #10b981;
+        line-height: 1.2;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Status Banner */
+    .status-banner {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 1.25rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .status-banner.danger {
+        background: #f8d7da;
+        border-left-color: #dc3545;
+    }
+
+    .status-banner.secondary {
+        background: #e2e3e5;
+        border-left-color: #6c757d;
+    }
+
+    /* Content Sections - Modern Card Style */
+    .content-section {
+        background: #ffffff;
+        border-radius: 8px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e0e0e0;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid rgba(16, 185, 129, 0.8);
+        color: #1a1a1a;
+    }
+
+    /* About Section - Table Format (Marham Style) */
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-table thead {
+        background: #f8f9fa;
+    }
+
+    .info-table th {
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #333;
+        border-bottom: 2px solid #dee2e6;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #e9ecef;
+        color: #555;
+    }
+
+    .info-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .info-table tr:hover {
+        background: #f8f9fa;
+    }
+
+    .qualification-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .qualification-item {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+    }
+
+    .qualification-item:last-child {
+        border-bottom: none;
+    }
+
+    .qualification-item i {
+        color: #10b981;
+        margin-right: 0.75rem;
+        font-size: 1.1rem;
+    }
+
+    .bio-text {
+        line-height: 1.8;
+        color: #555;
+        font-size: 1.05rem;
+    }
+
+    /* Professional Statement (Marham Style) */
+    .professional-statement {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid rgba(16, 185, 129, 0.8);
+        margin-top: 1rem;
+        line-height: 1.8;
+        color: #555;
+    }
+
+    /* Services, Diseases Tags (Marham Style) */
+    .tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .tag-item {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background: #e7f3ff;
+        color: #0066cc;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        border: 1px solid #b3d9ff;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .tag-item:hover {
+        background: #cce7ff;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
+    }
+
+    /* Consultation Cards - Modern Style */
+    .consultation-card {
+        background: #f8f9fa;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .consultation-card:hover {
+        border-color: rgba(16, 185, 129, 0.6);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+    }
+
+    .consultation-card.disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        background: #f8f9fa;
+    }
+
+    .consultation-card.disabled:hover {
+        border-color: #e0e0e0;
+        box-shadow: none;
+    }
+
+    .consultation-clinic-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+    }
+
+    .consultation-fee {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #10b981;
+        margin-bottom: 1rem;
+    }
+
+    .consultation-fee.disabled {
+        color: #6c757d;
+        font-size: 1.2rem;
+    }
+
+    .timing-section {
+        margin: 1rem 0;
+    }
+
+    .timing-list-modern {
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0;
+    }
+
+    .timing-list-modern li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e0e0e0;
+        color: #555;
+    }
+
+    .timing-list-modern li:last-child {
+        border-bottom: none;
+    }
+
+    .timing-day-name {
+        font-weight: 600;
+        color: #333;
+        display: inline-block;
+        min-width: 100px;
+    }
+
+    .time-slot-badge {
+        display: inline-block;
+        background: #ffffff;
+        color: #333;
+        padding: 0.3rem 0.6rem;
+        border-radius: 4px;
+        margin-right: 0.5rem;
+        margin-bottom: 0.25rem;
+        font-size: 0.85rem;
+        border: 1px solid #e0e0e0;
+    }
+
+    .booking-btn {
+        width: 100%;
+        padding: 0.75rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 6px;
+        margin-top: 1rem;
+    }
+
+    .restricted-message {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 1.25rem;
+        border-radius: 8px;
+        margin-top: 1.5rem;
+        color: #856404;
+    }
+
+    .restricted-message i {
+        margin-right: 0.5rem;
+    }
+
+    /* Address Section */
+    .address-section {
+        margin: 1rem 0;
+    }
+
+    .address-section strong {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #333;
+        font-size: 0.95rem;
+    }
+
+    .address-text {
+        color: #666;
+        line-height: 1.6;
+        font-size: 0.95rem;
+    }
+
+    /* FAQs Section */
+    .faq-accordion .accordion-item {
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        overflow: hidden;
+    }
+
+    .faq-accordion .accordion-button {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #333;
+        padding: 1rem 1.5rem;
+    }
+
+    .faq-accordion .accordion-button:not(.collapsed) {
+        background: rgba(16, 185, 129, 0.7);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        color: white;
+    }
+
+    .faq-accordion .accordion-body {
+        padding: 1.5rem;
+        line-height: 1.8;
+        color: #555;
+    }
+
+    /* Sidebar - Modern Style */
+    .sidebar-card {
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 1.5rem;
+        border: 1px solid #e0e0e0;
+        overflow: hidden;
+    }
+
+    .sidebar-card-header {
+        background: rgba(16, 185, 129, 0.7);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        color: white;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .sidebar-card-body {
+        padding: 1.5rem;
+    }
+
+    .contact-item {
+        padding: 1rem 0;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .contact-item:last-child {
+        border-bottom: none;
+    }
+
+    .contact-item i {
+        font-size: 1.2rem;
+        color: #10b981;
+        margin-right: 1rem;
+        margin-top: 0.25rem;
+        min-width: 24px;
+    }
+
+    .contact-item strong {
+        display: block;
+        margin-bottom: 0.25rem;
+        color: #333;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .contact-item span {
+        color: #666;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    /* Booking Sidebar Button */
+    .booking-sidebar-btn {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+    }
+
+    /* Reviews Section - Marham Style */
+    .reviews-summary {
+        text-align: center;
+        padding: 1.5rem;
+    }
+
+    .review-rating {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #28a745;
+        margin-bottom: 0.5rem;
+    }
+
+    .review-count {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .stars-display {
+        color: #ffc107;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .reviews-section {
+        text-align: center;
+        padding: 2rem 1rem;
+    }
+
+    /* Edit Profile Button */
+    .edit-profile-btn {
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        z-index: 1000;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .doctor-avatar {
+            width: 150px;
+            height: 150px;
+            font-size: 3.5rem;
+        }
+
+        .header-content-wrapper {
+            padding-left: 0;
+            text-align: center;
+        }
+
+        .doctor-name {
+            font-size: 1.8rem;
+        }
+
+        .doctor-specialization {
+            font-size: 1.1rem;
+        }
+
+        .doctor-stats {
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .stat-item {
+            min-width: 100px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+        }
+
+        .content-section {
+            padding: 1.5rem;
+        }
+
+        .consultation-card {
+            padding: 1.5rem;
+        }
+
+        .edit-profile-btn {
+            position: relative;
+            top: auto;
+            right: auto;
+            margin-bottom: 1rem;
+        }
+
+        .tags-container {
+            gap: 0.5rem;
+        }
+
+        .tag-item {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Edit Profile Button (Only for doctor's own profile) -->
+{% if is_own_profile|default(False) and is_approved %}
+<div class="container">
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{{ url_for('doctors.edit_profile') }}" class="btn btn-primary edit-profile-btn">
+            <i class="fas fa-edit me-2"></i>Edit Profile
+        </a>
+    </div>
+</div>
+{% elif is_own_profile|default(False) and is_pending %}
+<div class="container">
+    {% if doctor.appeal_count > 0 %}
+    <div class="alert alert-success mb-3">
+        <i class="fas fa-check-circle me-2"></i>
+        <strong>Appeal Submitted Successfully!</strong> Your appeal (#{{ doctor.appeal_count }}) has been submitted and
+        is under review. Please wait for admin approval. You cannot edit your profile while it is pending review.
+    </div>
+    {% else %}
+    <div class="alert alert-info mb-3">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Profile Pending Approval:</strong> Your profile is currently pending approval. Please wait for admin
+        review.
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Doctor Profile Header - InstaCare Style -->
+<div class="doctor-profile-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 text-center mb-3 mb-md-0">
+                <div class="doctor-avatar">
+                    {% if doctor.user.profile_picture %}
+                    <img src="{{ url_for('static', filename='uploads/' + doctor.user.profile_picture) }}"
+                        alt="{{ doctor.user.name }}"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="avatar-initial" style="display: none;">{{ doctor.user.name[0].upper() }}</div>
+                    {% else %}
+                    <div class="avatar-initial">{{ doctor.user.name[0].upper() }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="text-center text-md-start header-content-wrapper">
+                    <div class="doctor-name" style="margin-top: 0;">{{ doctor.user.name }}</div>
+                    <div class="doctor-specialization">{{ doctor.specialization|title }}</div>
+
+                    <!-- Qualifications Preview -->
+                    {% if doctor.education %}
+                    {% set quals = doctor.education.split(',') %}
+                    <div class="doctor-qualifications">
+                        {{ quals[0].strip() }}{% if quals|length > 1 %}, {{ quals[1].strip() }}{% endif %}{% if
+                        quals|length > 2 %}...{% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Status Badge -->
+                    {% if is_approved %}
+                    <span class="status-badge status-approved">
+                        <i class="fas fa-check-circle me-1"></i>PMC Verified
+                    </span>
+                    {% elif is_pending %}
+                    {% if doctor.appeal_count > 0 %}
+                    <span class="status-badge status-pending">
+                        <i class="fas fa-gavel me-1"></i>Appeal #{{ doctor.appeal_count }} - Under Review
+                    </span>
+                    {% else %}
+                    <span class="status-badge status-pending">
+                        <i class="fas fa-clock me-1"></i>Pending Approval
+                    </span>
+                    {% endif %}
+                    {% elif is_rejected %}
+                    <span class="status-badge status-rejected">
+                        <i class="fas fa-times-circle me-1"></i>Rejected
+                    </span>
+                    {% elif is_suspended %}
+                    <span class="status-badge status-suspended">
+                        <i class="fas fa-ban me-1"></i>Suspended
+                    </span>
+                    {% endif %}
+
+                    <!-- Doctor Stats -->
+                    <div class="doctor-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">
+                                {% if is_approved and doctor.time_slots %}
+                                Under 15 Mins
+                                {% else %}
+                                {% if is_pending %}Pending{% else %}N/A{% endif %}
+                                {% endif %}
+                            </span>
+                            <span class="stat-label">Wait Time</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ doctor.experience|int }} Year{{ 's' if doctor.experience|int !=
+                                1 else '' }}</span>
+                            <span class="stat-label">Experience</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">
+                                {% if is_approved %}
+                                {% if doctor.appointments.filter_by(status='completed').count() > 0 %}
+                                99%
+                                {% else %}
+                                0%
+                                {% endif %}
+                                {% else %}
+                                {% if is_pending %}Pending{% else %}N/A{% endif %}
+                                {% endif %}
+                            </span>
+                            <span class="stat-label">Satisfied Patients</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Suspended Account Message (Only for suspended doctors - Below Hero Section) -->
+{% if is_suspended and is_own_profile|default(False) %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-danger text-center"
+                style="padding: 3rem 2rem; margin-top: 2rem; margin-bottom: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <i class="fas fa-ban" style="font-size: 4rem; margin-bottom: 1.5rem; color: #dc3545;"></i>
+                <h2 class="mb-3" style="color: #721c24; font-weight: 600;">Account Permanently Suspended</h2>
+                <p class="lead mb-0" style="color: #721c24; font-size: 1.25rem;">
+                    Your account is permanently suspended and now you can't do any activity on this platform.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="container">
+    <!-- Rejection Reason and Appeal Section (Only for rejected doctors - Below Hero Section) -->
+    {% if is_rejected and is_own_profile|default(False) %}
+    <div class="rejection-info-section mb-4"
+        style="background: #ffffff; border: 1px solid #dee2e6; padding: 2rem; border-radius: 8px; margin-top: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <div class="row">
+            <div class="col-12">
+                <!-- Heading -->
+                <h4 class="text-danger mb-4"
+                    style="font-weight: 600; border-bottom: 2px solid #dc3545; padding-bottom: 0.75rem;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Registration Status
+                </h4>
+
+                <!-- Status Section -->
+                <div class="mb-4">
+                    <h6 class="text-muted mb-2"
+                        style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
+                        Current Status
+                    </h6>
+                    <div class="mb-3">
+                        <span class="badge bg-danger" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                            <i class="fas fa-times-circle me-1"></i>Rejected
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Rejection Reason Section -->
+                <div class="mb-4">
+                    <h6 class="text-muted mb-2"
+                        style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
+                        Rejection Reason
+                    </h6>
+                    <div class="p-3" style="background: #f8f9fa; border-left: 3px solid #dc3545; border-radius: 4px;">
+                        {% if doctor.rejection_reason %}
+                        <p class="mb-0" style="color: #212529; line-height: 1.6; font-size: 1rem;">
+                            {{ doctor.rejection_reason }}
+                        </p>
+                        {% else %}
+                        <p class="mb-0 text-muted" style="font-size: 1rem;">
+                            No specific reason provided.
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Appeal Information Section -->
+                {% if doctor.appeal_status != 'suspended' and doctor.appeal_count < 3 %} <div class="mb-4">
+                    <h6 class="text-muted mb-2"
+                        style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
+                        Appeal Information
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="p-3" style="background: #e7f3ff; border-radius: 4px;">
+                                <small class="text-muted d-block mb-1"
+                                    style="font-size: 0.75rem; text-transform: uppercase;">
+                                    Appeal Attempts
+                                </small>
+                                <strong class="text-primary" style="font-size: 1.1rem;">
+                                    {{ doctor.appeal_count }} / 3
+                                </strong>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="p-3" style="background: #fff3cd; border-radius: 4px;">
+                                <small class="text-muted d-block mb-1"
+                                    style="font-size: 0.75rem; text-transform: uppercase;">
+                                    Remaining Attempts
+                                </small>
+                                <strong class="text-warning" style="font-size: 1.1rem;">
+                                    {{ 3 - doctor.appeal_count }}
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+
+            <!-- Action Message -->
+            <div class="alert alert-info mb-3"
+                style="background: #d1ecf1; border: 1px solid #bee5eb; border-radius: 4px;">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Next Steps:</strong> You can submit an appeal to review your profile again. Please make
+                necessary improvements based on the rejection reason above.
+            </div>
+
+            <!-- Action Button -->
+            <div class="text-center">
+                <a href="{{ url_for('doctors.edit_registration') }}" class="btn btn-danger btn-lg">
+                    <i class="fas fa-gavel me-2"></i>Edit Profile & Submit Appeal
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Show all content for approved, pending, rejected (non-suspended) doctors -->
+<!-- Suspended doctors (own profile) are handled above and won't reach here -->
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+        <!-- About Section - Marham/InstaCare Style -->
+        <section class="content-section">
+            <h2 class="section-title">About</h2>
+
+            <!-- Qualifications Table (Marham Style) -->
+            {% if doctor.education %}
+            <div class="mb-4">
+                <h5 class="mb-3" style="font-weight: 600; color: #333; font-size: 1.1rem;">Qualifications</h5>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th>Degree</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for qual in doctor.education.split(',') %}
+                        <tr>
+                            <td>{{ qual.strip() }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            <!-- Experience Table (Marham Style) -->
+            <div class="mb-4">
+                <h5 class="mb-3" style="font-weight: 600; color: #333; font-size: 1.1rem;">Experience</h5>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th>Institute</th>
+                            <th>Designation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Multiple Hospitals (See time slots)</td>
+                            <td>{{ doctor.specialization|title }} - {{ doctor.experience|int }} Year{{ 's' if
+                                doctor.experience|int != 1 else '' }} Experience</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Professional Statement (Marham Style) -->
+            {% if doctor.bio %}
+            <div class="mb-4">
+                <h5 class="mb-3" style="font-weight: 600; color: #333; font-size: 1.1rem;">Professional Statement by Dr.
+                    {{ doctor.user.name }}</h5>
+                <div class="professional-statement">
+                    <p><strong>{{ doctor.user.name }}</strong> is a {{ doctor.specialization|title }}. {{ doctor.bio
+                        }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Services Section (from specialization/bio) -->
+        {% if doctor.specialization or doctor.bio %}
+        <section class="content-section">
+            <h2 class="section-title">Services</h2>
+            <div class="tags-container">
+                {% if doctor.specialization %}
+                {% set services = doctor.specialization.split(',') if ',' in doctor.specialization else
+                [doctor.specialization] %}
+                {% for service in services %}
+                <span class="tag-item">{{ service.strip()|title }}</span>
+                {% endfor %}
+                {% endif %}
+                {% if doctor.bio %}
+                {% set bio_words = doctor.bio.split() %}
+                {% for word in bio_words[:10] %}
+                {% if word|length > 4 and word not in ['the', 'and', 'with', 'from', 'that', 'this', 'doctor', 'years']
+                %}
+                <span class="tag-item">{{ word.strip('.,!?')|title }}</span>
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Video Consultation Section - InstaCare Style -->
+        <section class="content-section">
+            <h2 class="section-title">Video Consultation</h2>
+            <div class="consultation-card {% if not is_approved %}disabled{% endif %}">
+                <div class="consultation-clinic-name">Clinic</div>
+                <div class="consultation-fee {% if not is_approved %}disabled{% endif %}">
+                    {% if is_approved %}
+                    {% if doctor.video_charges %}
+                    Rs. {{ doctor.video_charges }}
+                    {% else %}
+                    Fee information not available
+                    {% endif %}
+                    {% else %}
+                    Fee information will be available after approval
+                    {% endif %}
+                </div>
+
+                {% if is_approved and doctor.time_slots %}
+                <div class="mb-3">
+                    <strong style="color: #333; display: block; margin-bottom: 0.75rem;">Available Timings:</strong>
+                    <ul class="timing-list-modern">
+                        {% for day, slots in doctor.time_slots.items() %}
+                        <li>
+                            <span class="timing-day-name">{{ day|title }}:</span>
+                            {% for slot in slots %}
+                            <span class="time-slot-badge">{{ slot }}</span>
+                            {% endfor %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% elif is_approved %}
+                <p class="text-muted mb-3">Timings will be updated soon.</p>
+                {% endif %}
+
+                {% if is_approved %}
+                {% if session.user_id %}
+                <a href="{{ url_for('patients.book_appointment', doctor_id=doctor.id) }}?type=video"
+                    class="btn btn-primary booking-btn">
+                    <i class="fas fa-video me-2"></i>Book Video Consultation
+                </a>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary booking-btn">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login to Book
+                </a>
+                {% endif %}
+                {% else %}
+                <div class="alert alert-warning mb-0">
+                    <i class="fas fa-lock me-2"></i>
+                    Booking Restricted: Video consultation is not available {{ 'until profile is approved' if is_pending
+                    else 'for this doctor' }}.
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Physical Appointment Section - InstaCare Style -->
+        <section class="content-section">
+            <h2 class="section-title">Physical Appointment</h2>
+            <div class="consultation-card {% if not is_approved %}disabled{% endif %}">
+                <div class="consultation-clinic-name">Fee:
+                    <span class="consultation-fee {% if not is_approved %}disabled{% endif %}"
+                        style="display: inline-block; margin-left: 0.5rem;">
+                        {% if is_approved %}
+                        {% if doctor.physical_charges %}
+                        Rs. {{ doctor.physical_charges }}
+                        {% else %}
+                        Fee information not available
+                        {% endif %}
+                        {% else %}
+                        Fee information will be available after approval
+                        {% endif %}
+                    </span>
+                </div>
+
+                <!-- Address -->
+                <div class="address-section mb-3">
+                    <strong>Address:</strong>
+                    <div class="address-text">{{ doctor.location }}, {{ doctor.city|title }}</div>
+                </div>
+
+                {% if is_approved and doctor.time_slots %}
+                <div class="mb-3">
+                    <strong style="color: #333; display: block; margin-bottom: 0.75rem;">Available Timings:</strong>
+                    <ul class="timing-list-modern">
+                        {% for day, slots in doctor.time_slots.items() %}
+                        <li>
+                            <span class="timing-day-name">{{ day|title }}:</span>
+                            {% for slot in slots %}
+                            <span class="time-slot-badge">{{ slot }}</span>
+                            {% endfor %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% elif is_approved %}
+                <p class="text-muted mb-3">Timings will be updated soon.</p>
+                {% endif %}
+
+                {% if is_approved %}
+                {% if session.user_id %}
+                <a href="{{ url_for('patients.book_appointment', doctor_id=doctor.id) }}?type=physical"
+                    class="btn btn-success booking-btn">
+                    <i class="fas fa-calendar-plus me-2"></i>Book Physical Appointment
+                </a>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-success booking-btn">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login to Book
+                </a>
+                {% endif %}
+                {% else %}
+                <div class="alert alert-warning mb-0">
+                    <i class="fas fa-lock me-2"></i>
+                    Booking Restricted: Physical appointments are not available {{ 'until profile is approved' if
+                    is_pending else 'for this doctor' }}.
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Practice Address and Timings Section (InstaCare Style) -->
+        {% if is_approved and doctor.time_slots %}
+        <section class="content-section">
+            <h2 class="section-title">Practice Address and Timings</h2>
+            <div class="consultation-card">
+                <div class="consultation-clinic-name">Clinic</div>
+                <div class="address-section mb-3">
+                    <strong>Address:</strong>
+                    <div class="address-text">{{ doctor.location }}, {{ doctor.city|title }}</div>
+                </div>
+                <div>
+                    <strong style="color: #333; display: block; margin-bottom: 0.75rem;">Available Timings:</strong>
+                    <ul class="timing-list-modern">
+                        {% for day, slots in doctor.time_slots.items() %}
+                        <li>
+                            <span class="timing-day-name">{{ day|title }}:</span>
+                            {% for slot in slots %}
+                            {% if slot is mapping %}
+                            <span class="time-slot-badge"
+                                title="{{ slot.hospital if slot.hospital else 'No hospital specified' }}">
+                                {{ slot.time }}{% if slot.hospital %} ({{ slot.hospital }}){% endif %}
+                            </span>
+                            {% else %}
+                            <span class="time-slot-badge">{{ slot }}</span>
+                            {% endif %}
+                            {% endfor %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- FAQs Section -->
+        <section class="content-section">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            <div class="accordion faq-accordion" id="faqAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1"
+                            aria-expanded="true">
+                            How to book an appointment with {{ doctor.user.name }}?
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            {% if is_approved %}
+                            You can book an appointment with {{ doctor.user.name }} by clicking the "Book Video
+                            Consultation" button above for online consultations or "Book Physical Appointment" button
+                            for in-person visits. You need to be logged in to book an appointment.
+                            {% else %}
+                            Appointments cannot be booked until {{ doctor.user.name }}'s profile has been approved
+                            by the administration. Please check back later.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#faq2">
+                            What is the fee of {{ doctor.user.name }}?
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            {% if is_approved %}
+                            {% if doctor.video_charges %}
+                            <strong>Video Consultation:</strong> Rs. {{ doctor.video_charges }}<br><br>
+                            {% endif %}
+                            {% if doctor.physical_charges %}
+                            <strong>Physical Appointment:</strong> Rs. {{ doctor.physical_charges }}
+                            {% endif %}
+                            {% if not doctor.video_charges and not doctor.physical_charges %}
+                            Fee information is not currently available. Please contact the clinic for pricing details.
+                            {% endif %}
+                            {% else %}
+                            Fee information will be available after the doctor's profile is approved by the
+                            administration.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#faq3">
+                            What is the qualification of {{ doctor.user.name }}?
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            {% if doctor.education %}
+                            {{ doctor.user.name }} has the following qualifications:
+                            <ul class="mt-2 mb-0">
+                                {% for qual in doctor.education.split(',') %}
+                                <li>{{ qual.strip() }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            Qualification information is not currently available.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#faq4">
+                            What is {{ doctor.user.name }}'s speciality and area of expertise?
+                        </button>
+                    </h2>
+                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            {{ doctor.user.name }} is a specialist in <strong>{{ doctor.specialization|title
+                                }}</strong>.
+                            {% if doctor.bio %}
+                            <br><br>{{ doctor.bio[:200] }}{% if doctor.bio|length > 200 %}...{% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#faq5">
+                            What are the practice timings of {{ doctor.user.name }}?
+                        </button>
+                    </h2>
+                    <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            {% if is_approved and doctor.time_slots %}
+                            Practice timings for {{ doctor.user.name }} are:
+                            <ul class="mt-2 mb-0">
+                                {% for day, slots in doctor.time_slots.items() %}
+                                <li><strong>{{ day|title }}:</strong> {{ slots|join(', ') }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            Practice timings will be available after the doctor's profile is approved by the
+                            administration.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Contact Information Card -->
+        <div class="sidebar-card sticky-top" style="top: 100px;">
+            <div class="sidebar-card-header">
+                <i class="fas fa-info-circle me-2"></i>Contact Information
+            </div>
+            <div class="sidebar-card-body">
+                <div class="contact-item">
+                    <i class="fas fa-phone"></i>
+                    <div>
+                        <strong>Phone</strong>
+                        <i class="fas fa-phone contact-icon"></i>
+                        <span>{{ doctor.user.phone|format_phone }}</span>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <div>
+                        <strong>Email</strong>
+                        <span>{{ doctor.user.email }}</span>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <strong>Location</strong>
+                        <span>{{ doctor.location }}, {{ doctor.city|title }}</span>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-hospital"></i>
+                    <div>
+                        <strong>Hospital/Clinic</strong>
+                        <span>See time slots for hospital details</span>
+                    </div>
+                </div>
+                {% if doctor.pmc_code %}
+                <div class="contact-item">
+                    <i class="fas fa-id-card"></i>
+                    <div>
+                        <strong>PMC Code</strong>
+                        <span>{{ doctor.pmc_code }}</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Booking Options (Only for approved doctors) -->
+        {% if is_approved %}
+        <div class="sidebar-card">
+            <div class="sidebar-card-header" style="background: #28a745;">
+                <i class="fas fa-calendar-check me-2"></i>Book Appointment
+            </div>
+            <div class="sidebar-card-body">
+                {% if session.user_id %}
+                <a href="{{ url_for('patients.book_appointment', doctor_id=doctor.id) }}?type=video"
+                    class="btn btn-primary booking-sidebar-btn">
+                    <i class="fas fa-video me-2"></i>Video Consultation
+                </a>
+                <a href="{{ url_for('patients.book_appointment', doctor_id=doctor.id) }}?type=physical"
+                    class="btn btn-success booking-sidebar-btn">
+                    <i class="fas fa-calendar-plus me-2"></i>Physical Appointment
+                </a>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary booking-sidebar-btn">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login to Book
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Reviews Section (Marham Style) -->
+        <div class="sidebar-card">
+            <div class="sidebar-card-header" style="background: #ffc107; color: #333;">
+                <i class="fas fa-star me-2"></i>Reviews
+            </div>
+            <div class="sidebar-card-body">
+                <div class="reviews-summary">
+                    <div class="review-rating">5.0</div>
+                    <div class="stars-display">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="review-count">0 Patient Reviews</div>
+                    <a href="#" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-plus me-2"></i>Add Review
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<!-- End of main content row -->
+</div>
+<!-- End of container for non-suspended doctors -->
+{% endif %}
+<!-- End of else block (suspended vs non-suspended) -->
+{% endblock %}

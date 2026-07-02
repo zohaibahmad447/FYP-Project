@@ -1,0 +1,1188 @@
+{% extends "base.html" %}
+
+{% block title %}{{ question.title|truncate(65, True, '...') }} - Q&A Forum{% endblock %}
+
+{% block extra_meta %}
+<meta name="description" content="{{ question.content[:160] }}">
+{% endblock %}
+
+{% block page_breadcrumb %}
+<div class="container">
+    <div class="page-breadcrumb py-3">
+        <a href="{{ url_for('home.index') }}">Home</a>
+        <span class="separator"><i class="fas fa-chevron-right"></i></span>
+        <a href="{{ url_for('qa.index') }}">Q&A Forum</a>
+        <span class="separator"><i class="fas fa-chevron-right"></i></span>
+        <span class="current">Question</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    {% set csrf_token_value = csrf_token() if csrf_token is defined else '' %}
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <!-- Question Card -->
+            <div class="vq-question-card">
+                <div class="vq-question-header">
+                    <div class="vq-question-main-content">
+                        <div class="vq-badges">
+                            <span class="vq-badge category"><i class="fas fa-tag me-1"></i>{{ question.category.title() }}</span>
+                            {% if question.is_answered %}
+                            <span class="vq-badge answered"><i class="fas fa-check-circle me-1"></i>Answered</span>
+                            {% else %}
+                            <span class="vq-badge unanswered"><i class="fas fa-hourglass-half me-1"></i>Awaiting Answer</span>
+                            {% endif %}
+                        </div>
+                        <h1 class="vq-question-title">{{ question.title }}</h1>
+                        <div class="vq-question-meta">
+                            <span><i class="fas fa-eye me-1"></i>{{ question.view_count or 0 }} views</span>
+                        </div>
+                    </div>
+                    {% if not question.is_anonymous and question.patient and question.patient.user %}
+                    <div class="vq-question-author-card">
+                        {% set patient_avatar = '' %}
+                        {% if question.patient.user.profile_picture %}
+                            {% if question.patient.user.profile_picture.startswith('/static/') %}
+                                {% set patient_avatar = question.patient.user.profile_picture %}
+                            {% elif question.patient.user.profile_picture.startswith('uploads/') %}
+                                {% set patient_avatar = url_for('static', filename=question.patient.user.profile_picture) %}
+                            {% else %}
+                                {% set patient_avatar = url_for('static', filename='uploads/' + question.patient.user.profile_picture) %}
+                            {% endif %}
+                        {% endif %}
+                        <div class="vq-patient-avatar">
+                            {% if patient_avatar %}
+                            <img src="{{ patient_avatar }}" alt="{{ question.patient.user.name }}">
+                            {% else %}
+                            <i class="fas fa-user"></i>
+                            {% endif %}
+                        </div>
+                        <div class="vq-patient-info">
+                            <span class="vq-patient-name">{{ question.patient.user.name }}</span>
+                            <span class="vq-patient-detail">Asked on {{ question.created_at.strftime('%b %d, %Y') }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="vq-question-body">
+                        {% if not question.is_anonymous %}
+                        <div class="vq-question-subline mb-3">
+                            {% if question.patient.user.gender %}
+                            <span><i class="fas fa-venus-mars me-1"></i>{{ question.patient.user.gender.title() }}</span>
+                            {% endif %}
+                            {% if question.patient.user.address %}
+                            <span><i class="fas fa-location-dot me-1"></i>{{ question.patient.user.address }}</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        <p>{{ question.content }}</p>
+                        {% if session.user_role == 'patient' %}
+                        <div class="vq-question-actions mt-3">
+                            <button type="button"
+                                    class="vq-action-btn {{ 'active' if is_bookmarked else '' }}"
+                                    data-bookmark-toggle
+                                    data-question-id="{{ question.id }}"
+                                    data-csrf-token="{{ csrf_token_value }}">
+                                <i class="fas fa-bookmark me-1"></i>
+                                <span>{{ 'Bookmarked' if is_bookmarked else 'Bookmark' }}</span>
+                                <small class="ms-1" data-bookmark-count>{{ question.bookmarks.count() }}</small>
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="vq-answers-section">
+                    <h4 class="vq-answers-heading">
+                        <i class="fas fa-user-md me-2"></i>Doctor Responses
+                        <span class="vq-answer-count">{{ answers|length }}</span>
+                    </h4>
+
+                    {% if answers %}
+                        {% for answer in answers %}
+                        <div class="vq-answer-card">
+                            {% set avatar_url = '' %}
+                            {% if answer.doctor.user and answer.doctor.user.profile_picture %}
+                                {% if answer.doctor.user.profile_picture.startswith('/static/') %}
+                                    {% set avatar_url = answer.doctor.user.profile_picture %}
+                                {% elif answer.doctor.user.profile_picture.startswith('uploads/') %}
+                                    {% set avatar_url = url_for('static', filename=answer.doctor.user.profile_picture) %}
+                                {% else %}
+                                    {% set avatar_url = url_for('static', filename='uploads/' + answer.doctor.user.profile_picture) %}
+                                {% endif %}
+                            {% endif %}
+                            <div class="vq-answer-toprow">
+                                <div class="vq-answer-doctor">
+                                    <div class="vq-doctor-avatar">
+                                        {% if avatar_url %}
+                                        <img src="{{ avatar_url }}" alt="{{ answer.doctor.user.name }}">
+                                        {% else %}
+                                        <i class="fas fa-user-md"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="vq-doctor-info">
+                                        <h5 class="vq-doctor-name">
+                                            {{ answer.doctor.user.name }}
+                                            <span class="vq-verified-badge" title="Verified Doctor"><i class="fas fa-check-circle"></i></span>
+                                        </h5>
+                                        <div class="vq-doctor-details">
+                                            <span><i class="fas fa-stethoscope me-1"></i>{{ answer.doctor.category.title() }}</span>
+                                            {% if answer.doctor.experience %}
+                                            <span><i class="fas fa-briefcase-medical me-1"></i>{{ answer.doctor.experience|int }} yrs exp.</span>
+                                            {% endif %}
+                                            {% if answer.doctor.user.address %}
+                                            <span><i class="fas fa-location-dot me-1"></i>{{ answer.doctor.user.address }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <a href="{{ url_for('patients.doctor_profile', doctor_id=answer.doctor.id) }}" class="vq-profile-top-btn">
+                                    View Doctor Profile
+                                </a>
+                            </div>
+                            <div class="vq-doctor-time"><i class="far fa-calendar me-1"></i>{{ answer.created_at.strftime('%b %d, %Y') }}</div>
+                            <div class="vq-answer-content">
+                                <p>{{ answer.content }}</p>
+                            </div>
+                            {% set feedback = answer_feedback_status.get(answer.id, 'unrated') %}
+                            <div class="vq-answer-actions">
+                                <div class="vq-action-left">
+                                    {% if can_reply_on_answers.get(answer.id) %}
+                                    <button type="button"
+                                            class="vq-reply-btn"
+                                            data-reply-target
+                                            data-answer-id="{{ answer.id }}"
+                                            data-doctor-name="{{ answer.doctor.user.name }}">
+                                        <i class="fas fa-reply me-1"></i>Reply
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                <div class="vq-reaction-wrap">
+                                    <button type="button"
+                                            class="vq-vote-btn vq-helpful-btn {{ 'active' if feedback == 'satisfied' else '' }} {{ 'is-disabled' if not can_vote_on_answers else '' }}"
+                                            data-helpful-toggle
+                                            data-answer-id="{{ answer.id }}"
+                                            data-csrf-token="{{ csrf_token_value }}"
+                                            {% if not can_vote_on_answers %}disabled{% endif %}>
+                                        <i class="fas fa-thumbs-up"></i>
+                                    </button>
+                                    <button type="button"
+                                            class="vq-vote-btn vq-not-helpful-btn {{ 'active' if feedback == 'not_satisfied' else '' }} {{ 'is-disabled' if not can_vote_on_answers else '' }}"
+                                            data-not-helpful-toggle
+                                            data-answer-id="{{ answer.id }}"
+                                            data-csrf-token="{{ csrf_token_value }}"
+                                            {% if not can_vote_on_answers %}disabled{% endif %}>
+                                        <i class="fas fa-thumbs-down"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="vq-replies-thread">
+                                <div class="vq-replies-list" data-replies-list="{{ answer.id }}">
+                                    {% for reply in answer_replies.get(answer.id, []) %}
+                                    <div class="vq-reply-item">
+                                        <div class="vq-reply-meta">
+                                            <strong>{{ reply.user.name }}</strong>
+                                            <span class="vq-reply-role">{{ 'Doctor' if reply.user.role == 'doctor' else 'Question Owner' }}</span>
+                                            <span>{{ reply.created_at.strftime('%b %d, %Y %I:%M %p') }}</span>
+                                        </div>
+                                        <p>{{ reply.content }}</p>
+                                        {% if reply.photo_path %}
+                                        <a class="vq-reply-photo-link" href="{{ url_for('static', filename='uploads/' + reply.photo_path) }}" target="_blank" rel="noopener">
+                                            <img src="{{ url_for('static', filename='uploads/' + reply.photo_path) }}" alt="Reply attachment">
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        {% if not can_answer %}
+                        <div class="vq-no-answers">
+                            <i class="fas fa-comment-medical"></i>
+                            <h5>No Answers Yet</h5>
+                            <p>Verified doctors specializing in <strong>{{ question.category.title() }}</strong> will respond to this question soon.</p>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                {% if question.is_answered and answers and can_post_any_reply and answer_reply_targets %}
+                <div class="vq-inline-reply-form vq-global-reply-form" id="global-reply-form-wrap">
+                    <form id="global-reply-form" enctype="multipart/form-data" data-ajax-submit="true">
+                        <label class="vq-comment-label">
+                            Write Comment
+                            <span>(Only Doctors and post Owner can comment or reply on it.)</span>
+                        </label>
+                        <input type="hidden" id="global-reply-answer-id" name="answer_id" value="{{ answer_reply_targets[0].id }}">
+
+                        <textarea class="vq-reply-textarea"
+                                  name="content"
+                                  rows="4"
+                                  placeholder="Write your comment..."
+                                  required></textarea>
+                        <div class="vq-reply-upload-wrap">
+                            <span class="vq-upload-title">Attach Photo here:</span>
+                            <label class="vq-upload-tile" for="global-reply-photo">
+                                <span class="vq-upload-block"></span>
+                                <span class="vq-upload-cta">UPLOAD PHOTO</span>
+                                <span class="vq-upload-block"></span>
+                            </label>
+                            <input type="file"
+                                   id="global-reply-photo"
+                                   name="photo"
+                                   class="vq-reply-file"
+                                   accept="image/*">
+                            <small id="global-reply-file-name" class="vq-file-name">No file selected</small>
+                        </div>
+                        {% if csrf_token is defined %}
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token_value }}">
+                        {% endif %}
+                        <div class="vq-reply-form-footer">
+                            <small class="vq-reply-status" id="global-reply-status"></small>
+                            <button type="submit" class="vq-reply-submit-btn">Submit</button>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+
+                {% if can_answer %}
+                <div class="vq-inline-reply-form vq-global-reply-form">
+                    <form id="doctor-answer-form" action="{{ url_for('doctors.answer_question', question_id=question.id) }}" method="POST" data-ajax-submit="true">
+                        <label class="vq-comment-label">
+                            Write Comment
+                            <span>(Only Doctors and post Owner can comment or reply on it.)</span>
+                        </label>
+                        {% if csrf_token is defined %}
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token_value }}">
+                        {% endif %}
+                        <textarea class="vq-reply-textarea"
+                                  name="content"
+                                  rows="6"
+                                  placeholder="Write your comment..."
+                                  required></textarea>
+                        <div class="vq-reply-form-footer">
+                            <small id="doctor-answer-status" class="vq-reply-status">Your response will be posted publicly in this thread.</small>
+                            <button type="submit" class="vq-reply-submit-btn">Submit</button>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+
+            </div>
+
+            <div class="col-lg-4">
+                <div class="vq-sidebar-card">
+                    <h5 class="vq-sidebar-title"><i class="fas fa-info-circle me-2"></i>Question Details</h5>
+                    <div class="vq-info-row"><span class="vq-info-label">Specialty</span><span class="vq-badge category">{{ question.category.title() }}</span></div>
+                    <div class="vq-info-row"><span class="vq-info-label">Status</span><span class="vq-badge {{ 'answered' if question.is_answered else 'unanswered' }}">{{ 'Answered' if question.is_answered else 'Awaiting' }}</span></div>
+                    <div class="vq-info-row"><span class="vq-info-label">Responses</span><span class="vq-info-value">{{ answers|length }}</span></div>
+                    <div class="vq-info-row"><span class="vq-info-label">Asked</span><span class="vq-info-value">{{ question.created_at.strftime('%b %d, %Y') }}</span></div>
+                    <div class="vq-info-row"><span class="vq-info-label">Views</span><span class="vq-info-value">{{ question.view_count or 0 }}</span></div>
+                </div>
+
+                {% if related_questions %}
+                <div class="vq-sidebar-card">
+                    <h5 class="vq-sidebar-title"><i class="fas fa-link me-2"></i>Related Questions</h5>
+                    {% for related in related_questions %}
+                    <a href="{{ url_for('qa.view_question', question_id=related.id) }}" class="vq-sidebar-link"><i class="fas fa-angle-right"></i>{{ related.title[:55] }}{% if related.title|length > 55 %}...{% endif %}</a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="vq-sidebar-card">
+                    <h5 class="vq-sidebar-title"><i class="fas fa-compass me-2"></i>Explore More</h5>
+                    <a href="{{ url_for('qa.index', category=question.category) }}" class="vq-sidebar-link"><i class="fas fa-tag"></i>More {{ question.category.title() }} Questions</a>
+                    <a href="{{ url_for('qa.index') }}" class="vq-sidebar-link"><i class="fas fa-list"></i>Browse All Questions</a>
+                    <a href="{{ url_for('patients.find_doctors') }}" class="vq-sidebar-link"><i class="fas fa-user-md"></i>Find a Doctor</a>
+                </div>
+
+                <div class="vq-sidebar-card vq-sidebar-cta">
+                    <div class="cta-icon-circle"><i class="fas fa-video"></i></div>
+                    <h5>Need a Private Consultation?</h5>
+                    <p>Book a confidential video consultation with a verified specialist.</p>
+                    <a href="{{ url_for('patients.find_doctors') }}?category={{ question.category }}" class="vq-cta-btn">Consult a {{ question.category.title() }} Doctor <i class="fas fa-arrow-right ms-2"></i></a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+<style>
+.vq-question-body p {
+    white-space: pre-wrap;
+    line-height: 1.85;
+    margin: 0;
+}
+.vq-question-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.vq-action-btn {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+.vq-action-btn.active {
+    border-color: #10b981;
+    color: #059669;
+    background: #ecfdf5;
+}
+
+/* === Patient Author Card === */
+.vq-question-author-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    margin: 0;
+    flex-shrink: 0;
+}
+.vq-question-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 1.5rem;
+}
+.vq-question-main-content {
+    flex: 1;
+}
+.vq-patient-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1rem;
+    flex-shrink: 0;
+    overflow: hidden;
+    border: 2px solid #ecf0f1;
+}
+.vq-patient-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.vq-patient-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.vq-patient-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1f2937;
+    display: block;
+}
+.vq-patient-detail {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    display: block;
+}
+
+/* === Answers Section === */
+.vq-answers-section {
+    margin-top: 1.25rem;
+}
+.vq-answers-heading {
+    display: flex;
+    align-items: center;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+.vq-answers-heading i { color: #10b981; }
+.vq-answer-count {
+    background: #10b981;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 50px;
+    margin-left: 8px;
+}
+
+/* === Answer Card === */
+.vq-answer-card {
+    background: #fff;
+    border: 1px solid #d7e7df;
+    border-radius: 12px;
+    padding: 1rem 1rem 0.9rem;
+    margin-bottom: 1rem;
+    transition: box-shadow 0.2s;
+}
+.vq-answer-card:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+}
+.vq-answer-toprow {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.vq-answer-doctor {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 0;
+}
+.vq-doctor-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981, #059669);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+.vq-doctor-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.vq-doctor-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+}
+.vq-verified-badge {
+    color: #10b981;
+    font-size: 0.8rem;
+    margin-left: 4px;
+}
+.vq-profile-top-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    background: #0f766e;
+    color: #fff;
+    border-radius: 10px;
+    padding: 11px 18px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+.vq-profile-top-btn:hover {
+    background: #0b5f58;
+    color: #fff;
+    transform: translateY(-1px);
+}
+.vq-doctor-details {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    font-size: 0.8rem;
+    color: #9ca3af;
+    margin-top: 2px;
+}
+.vq-doctor-time {
+    font-size: 0.78rem;
+    color: #6b7280;
+    margin-top: 6px;
+}
+.vq-answer-content p {
+    white-space: pre-wrap;
+    line-height: 1.75;
+    color: #374151;
+    font-size: 0.95rem;
+    margin: 0;
+}
+.vq-answer-actions {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 12px;
+    margin-top: 1.1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f3f4f6;
+}
+.vq-action-left {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.vq-reaction-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 28px;
+}
+.vq-reply-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.88rem;
+    color: #0f766e;
+    font-weight: 700;
+    text-decoration: none;
+    border: none;
+    background: transparent;
+    padding: 0;
+}
+.vq-replies-thread {
+    margin-top: 0.75rem;
+}
+.vq-replies-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.vq-reply-item {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+.vq-reply-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+.vq-reply-role {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #047857;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 999px;
+    padding: 2px 7px;
+    font-weight: 700;
+}
+.vq-reply-item p {
+    margin: 0;
+    color: #334155;
+    font-size: 0.86rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+}
+.vq-inline-reply-form {
+    margin-top: 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 14px;
+}
+.vq-comment-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: #334155;
+}
+.vq-comment-label span {
+    color: #ef4444;
+    margin-left: 4px;
+}
+.vq-reply-textarea {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.92rem;
+    resize: vertical;
+}
+.vq-reply-upload-wrap {
+    margin-top: 12px;
+}
+.vq-upload-title {
+    display: block;
+    font-size: 0.82rem;
+    color: #334155;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+.vq-reply-file {
+    position: absolute;
+    opacity: 0;
+    width: 0.1px;
+    height: 0.1px;
+    overflow: hidden;
+}
+.vq-upload-tile {
+    display: inline-flex;
+    flex-direction: column;
+    border: 1px solid #d1d5db;
+    width: 200px;
+    cursor: pointer;
+    user-select: none;
+}
+.vq-upload-block {
+    height: 62px;
+    background: #c7c7c9;
+    display: block;
+}
+.vq-upload-cta {
+    height: 62px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+    color: #6b7280;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+.vq-file-name {
+    display: block;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+.vq-global-reply-form {
+    margin-top: 1rem;
+    max-width: 860px;
+}
+.vq-reply-textarea:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+}
+.vq-reply-form-footer {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.vq-reply-status {
+    color: #6b7280;
+    font-size: 0.75rem;
+}
+.vq-reply-submit-btn {
+    border: none;
+    background: #b91c1c;
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(185, 28, 28, 0.2);
+}
+.vq-reply-submit-btn:hover {
+    background: #991b1b;
+}
+.vq-reply-photo-link {
+    display: inline-flex;
+    margin-top: 8px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #d1d5db;
+}
+.vq-reply-photo-link img {
+    display: block;
+    width: 180px;
+    max-width: 100%;
+    height: auto;
+}
+.vq-vote-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 58px;
+    background: transparent;
+    border: none;
+    color: #7b7b7b;
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 0;
+    transition: all 0.25s;
+}
+.vq-vote-btn i {
+    font-size: 1.55rem;
+    line-height: 1;
+}
+.vq-vote-btn.active,
+.vq-vote-btn:hover {
+    color: #0f766e;
+}
+.vq-not-helpful-btn.active,
+.vq-not-helpful-btn:hover {
+    color: #ef4444;
+}
+.vq-vote-btn.is-disabled,
+.vq-vote-btn.is-disabled:hover {
+    color: #b6b6b6;
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+.vq-helpful-btn.is-disabled.active,
+.vq-helpful-btn.is-disabled.active:hover {
+    color: #0f766e;
+    opacity: 1;
+}
+.vq-not-helpful-btn.is-disabled.active,
+.vq-not-helpful-btn.is-disabled.active:hover {
+    color: #ef4444;
+    opacity: 1;
+}
+.vq-vote-btn.is-disabled i,
+.vq-vote-btn.is-disabled span {
+    pointer-events: none;
+}
+.vq-doctor-details span,
+.vq-doctor-time,
+.vq-reply-btn {
+    color: #111827;
+}
+
+/* No Answers */
+.vq-no-answers {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: #fff;
+    border: 2px dashed #e5e7eb;
+    border-radius: 14px;
+}
+.vq-no-answers i { font-size: 2.5rem; color: #d1d5db; margin-bottom: 0.75rem; }
+.vq-no-answers h5 { color: #6b7280; font-weight: 700; }
+.vq-no-answers p { color: #9ca3af; font-size: 0.85rem; }
+
+/* === Answer Form === */
+.vq-answer-form-card {
+    background: #fff;
+    border: 1px solid rgba(16,185,129,0.25);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+}
+.vq-form-title {
+    font-weight: 700;
+    color: #10b981;
+    margin-bottom: 1rem;
+}
+.vq-textarea {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.9rem;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+.vq-textarea:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
+.vq-form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.75rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.vq-submit-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 10px 24px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s;
+}
+.vq-submit-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
+
+.vq-doctor-notice {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: #92400e;
+    margin-top: 1rem;
+}
+.vq-doctor-notice i { margin-right: 6px; }
+
+/* === Sidebar === */
+.vq-sidebar-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+.vq-sidebar-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+.vq-sidebar-title i { color: #10b981; }
+.vq-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+.vq-info-row:last-child { border-bottom: none; }
+.vq-info-label { font-size: 0.82rem; color: #6b7280; }
+.vq-info-value { font-size: 0.82rem; font-weight: 600; color: #1f2937; }
+
+.vq-sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #374151;
+    text-decoration: none;
+    transition: all 0.2s;
+    margin-bottom: 4px;
+}
+.vq-sidebar-link:hover { background: #f3f4f6; color: #10b981; }
+.vq-sidebar-link i { color: #10b981; width: 16px; text-align: center; }
+
+/* Sidebar CTA */
+.vq-sidebar-cta {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    border: none;
+    text-align: center;
+}
+.vq-sidebar-cta h5 { color: #fff; font-size: 1rem; font-weight: 700; }
+.vq-sidebar-cta p { color: rgba(255,255,255,0.75); font-size: 0.82rem; }
+.cta-icon-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.1rem;
+    margin: 0 auto 0.75rem;
+}
+.vq-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    background: #fff;
+    color: #059669;
+    font-weight: 700;
+    font-size: 0.82rem;
+    padding: 10px 22px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+.vq-cta-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    color: #047857;
+}
+
+@media (max-width: 768px) {
+    .vq-question-title { font-size: 1rem; }
+    .vq-form-footer { flex-direction: column; }
+    .vq-answer-actions {
+        grid-template-columns: 1fr;
+    }
+    .vq-answer-toprow,
+    .vq-answer-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .vq-reaction-wrap {
+        justify-content: flex-start;
+        width: 100%;
+    }
+    .vq-profile-top-btn {
+        width: 100%;
+    }
+    .vq-global-reply-form {
+        max-width: 100%;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const bookmarkButton = document.querySelector('[data-bookmark-toggle]');
+    const answerForm = document.getElementById('doctor-answer-form');
+
+    if (bookmarkButton) {
+        bookmarkButton.addEventListener('click', async function () {
+            const questionId = this.getAttribute('data-question-id');
+            const csrfToken = this.getAttribute('data-csrf-token');
+
+            const response = await fetch(`/qa/question/${questionId}/bookmark`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `csrf_token=${encodeURIComponent(csrfToken)}`
+            });
+            const data = await response.json();
+            if (!data.success) {
+                return;
+            }
+
+            this.classList.toggle('active', data.bookmarked);
+            this.querySelector('span').textContent = data.bookmarked ? 'Bookmarked' : 'Bookmark';
+            this.querySelector('[data-bookmark-count]').textContent = data.bookmark_count;
+        });
+    }
+
+    document.querySelectorAll('[data-helpful-toggle]').forEach(function (button) {
+        button.addEventListener('click', async function () {
+            const answerId = this.getAttribute('data-answer-id');
+            const csrfToken = this.getAttribute('data-csrf-token');
+
+            const response = await fetch(`/qa/answer/${answerId}/helpful`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `csrf_token=${encodeURIComponent(csrfToken)}`
+            });
+            const data = await response.json();
+            if (!data.success) {
+                return;
+            }
+
+            this.classList.toggle('active', data.helpful);
+
+            const notHelpfulButton = document.querySelector(`[data-not-helpful-toggle][data-answer-id="${answerId}"]`);
+            if (notHelpfulButton) {
+                notHelpfulButton.classList.toggle('active', false);
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-not-helpful-toggle]').forEach(function (button) {
+        button.addEventListener('click', async function () {
+            const answerId = this.getAttribute('data-answer-id');
+            const csrfToken = this.getAttribute('data-csrf-token');
+
+            const response = await fetch(`/qa/answer/${answerId}/not-helpful`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `csrf_token=${encodeURIComponent(csrfToken)}`
+            });
+            const data = await response.json();
+            if (!data.success) {
+                return;
+            }
+
+            this.classList.toggle('active', data.not_helpful);
+
+            const helpfulButton = document.querySelector(`[data-helpful-toggle][data-answer-id="${answerId}"]`);
+            if (helpfulButton) {
+                helpfulButton.classList.toggle('active', false);
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-reply-target]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const targetAnswerId = this.getAttribute('data-answer-id');
+            const targetDoctorName = this.getAttribute('data-doctor-name');
+            const targetInput = document.getElementById('global-reply-answer-id');
+            const targetWrap = document.getElementById('global-reply-form-wrap');
+
+            if (targetInput && targetAnswerId) {
+                targetInput.value = targetAnswerId;
+            }
+            if (targetWrap) {
+                targetWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            const status = document.getElementById('global-reply-status');
+            if (status && targetDoctorName) {
+                status.textContent = `Replying to Dr. ${targetDoctorName}.`;
+                status.style.color = '#0f766e';
+            }
+        });
+    });
+
+    const globalReplyForm = document.getElementById('global-reply-form');
+    if (globalReplyForm) {
+        const photoInput = document.getElementById('global-reply-photo');
+        const fileName = document.getElementById('global-reply-file-name');
+
+        if (photoInput && fileName) {
+            photoInput.addEventListener('change', function () {
+                fileName.textContent = this.files && this.files.length ? this.files[0].name : 'No file selected';
+            });
+        }
+
+        globalReplyForm.addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const answerInput = this.querySelector('input[name="answer_id"]');
+            const textarea = this.querySelector('textarea[name="content"]');
+            const status = document.getElementById('global-reply-status');
+            const csrfInput = this.querySelector('input[name="csrf_token"]');
+            const answerId = answerInput ? answerInput.value : '';
+            const replyContent = textarea ? textarea.value.trim() : '';
+            const csrfToken = csrfInput ? csrfInput.value : '';
+
+            if (!answerId) {
+                if (status) {
+                    status.textContent = 'Please select a response first.';
+                    status.style.color = '#b91c1c';
+                }
+                return;
+            }
+
+            if (!replyContent) {
+                if (status) {
+                    status.textContent = 'Reply cannot be empty.';
+                    status.style.color = '#b91c1c';
+                }
+                return;
+            }
+
+            const formData = new FormData(this);
+            const response = await fetch(`/qa/answer/${answerId}/reply`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+            if (!data.success) {
+                if (status) {
+                    status.textContent = data.message || 'Unable to post reply.';
+                    status.style.color = '#b91c1c';
+                }
+                return;
+            }
+
+            const list = document.querySelector(`[data-replies-list="${answerId}"]`);
+            if (list && data.reply) {
+                const item = document.createElement('div');
+                item.className = 'vq-reply-item';
+
+                const meta = document.createElement('div');
+                meta.className = 'vq-reply-meta';
+
+                const strong = document.createElement('strong');
+                strong.textContent = data.reply.author_name;
+
+                const role = document.createElement('span');
+                role.className = 'vq-reply-role';
+                role.textContent = data.reply.author_role;
+
+                const time = document.createElement('span');
+                time.textContent = data.reply.created_at;
+
+                meta.appendChild(strong);
+                meta.appendChild(role);
+                meta.appendChild(time);
+
+                const paragraph = document.createElement('p');
+                paragraph.textContent = data.reply.content;
+
+                item.appendChild(meta);
+                item.appendChild(paragraph);
+
+                if (data.reply.photo_url) {
+                    const photoLink = document.createElement('a');
+                    photoLink.className = 'vq-reply-photo-link';
+                    photoLink.href = data.reply.photo_url;
+                    photoLink.target = '_blank';
+                    photoLink.rel = 'noopener';
+
+                    const photo = document.createElement('img');
+                    photo.src = data.reply.photo_url;
+                    photo.alt = 'Reply attachment';
+
+                    photoLink.appendChild(photo);
+                    item.appendChild(photoLink);
+                }
+
+                list.appendChild(item);
+            }
+
+            const selectedAnswerId = answerId;
+            this.reset();
+            if (answerInput) {
+                answerInput.value = selectedAnswerId;
+            }
+            if (fileName) {
+                fileName.textContent = 'No file selected';
+            }
+            if (status) {
+                status.textContent = 'Reply posted.';
+                status.style.color = '#047857';
+            }
+        });
+    }
+
+    if (answerForm) {
+        answerForm.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const status = document.getElementById('doctor-answer-status');
+            const formData = new FormData(answerForm);
+
+            const response = await fetch(answerForm.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            });
+            const data = await response.json();
+
+            if (!data.success) {
+                status.className = 'small mt-2 text-danger';
+                status.textContent = data.message || 'Unable to post answer.';
+                return;
+            }
+
+            status.className = 'small mt-2 text-success';
+            status.textContent = data.message;
+            answerForm.querySelector('textarea[name="content"]').value = '';
+            window.location.reload();
+        });
+    }
+});
+</script>
+{% endblock %}

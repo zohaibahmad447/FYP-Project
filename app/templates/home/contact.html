@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us - Quick Care Connect{% endblock %}
+
+{% block page_breadcrumb %}
+<div class="container">
+    <div class="page-breadcrumb">
+        <a href="{{ url_for('home.index') }}">Home</a>
+        <span class="separator"><i class="fas fa-chevron-right"></i></span>
+        <span class="current">Contact Us</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Section Header -->
+    <div class="section-header">
+        <h1>Contact Us</h1>
+        <p>Reach out for health and wellness assistance. We're here to help!</p>
+    </div>
+
+    <!-- Contact Info Cards -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-4">
+            <div class="contact-info-card">
+                <div class="contact-icon-circle">
+                    <i class="fas fa-phone-alt"></i>
+                </div>
+                <h5>Phone</h5>
+                <p><a href="tel:+923420820447">+92 342 0820447</a></p>
+                <small style="color: var(--gray-500);">Mon-Fri 9AM-6PM</small>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="contact-info-card">
+                <div class="contact-icon-circle">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <h5>Email</h5>
+                <p><a href="mailto:support@quickcares.me">support@quickcares.me</a></p>
+                <small style="color: var(--gray-500);">24/7 Support</small>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="contact-info-card">
+                <div class="contact-icon-circle">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <h5>Address</h5>
+                <p>Karachi, Pakistan</p>
+                <small style="color: var(--gray-500);">Head Office</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Form & Info Split -->
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card" style="border: none;">
+                <div class="card-body p-4 p-lg-5">
+                    <h3 class="mb-1" style="font-weight: 700; font-size: 1.5rem;">Send Us a Message</h3>
+                    <p class="mb-4" style="color: var(--gray-500);">Fill out the form below and we'll get back to you shortly.</p>
+                    <form method="POST" action="{{ url_for('home.contact') }}">
+                        <div class="mb-3">
+                            <label class="form-label">Your name</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Message</label>
+                            <textarea name="message" class="form-control" rows="5" required minlength="10" placeholder="How can we help you?"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-paper-plane me-2"></i>Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="card" style="border: none; background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(52, 211, 153, 0.05));">
+                <div class="card-body p-4">
+                    <h5 class="mb-4" style="font-weight: 700;">
+                        <i class="fas fa-info-circle me-2" style="color: var(--primary-color);"></i>Need Quick Help?
+                    </h5>
+                    <div class="mb-4">
+                        <div class="d-flex align-items-start mb-3">
+                            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 12px;">
+                                <i class="fas fa-phone-alt" style="color: var(--primary-color); font-size: 0.9rem;"></i>
+                            </div>
+                            <div>
+                                <strong style="font-size: 0.85rem; color: var(--gray-700);">Call Us</strong>
+                                <p class="mb-0" style="font-size: 0.9rem; color: var(--gray-600);"><a href="tel:+923420820447">+92 342 0820447</a></p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start mb-3">
+                            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 12px;">
+                                <i class="fas fa-envelope" style="color: var(--primary-color); font-size: 0.9rem;"></i>
+                            </div>
+                            <div>
+                                <strong style="font-size: 0.85rem; color: var(--gray-700);">Email Us</strong>
+                                <p class="mb-0" style="font-size: 0.9rem; color: var(--gray-600);"><a href="mailto:support@quickcares.me">support@quickcares.me</a></p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start">
+                            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 12px;">
+                                <i class="fas fa-clock" style="color: var(--primary-color); font-size: 0.9rem;"></i>
+                            </div>
+                            <div>
+                                <strong style="font-size: 0.85rem; color: var(--gray-700);">Working Hours</strong>
+                                <p class="mb-0" style="font-size: 0.9rem; color: var(--gray-600);">Mon-Fri: 9AM - 6PM</p>
+                            </div>
+                        </div>
+                    </div>
+                    <hr style="border-color: rgba(16, 185, 129, 0.15);">
+                    <div class="text-center mt-3">
+                        <p class="small mb-2" style="color: var(--gray-500);">Follow us on social media</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="#" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; color: var(--primary-color); transition: all 0.3s;" onmouseover="this.style.background='#10b981'; this.style.color='#fff'" onmouseout="this.style.background='rgba(16,185,129,0.1)'; this.style.color='var(--primary-color)'">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="#" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; color: var(--primary-color); transition: all 0.3s;" onmouseover="this.style.background='#10b981'; this.style.color='#fff'" onmouseout="this.style.background='rgba(16,185,129,0.1)'; this.style.color='var(--primary-color)'">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a href="#" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; color: var(--primary-color); transition: all 0.3s;" onmouseover="this.style.background='#10b981'; this.style.color='#fff'" onmouseout="this.style.background='rgba(16,185,129,0.1)'; this.style.color='var(--primary-color)'">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Banner -->
+    <div class="cta-banner">
+        <h3>Book Your Appointment Today</h3>
+        <p>Get appointment for your medical service with our quality doctors.</p>
+        <a href="{{ url_for('patients.find_doctors') }}" class="btn">
+            <i class="fas fa-calendar-check me-2"></i>Find Doctors
+        </a>
+    </div>
+</div>
+{% endblock %}

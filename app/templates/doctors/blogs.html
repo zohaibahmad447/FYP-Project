@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}My Articles - Quick Care Connect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-blog me-2" style="color: #10b981;"></i>My Articles
+                </h2>
+                <a href="{{ url_for('doctors.new_blog') }}" class="btn btn-primary" style="background: rgba(16, 185, 129, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(16, 185, 129, 0.5);">
+                    <i class="fas fa-plus me-2"></i>New Article
+                </a>
+            </div>
+
+            <!-- Blogs List -->
+            <div class="card" style="border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div class="card-header" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border-bottom: 2px solid #10b981; border-radius: 16px 16px 0 0;">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2" style="color: #10b981;"></i>
+                        My Articles Queue ({{ blogs|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if blogs %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width: 80px;">Cover</th>
+                                    <th>Article Details</th>
+                                    <th style="width: 120px;">Category</th>
+                                    <th style="width: 120px;">Status</th>
+                                    <th style="width: 120px;">Dates</th>
+                                    <th style="width: 130px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for blog in blogs %}
+                                <tr>
+                                    <td class="align-middle text-center">
+                                        {% if blog.featured_image %}
+                                            <img src="{{ url_for('static', filename='uploads/' + blog.featured_image) }}" 
+                                                 alt="Cover" 
+                                                 class="rounded shadow-sm"
+                                                 style="width: 60px; height: 45px; object-fit: cover; border: 1px solid #e2e8f0;">
+                                        {% else %}
+                                            <div class="rounded bg-light d-flex align-items-center justify-content-center" 
+                                                 style="width: 60px; height: 45px; border: 1px dashed #cbd5e1; color: #94a3b8;">
+                                                <i class="fas fa-image small"></i>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="align-middle">
+                                        <div class="fw-bold text-dark mb-1">{{ blog.title }}</div>
+                                        <div class="small text-muted text-truncate" style="max-width: 250px;">
+                                            {% if blog.excerpt %}{{ blog.excerpt }}{% else %}{{ blog.content|striptags|truncate(100) }}{% endif %}
+                                        </div>
+                                        {% if blog.status == 'rejected' and blog.admin_feedback %}
+                                        <div class="alert alert-danger mt-2 py-2 px-3 small mb-0 rounded-3 border-danger shadow-sm">
+                                            <div class="fw-bold text-danger mb-1"><i class="fas fa-exclamation-triangle me-1"></i>Admin Revision Required:</div>
+                                            <div class="text-dark">{{ blog.admin_feedback }}</div>
+                                        </div>
+                                        {% endif %}
+                                        {% if blog.tags %}
+                                        <div class="mt-2">
+                                            {% for tag in blog.tags.split(',')[:3] %}
+                                            <span class="badge bg-light text-muted border py-1 px-2" style="font-size: 10px;">{{ tag.strip() }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="align-middle">
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                            {{ blog.category or 'General' }}
+                                        </span>
+                                    </td>
+                                    <td class="align-middle">
+                                        {% if blog.status == 'published' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>Published
+                                            </span>
+                                        {% elif blog.status == 'pending' %}
+                                            <span class="badge" style="background-color: #f59e0b; color: white;">
+                                                <i class="fas fa-hourglass-half me-1"></i>Under Review
+                                            </span>
+                                        {% elif blog.status == 'rejected' %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times-circle me-1"></i>Rejected
+                                            </span>
+                                        {% elif blog.status == 'draft' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-edit me-1"></i>Draft
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ blog.status|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="align-middle">
+                                        <div class="small fw-semibold">Created:</div>
+                                        <div class="small text-muted mb-1">{{ blog.created_at.strftime('%b %d, %Y') }}</div>
+                                        {% if blog.published_at %}
+                                            <div class="small fw-semibold">{% if blog.status == 'scheduled' %}Publishes:{% else %}Published:{% endif %}</div>
+                                            <div class="small text-muted">{{ blog.published_at.strftime('%b %d, %Y') }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1 align-items-center flex-wrap">
+                                            <a href="{{ url_for('blogs.view_blog', blog_id=blog.id) }}" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               title="View Article"
+                                               target="_blank">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('doctors.edit_blog', blog_id=blog.id) }}" 
+                                               class="btn btn-sm btn-outline-warning" 
+                                               title="Edit Article">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% if blog.status in ['draft', 'rejected'] %}
+                                            <form method="POST" 
+                                                  action="{{ url_for('doctors.submit_for_review_blog', blog_id=blog.id) }}" 
+                                                  class="d-inline">
+                                                <button type="submit" 
+                                                        class="btn btn-sm btn-success text-white" 
+                                                        title="Submit for Review">
+                                                    <i class="fas fa-paper-plane"></i>
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                            <form method="POST" 
+                                                  action="{{ url_for('doctors.delete_blog', blog_id=blog.id) }}" 
+                                                  class="d-inline"
+                                                  onsubmit="return confirm('Are you sure you want to delete this article? This action cannot be undone!');">
+                                                <button type="submit" 
+                                                        class="btn btn-sm btn-outline-danger" 
+                                                        title="Delete Article">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-blog fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No articles yet</h5>
+                        <p class="text-muted">Start sharing your medical knowledge by writing your first article!</p>
+                        <a href="{{ url_for('doctors.new_blog') }}" class="btn btn-primary mt-3" style="background: rgba(16, 185, 129, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(16, 185, 129, 0.5);">
+                            <i class="fas fa-plus me-2"></i>Create Your First Article
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.table th {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+    border-bottom: 2px solid #10b981;
+    color: #059669;
+    font-weight: 600;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(16, 185, 129, 0.05);
+}
+
+.badge {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 8px;
+}
+
+.btn-outline-primary {
+    border-color: #10b981;
+    color: #10b981;
+}
+
+.btn-outline-primary:hover {
+    background-color: #10b981;
+    border-color: #10b981;
+    color: white;
+}
+
+.btn-outline-warning {
+    border-color: #f59e0b;
+    color: #f59e0b;
+}
+
+.btn-outline-warning:hover {
+    background-color: #f59e0b;
+    border-color: #f59e0b;
+    color: white;
+}
+
+.btn-outline-danger {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.btn-outline-danger:hover {
+    background-color: #ef4444;
+    border-color: #ef4444;
+    color: white;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+    min-width: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>
+{% endblock %}
+

@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Import Medical History - Quick Care Connect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="mb-4">
+                <h2 class="mb-2">Import Medical History</h2>
+                <p class="text-muted mb-0">Select and import your medical history to share with doctors during
+                    consultations</p>
+            </div>
+
+            <!-- Import Form -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-upload me-2"></i>Select History to Import
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="import-form">
+                        <!-- Import Options -->
+                        <div class="mb-4">
+                            <h6 class="mb-3">Import Options</h6>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="import_option" id="import_all"
+                                    value="all" checked>
+                                <label class="form-check-label" for="import_all">
+                                    <strong>Import All Medical History</strong><br>
+                                    <small class="text-muted">Import complete medical history for comprehensive
+                                        consultation</small>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="import_option" id="import_specific"
+                                    value="specific">
+                                <label class="form-check-label" for="import_specific">
+                                    <strong>Import Specific Disease History</strong><br>
+                                    <small class="text-muted">Select specific diseases to import relevant history
+                                        only</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Specific Disease Selection -->
+                        <div id="disease-selection" class="mb-4" style="display: none;">
+                            <h6 class="mb-3">Select Diseases</h6>
+                            {% if histories %}
+                            {% for history in histories %}
+                            <div class="form-check mb-2">
+                                <input class="form-check-input disease-checkbox" type="checkbox" name="diseases"
+                                    value="{{ history.disease }}" id="disease_{{ loop.index }}">
+                                <label class="form-check-label" for="disease_{{ loop.index }}">
+                                    <strong>{{ history.disease.title() }}</strong>
+                                    <small class="text-muted d-block">
+                                        {{ history.created_at.strftime('%B %d, %Y') }} - {{ history.doctor.user.name
+                                        }}
+                                    </small>
+                                </label>
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <p class="text-muted">No medical history available to import.</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Target Doctor Selection -->
+                        <div class="mb-4">
+                            <h6 class="mb-3">Target Doctor</h6>
+                            <p class="text-muted mb-3">Select the doctor you want to share this history with:</p>
+                            <select name="target_doctor" class="form-select" required>
+                                <option value="">Select Doctor</option>
+                                {% for doctor in doctors %}
+                                <option value="{{ doctor.id }}">
+                                    {{ doctor.user.name }} - {{ doctor.specialization }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Additional Notes -->
+                        <div class="mb-4">
+                            <label class="form-label">Additional Notes (Optional)</label>
+                            <textarea name="notes" class="form-control" rows="3"
+                                placeholder="Add any additional notes about the medical history..."></textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-upload me-2"></i>Import Medical History
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Instructions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>How It Works
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="step-item mb-3">
+                        <div class="d-flex align-items-start">
+                            <div class="step-number me-3">1</div>
+                            <div>
+                                <h6 class="mb-1">Select History</h6>
+                                <p class="small text-muted mb-0">Choose which medical records to import</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step-item mb-3">
+                        <div class="d-flex align-items-start">
+                            <div class="step-number me-3">2</div>
+                            <div>
+                                <h6 class="mb-1">Choose Doctor</h6>
+                                <p class="small text-muted mb-0">Select the doctor to share history with</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="d-flex align-items-start">
+                            <div class="step-number me-3">3</div>
+                            <div>
+                                <h6 class="mb-1">Book Appointment</h6>
+                                <p class="small text-muted mb-0">History will be available during consultation</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Benefits -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-heart me-2"></i>Benefits
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="benefit-item mb-3">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                            <div>
+                                <h6 class="mb-1">Better Diagnosis</h6>
+                                <p class="small text-muted mb-0">Doctors can make informed decisions</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="benefit-item mb-3">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                            <div>
+                                <h6 class="mb-1">Avoid Repetition</h6>
+                                <p class="small text-muted mb-0">No need to repeat medical history</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                            <div>
+                                <h6 class="mb-1">Continuity of Care</h6>
+                                <p class="small text-muted mb-0">Seamless healthcare experience</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('patients.medical_history') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-file-medical me-2"></i>View History
+                        </a>
+                        <a href="{{ url_for('patients.find_doctors') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-search me-2"></i>Find Doctors
+                        </a>
+                        <a href="{{ url_for('patients.appointments') }}" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-calendar me-2"></i>Appointments
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .step-number {
+        width: 30px;
+        height: 30px;
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+
+    .step-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .benefit-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .disease-checkbox:checked+label {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    #disease-selection {
+        background-color: var(--gray-50);
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--gray-200);
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const importAllRadio = document.getElementById('import_all');
+        const importSpecificRadio = document.getElementById('import_specific');
+        const diseaseSelection = document.getElementById('disease-selection');
+        const diseaseCheckboxes = document.querySelectorAll('.disease-checkbox');
+
+        // Toggle disease selection based on radio button selection
+        function toggleDiseaseSelection() {
+            if (importSpecificRadio.checked) {
+                diseaseSelection.style.display = 'block';
+                // Make at least one disease selection required
+                diseaseCheckboxes.forEach(checkbox => {
+                    checkbox.required = true;
+                });
+            } else {
+                diseaseSelection.style.display = 'none';
+                // Remove required attribute
+                diseaseCheckboxes.forEach(checkbox => {
+                    checkbox.required = false;
+                });
+            }
+        }
+
+        importAllRadio.addEventListener('change', toggleDiseaseSelection);
+        importSpecificRadio.addEventListener('change', toggleDiseaseSelection);
+
+        // Form validation
+        const form = document.getElementById('import-form');
+        form.addEventListener('submit', function (e) {
+            if (importSpecificRadio.checked) {
+                const checkedDiseases = document.querySelectorAll('.disease-checkbox:checked');
+                if (checkedDiseases.length === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one disease to import.');
+                    return false;
+                }
+            }
+
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<span class="spinner"></span> Importing...';
+            submitBtn.disabled = true;
+        });
+
+        // Auto-resize textarea
+        const textarea = document.querySelector('textarea[name="notes"]');
+        textarea.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    });
+</script>
+{% endblock %}

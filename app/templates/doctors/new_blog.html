@@ -1,0 +1,496 @@
+{% extends "base.html" %}
+
+{% block title %}Write Article - Doctor Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="mb-4">
+                <h2 class="mb-2">Write New Article</h2>
+                <p class="text-muted mb-0">Share your medical expertise and help patients with health insights</p>
+            </div>
+            
+            <!-- Article Form -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-pen me-2"></i>Article Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="blog-form" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        <!-- Category and Title Row -->
+                        <div class="row">
+                            <div class="col-md-8 mb-4">
+                                {{ form.title.label(class="form-label fw-bold") }}
+                                {{ form.title(class="form-control form-control-lg", placeholder="Enter article title...") }}
+                                {% if form.title.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.title.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-4">
+                                {{ form.category.label(class="form-label fw-bold") }}
+                                {{ form.category(class="form-control form-control-lg") }}
+                                {% if form.category.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.category.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <datalist id="category-suggestions">
+                                    <option value="Cardiology"></option>
+                                    <option value="Neurology"></option>
+                                    <option value="Pediatrics"></option>
+                                    <option value="Dermatology"></option>
+                                    <option value="Nutrition & Diet"></option>
+                                    <option value="Mental Health"></option>
+                                    <option value="Orthopedics"></option>
+                                    <option value="General Health"></option>
+                                </datalist>
+                            </div>
+                        </div>
+                        
+                        <!-- Featured Image Preview & Upload -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">{{ form.featured_image.label.text }}</label>
+                            <div class="featured-image-container mb-2">
+                                <div id="image-preview" class="image-preview-placeholder">
+                                    <i class="fas fa-image fa-3x mb-2"></i>
+                                    <p class="mb-0">No image selected</p>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                {{ form.featured_image(class="form-control", id="featured-image-input", onchange="previewImage(this)") }}
+                            </div>
+                            <div class="form-text">Choose a high-quality landscape image (1200x630 recommended).</div>
+                            {% if form.featured_image.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.featured_image.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Excerpt -->
+                        <div class="mb-4">
+                            {{ form.excerpt.label(class="form-label fw-bold") }}
+                            {{ form.excerpt(class="form-control", rows="2", placeholder="Provide a brief, catchy summary for the listing page...") }}
+                            {% if form.excerpt.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.excerpt.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Content — TinyMCE Editor -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Article Content</label>
+                            <textarea id="blog-editor" name="content">{% if form.content.data %}{{ form.content.data }}{% endif %}</textarea>
+                            {% if form.content.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.content.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Medical References -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold"><i class="fas fa-quote-right me-2"></i>Medical References & Citations</label>
+                            {{ form.references(class="form-control", rows="3", placeholder="List your sources, studies, or clinical guidelines here...") }}
+                            <div class="form-text">Citing credible sources builds trust with patients and other medical professionals.</div>
+                            {% if form.references.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.references.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Tags -->
+                        <div class="mb-4">
+                            {{ form.tags.label(class="form-label fw-bold") }}
+                            {{ form.tags(class="form-control", placeholder="e.g., blood pressure, heart health, symptoms") }}
+                            <div class="form-text">Separate tags with commas.</div>
+                        </div>
+
+                        <!-- SEO Settings Accordion -->
+                        <div class="accordion mb-4" id="seoAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingSEO">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSEO">
+                                        <i class="fas fa-search me-2"></i>SEO Settings (Search Engine Optimization)
+                                    </button>
+                                </h2>
+                                <div id="collapseSEO" class="accordion-collapse collapse" data-bs-parent="#seoAccordion">
+                                    <div class="accordion-body">
+                                        <div class="mb-3">
+                                            {{ form.meta_title.label(class="form-label") }}
+                                            {{ form.meta_title(class="form-control", placeholder="Article title for Google results") }}
+                                            <div class="form-text">Keep it between 50-60 characters if possible.</div>
+                                        </div>
+                                        <div class="mb-0">
+                                            {{ form.meta_description.label(class="form-label") }}
+                                            {{ form.meta_description(class="form-control", rows="3", placeholder="The short blurb that appears in Google search results") }}
+                                            <div class="form-text">Target 150-160 characters.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Publishing Options -->
+                        <div class="card mb-4 bg-light border-0">
+                            <div class="card-body">
+                                <h6 class="mb-3 fw-bold small"><i class="fas fa-info-circle me-2 text-warning"></i>Moderation Notice</h6>
+                                <p class="small text-muted mb-0">Upon submission, your article will be sent to the Admin for review, changing its status to <strong>Pending</strong>.</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Buttons -->
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Publish Article
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-lg" onclick="saveDraft()">
+                                <i class="fas fa-save me-2"></i>Save as Draft
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Writing Tips -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Writing Tips</h5>
+                </div>
+                <div class="card-body">
+                    <div class="tip-item mb-3">
+                        <h6 class="text-primary mb-2"><i class="fas fa-bullseye me-2"></i>Clear Purpose</h6>
+                        <p class="small text-muted mb-0">Define the main message and what readers will learn.</p>
+                    </div>
+                    <div class="tip-item mb-3">
+                        <h6 class="text-success mb-2"><i class="fas fa-language me-2"></i>Simple Language</h6>
+                        <p class="small text-muted mb-0">Use clear, jargon-free language for better understanding.</p>
+                    </div>
+                    <div class="tip-item mb-3">
+                        <h6 class="text-info mb-2"><i class="fas fa-list me-2"></i>Structure</h6>
+                        <p class="small text-muted mb-0">Use headings, bullet points, and short paragraphs.</p>
+                    </div>
+                    <div class="tip-item">
+                        <h6 class="text-warning mb-2"><i class="fas fa-check-circle me-2"></i>Accuracy</h6>
+                        <p class="small text-muted mb-0">Ensure all medical information is accurate and up-to-date.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Article Guidelines -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><small>Provide evidence-based medical information</small></li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><small>Include disclaimers for general advice</small></li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><small>Encourage readers to consult doctors</small></li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><small>Avoid specific medical diagnoses</small></li>
+                        <li><i class="fas fa-check text-success me-2"></i><small>Keep content professional and helpful</small></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Article Stats -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Article Stats</h5>
+                </div>
+                <div class="card-body">
+                    <div class="stat-item mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Characters:</span>
+                            <span id="char-count">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-item mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Words:</span>
+                            <span id="word-count">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="d-flex justify-content-between">
+                            <span>Reading Time:</span>
+                            <span id="read-time">0 min</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('doctors.blogs') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-newspaper me-2"></i>My Articles
+                        </a>
+                        <a href="{{ url_for('blogs.index') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-list me-2"></i>All Articles
+                        </a>
+                        <a href="{{ url_for('doctors.dashboard') }}" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.tip-item { padding-bottom: 1rem; border-bottom: 1px solid var(--gray-200); }
+.tip-item:last-child { border-bottom: none; padding-bottom: 0; }
+.stat-item { padding: 0.5rem 0; border-bottom: 1px solid var(--gray-200); }
+.stat-item:last-child { border-bottom: none; }
+#blog-form textarea { resize: vertical; min-height: 100px; }
+.form-control:focus { border-color: var(--primary-color); box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25); }
+.btn-lg { padding: 0.75rem 1.5rem; font-size: 1.1rem; }
+
+/* Image Preview Styles */
+.featured-image-container {
+    width: 100%;
+    height: 250px;
+    background: #f1f5f9;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.image-preview-placeholder {
+    color: #94a3b8;
+    text-align: center;
+}
+.image-preview-placeholder i { font-size: 48px; }
+#image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* TinyMCE compact overrides */
+.tox-tinymce { border-radius: 6px !important; border: 1px solid #ccc !important; }
+.tox .tox-toolbar__primary { background: #fafafa !important; }
+.tox .tox-tbtn { margin: 1px !important; }
+</style>
+
+<!-- TinyMCE 7 (Self-Hosted GPL) -->
+<script src="{{ url_for('static', filename='vendor/tinymce/tinymce.min.js') }}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ── TinyMCE Initialization ──
+    tinymce.init({
+        selector: '#blog-editor',
+        license_key: 'gpl',
+        height: 500,
+
+        // Plugins
+        plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks visualchars code fullscreen insertdatetime media table wordcount emoticons codesample quickbars directionality pagebreak nonbreaking help',
+
+        // Full comprehensive toolbar
+        toolbar: 'undo redo | blocks h2 h3 | fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table image media codesample link anchor | charmap emoticons | searchreplace visualblocks visualchars code fullscreen preview | ltr rtl | removeformat | help',
+        
+        // Full menubar available
+        menubar: 'file edit view insert format tools table help',
+        statusbar: true,
+        resize: true,
+        branding: true,
+        promotion: false,
+
+        // Image upload handler — uses our existing Flask endpoint
+        image_title: true,
+        automatic_uploads: true,
+        file_picker_types: 'image',
+        images_upload_handler: function(blobInfo) {
+            return new Promise(function(resolve, reject) {
+                var formData = new FormData();
+                formData.append('image', blobInfo.blob(), blobInfo.filename());
+                fetch('{{ url_for("doctors.upload_blog_image") }}', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        resolve(data.url);
+                    } else {
+                        reject('Upload failed: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(function() {
+                    reject('Network error during image upload');
+                });
+            });
+        },
+
+        // Content styling inside the editor
+        content_style: `
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                font-size: 15px; line-height: 1.75; color: #333; max-width: 100%; padding: 14px;
+            }
+            img { max-width: 100%; height: auto; border-radius: 6px; margin: 10px 0; }
+            table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+            table td, table th { border: 1px solid #ddd; padding: 8px 12px; }
+            table th { background: #f8f9fa; font-weight: 600; }
+            blockquote { border-left: 4px solid #10b981; padding: 12px 18px; margin: 16px 0; background: #f0fdf4; font-style: italic; }
+            pre { background: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 6px; overflow-x: auto; }
+            h1, h2, h3, h4, h5, h6 { color: #1a1a1a; margin-top: 1.5em; }
+        `,
+
+        // Table defaults
+        table_default_styles: { 'border-collapse': 'collapse', 'width': '100%' },
+        table_responsive_width: true,
+
+        // Quick bars (floating toolbar on selection)
+        quickbars_selection_toolbar: 'bold italic underline | quicklink h2 h3 blockquote',
+        quickbars_insert_toolbar: 'image media table',
+
+        // Setup callback for stats
+        setup: function(editor) {
+            editor.on('init', function() {
+                updateStats();
+                loadDraft(editor);
+            });
+            editor.on('keyup change input', function() {
+                updateStats();
+            });
+        }
+    });
+
+    // ── Stats ──
+    const charCountEl = document.getElementById('char-count');
+    const wordCountEl = document.getElementById('word-count');
+    const readTimeEl = document.getElementById('read-time');
+
+    function updateStats() {
+        const editor = tinymce.get('blog-editor');
+        if (!editor) return;
+        const text = editor.getContent({ format: 'text' });
+        const charCount = text.length;
+        const wordCount = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+        const readTime = Math.ceil(wordCount / 200);
+
+        charCountEl.textContent = charCount.toLocaleString();
+        wordCountEl.textContent = wordCount.toLocaleString();
+        readTimeEl.textContent = readTime + ' min';
+    }
+
+    // ── Image Preview ──
+    window.previewImage = function(input) {
+        const preview = document.getElementById('image-preview');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                preview.classList.remove('image-preview-placeholder');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    };
+
+    // ── Schedule Controls ──
+    const publishTypeRadios = document.querySelectorAll('input[name="publish_type"]');
+    const scheduleControls = document.getElementById('schedule-controls');
+    publishTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'later') {
+                scheduleControls.classList.remove('d-none');
+            } else {
+                scheduleControls.classList.add('d-none');
+            }
+        });
+    });
+
+    // ── Form Submission ──
+    const form = document.getElementById('blog-form');
+    form.addEventListener('submit', function(e) {
+        const editor = tinymce.get('blog-editor');
+        if (!editor) { e.preventDefault(); alert('Editor not ready.'); return false; }
+        editor.save();
+
+        const title = document.querySelector('input[name="title"]').value.trim();
+        const category = document.querySelector('select[name="category"]').value;
+        const content = editor.getContent({ format: 'text' }).trim();
+
+        if (!title || title.length < 5) { e.preventDefault(); alert('Title too short.'); return false; }
+        if (!category) { e.preventDefault(); alert('Please select a category.'); return false; }
+        if (content.length < 50) { e.preventDefault(); alert('Content too short.'); return false; }
+
+        localStorage.removeItem('blog_draft');
+    });
+
+    // ── Draft Save ──
+    window.saveDraft = function() {
+        const editor = tinymce.get('blog-editor');
+        const draft = {
+            title: document.querySelector('input[name="title"]').value,
+            category: document.querySelector('select[name="category"]').value,
+            content: editor ? editor.getContent() : '',
+            excerpt: document.querySelector('textarea[name="excerpt"]').value,
+            tags: document.querySelector('input[name="tags"]').value,
+            references: document.querySelector('textarea[name="references"]').value,
+            meta_title: document.querySelector('input[name="meta_title"]').value,
+            meta_description: document.querySelector('textarea[name="meta_description"]').value
+        };
+        localStorage.setItem('blog_draft', JSON.stringify(draft));
+        
+        const btn = event.target;
+        btn.innerHTML = '<i class="fas fa-check me-2"></i>Saved!';
+        setTimeout(() => { btn.innerHTML = '<i class="fas fa-save me-2"></i>Save as Draft'; }, 2000);
+    };
+
+    // ── Load Draft ──
+    function loadDraft(editor) {
+        const saved = localStorage.getItem('blog_draft');
+        if (saved) {
+            try {
+                const draft = JSON.parse(saved);
+                document.querySelector('input[name="title"]').value = draft.title || '';
+                document.querySelector('select[name="category"]').value = draft.category || '';
+                if (editor && draft.content) editor.setContent(draft.content);
+                document.querySelector('textarea[name="excerpt"]').value = draft.excerpt || '';
+                document.querySelector('input[name="tags"]').value = draft.tags || '';
+                document.querySelector('textarea[name="references"]').value = draft.references || '';
+                document.querySelector('input[name="meta_title"]').value = draft.meta_title || '';
+                document.querySelector('textarea[name="meta_description"]').value = draft.meta_description || '';
+                updateStats();
+            } catch(e) {}
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session #{{ recording.id }} — Recording</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/quickcare-logo.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ static_asset('css/recording-watch.css') }}">
+</head>
+<body class="rec-watch">
+    <header class="rec-watch-top">
+        <a class="rec-watch-back" href="{{ back_url }}">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        {% if download_url %}
+        <a class="rec-watch-download" href="{{ download_url }}" title="Download recording to your computer">
+            <i class="fas fa-download"></i> Download
+        </a>
+        {% endif %}
+        <div class="rec-watch-meta">
+            <h1 class="rec-watch-title">Session #{{ recording.id }} — Appointment #{{ appointment.id }}</h1>
+            <p class="rec-watch-sub">
+                {{ patient_name }} &middot; {{ doctor_name }}
+                {% if recording.started_at %} &middot; {{ recording.started_at.strftime('%d %b %Y %H:%M') }}{% endif %}
+            </p>
+        </div>
+    </header>
+
+    <div class="rec-watch-stage paused" id="rec-stage">
+        <video id="rec-video" playsinline preload="auto"></video>
+
+        <div class="rec-watch-loading" id="rec-loading">
+            <div class="rec-watch-spinner"></div>
+            <span>Loading recording…</span>
+        </div>
+        <div class="rec-watch-error hidden" id="rec-error"></div>
+
+        <div class="rec-watch-center-play" id="rec-center-play">
+            <button type="button" aria-label="Play"><i class="fas fa-play ms-1"></i></button>
+        </div>
+
+        <div class="rec-watch-controls">
+            <div class="rec-watch-progress-wrap">
+                <input type="range" class="rec-watch-progress" id="rec-progress" min="0" max="1000" value="0" aria-label="Seek">
+            </div>
+            <div class="rec-watch-bar">
+                <button type="button" class="rec-watch-btn" id="rec-play" aria-label="Play/Pause">
+                    <i class="fas fa-play"></i>
+                </button>
+                <span class="rec-watch-time">
+                    <span id="rec-cur-time">0:00</span> / <span id="rec-dur-time">0:00</span>
+                </span>
+                <div class="rec-watch-spacer"></div>
+                <div class="rec-watch-volume">
+                    <button type="button" class="rec-watch-btn" id="rec-mute" aria-label="Mute">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                    <input type="range" id="rec-volume" min="0" max="100" value="100" aria-label="Volume">
+                </div>
+                <button type="button" class="rec-watch-speed" id="rec-speed">1x</button>
+                <button type="button" class="rec-watch-btn" id="rec-fullscreen" aria-label="Fullscreen">
+                    <i class="fas fa-expand"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.RECORDING_WATCH = {
+            playbackUrl: {{ playback_url|tojson }},
+            isHls: {{ is_hls|tojson }}
+        };
+    </script>
+    <script src="{{ static_asset('vendor/hls/hls.min.js') }}"></script>
+    <script src="{{ static_asset('js/recording-watch.js') }}"></script>
+</body>
+</html>

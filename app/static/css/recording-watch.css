@@ -1,0 +1,273 @@
+/* Immersive admin recording player (YouTube-style) */
+:root {
+    --rw-accent: #10b981;
+    --rw-bg: #0a0a0a;
+    --rw-bar: rgba(12, 12, 12, 0.92);
+    --rw-text: #f8fafc;
+    --rw-muted: #94a3b8;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--rw-bg);
+    color: var(--rw-text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+}
+
+.rec-watch {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+}
+
+.rec-watch-top {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.65rem 1.25rem;
+    background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 100%);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+    z-index: 20;
+}
+
+.rec-watch-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--rw-accent);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba(16, 185, 129, 0.45);
+    background: rgba(16, 185, 129, 0.12);
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+}
+
+.rec-watch-download:hover {
+    color: #fff;
+    background: rgba(16, 185, 129, 0.35);
+}
+
+.rec-watch-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--rw-text);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.08);
+    transition: background 0.15s;
+}
+.rec-watch-back:hover { background: rgba(255,255,255,0.14); color: #fff; }
+
+.rec-watch-meta { flex: 1; min-width: 0; }
+.rec-watch-title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.rec-watch-sub {
+    margin: 0.15rem 0 0;
+    font-size: 0.78rem;
+    color: var(--rw-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rec-watch-stage {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    background: #000;
+    cursor: pointer;
+}
+
+.rec-watch-stage video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+}
+
+.rec-watch-loading,
+.rec-watch-error {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    background: rgba(0,0,0,0.75);
+    z-index: 5;
+    text-align: center;
+    padding: 1.5rem;
+}
+.rec-watch-loading.hidden,
+.rec-watch-error.hidden { display: none; }
+.hidden { display: none !important; }
+
+.rec-watch-spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(255,255,255,0.15);
+    border-top-color: var(--rw-accent);
+    border-radius: 50%;
+    animation: rw-spin 0.8s linear infinite;
+}
+@keyframes rw-spin { to { transform: rotate(360deg); } }
+
+.rec-watch-controls {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0 0 0.5rem;
+    background: linear-gradient(0deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 55%, transparent 100%);
+    z-index: 10;
+    opacity: 1;
+    transition: opacity 0.25s;
+}
+.rec-watch-stage.hide-ui .rec-watch-controls { opacity: 0; pointer-events: none; }
+
+.rec-watch-progress-wrap {
+    padding: 0 1rem;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+.rec-watch-progress {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.2);
+    outline: none;
+    cursor: pointer;
+}
+.rec-watch-progress::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--rw-accent);
+    box-shadow: 0 0 8px rgba(16,185,129,0.5);
+}
+.rec-watch-progress::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: none;
+    border-radius: 50%;
+    background: var(--rw-accent);
+}
+
+.rec-watch-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 1rem 0;
+}
+
+.rec-watch-btn {
+    background: none;
+    border: none;
+    color: var(--rw-text);
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: background 0.15s;
+}
+.rec-watch-btn:hover { background: rgba(255,255,255,0.1); }
+
+.rec-watch-time {
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--rw-muted);
+    min-width: 95px;
+}
+
+.rec-watch-spacer { flex: 1; }
+
+.rec-watch-volume {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+.rec-watch-volume input[type="range"] {
+    width: 72px;
+    height: 4px;
+    accent-color: var(--rw-accent);
+}
+
+.rec-watch-speed {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--rw-text);
+    border-radius: 6px;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.rec-watch-center-play {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 8;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.rec-watch-stage.paused .rec-watch-center-play { opacity: 1; pointer-events: auto; }
+.rec-watch-center-play button {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(16,185,129,0.9);
+    color: #fff;
+    font-size: 1.75rem;
+    cursor: pointer;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+    pointer-events: auto;
+}
+.rec-watch-center-play button:hover { transform: scale(1.05); }
+
+/* True fullscreen */
+.rec-watch-stage:fullscreen,
+.rec-watch-stage:-webkit-full-screen {
+    width: 100%;
+    height: 100%;
+}
+.rec-watch-stage:fullscreen video,
+.rec-watch-stage:-webkit-full-screen video {
+    object-fit: cover;
+}

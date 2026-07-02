@@ -1,0 +1,758 @@
+{% extends "base.html" %}
+
+{% block title %}Q&A Forum - Quick Care Connect{% endblock %}
+
+{% block extra_meta %}
+<meta name="description" content="Ask free medical questions and get answers from verified doctors on Quick Care Connect.">
+{% endblock %}
+
+{% block page_breadcrumb %}
+<div class="container" style="padding-top: 15px;">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0" style="font-size: 12px; font-weight: 500;">
+            <li class="breadcrumb-item"><a href="{{ url_for('home.index') }}" style="color: #10b981; text-decoration: none;">Home</a></li>
+            <li class="breadcrumb-item active" style="color: #64748b;">Q&A Forum</li>
+        </ol>
+    </nav>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="qa-page-wrapper">
+    <div class="container">
+        <!-- Premium Hero Banner -->
+        <section class="qa-hero-banner">
+            <div class="qa-hero-inner">
+                <div class="qa-hero-text">
+                    <h1><i class="fas fa-comment-medical me-2"></i>Medical Q&A Forum</h1>
+                    <p>Get free, reliable answers from verified doctors. Ask anything about your health — anonymously and securely.</p>
+                    {% if session.user_role == 'patient' %}
+                    <a href="{{ url_for('patients.ask_question') }}" class="btn-ask-question">
+                        <i class="fas fa-pen-to-square me-2"></i>Ask a Free Question
+                    </a>
+                    {% elif not session.user_id %}
+                    <a href="{{ url_for('auth.login') }}" class="btn-ask-question">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login to Ask
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    </div>
+
+<div class="container pb-4">
+    <div class="row g-4">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Inline Filters -->
+            <div class="qa-filters-bar">
+                <form method="GET" class="qa-filter-form">
+                    <input type="hidden" name="answered" value="{{ current_answered }}">
+                    <div class="filter-search-group">
+                        <div class="filter-search-wrap">
+                            <i class="fas fa-search"></i>
+                            <input type="text" name="search" class="filter-search-input" value="{{ current_search }}" placeholder="Search medical questions...">
+                        </div>
+                        <button type="submit" class="filter-search-btn">Search</button>
+                    </div>
+                    <div class="filter-pills">
+                        <a href="{{ url_for('qa.index', category=current_category, search=current_search) }}"
+                           class="filter-pill {{ 'active' if current_answered == 'all' }}">All</a>
+                        <a href="{{ url_for('qa.index', category=current_category, answered='answered', search=current_search) }}"
+                           class="filter-pill {{ 'active' if current_answered == 'answered' }}">
+                            <i class="fas fa-check-circle me-1"></i>Answered
+                        </a>
+                        <a href="{{ url_for('qa.index', category=current_category, answered='unanswered', search=current_search) }}"
+                           class="filter-pill {{ 'active' if current_answered == 'unanswered' }}">
+                            <i class="fas fa-clock me-1"></i>Awaiting
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            {% macro patient_avatar_src(question) -%}
+                {%- if not question.is_anonymous and question.patient and question.patient.user and question.patient.user.profile_picture -%}
+                    {{ url_for('static', filename='uploads/' + question.patient.user.profile_picture) }}
+                {%- endif -%}
+            {%- endmacro %}
+
+            <!-- Questions Feed -->
+            {% if questions.items %}
+                {% for question in questions.items %}
+                <a href="{{ url_for('qa.view_question', question_id=question.id) }}" class="qa-card-link">
+                    <div class="qa-card">
+                        <div class="qa-card-main">
+                            <div class="qa-avatar {{ 'anonymous' if question.is_anonymous else 'patient' }}">
+                                {% if patient_avatar_src(question) %}
+                                <img src="{{ patient_avatar_src(question) }}" alt="Patient avatar">
+                                {% else %}
+                                <i class="fas fa-user"></i>
+                                {% endif %}
+                            </div>
+                            <div class="qa-card-body">
+                                <div class="qa-card-topline">
+                                    <h3 class="qa-card-title">{{ question.title|truncate(62, True, '...') }}</h3>
+                                    <span class="qa-author-tag">{{ question.category.title() }}</span>
+                                </div>
+                                <p class="qa-card-excerpt">{{ question.content|striptags|truncate(105, True, '...') }}</p>
+                                <div class="qa-card-footer">
+                                    <div class="qa-card-meta">
+                                        <span class="meta-text">
+                                            <i class="fas fa-user me-1"></i>{{ 'Anonymous Patient' if question.is_anonymous else question.patient.user.name }}
+                                        </span>
+                                        <span class="meta-text">
+                                            <i class="fas fa-eye me-1"></i>{{ question.view_count or 0 }} views
+                                        </span>
+                                    </div>
+                                    <div class="qa-card-answers">
+                                        <span class="qa-answer-count-text">{{ question.answer_count }} ANSWER{% if question.answer_count != 1 %}S{% endif %}</span>
+                                        <span class="qa-time-text">{{ question.created_at.strftime('%b %d, %Y') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+
+                <!-- Pagination -->
+                {% if questions.pages > 1 %}
+                <nav aria-label="Questions pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if questions.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('qa.index', page=questions.prev_num, category=current_category, answered=current_answered, search=current_search) }}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% for page_num in questions.iter_pages() %}
+                            {% if page_num %}
+                                <li class="page-item {{ 'active' if page_num == questions.page }}">
+                                    <a class="page-link" href="{{ url_for('qa.index', page=page_num, category=current_category, answered=current_answered, search=current_search) }}">{{ page_num }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">…</span></li>
+                            {% endif %}
+                        {% endfor %}
+                        {% if questions.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('qa.index', page=questions.next_num, category=current_category, answered=current_answered, search=current_search) }}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            {% else %}
+                <div class="qa-empty-state">
+                    <i class="fas fa-comments"></i>
+                    <h4>No Questions Yet</h4>
+                    <p>
+                        {% if current_category != 'all' or current_answered != 'all' %}
+                            No questions match your filters. Try a different specialty or status.
+                        {% else %}
+                            Be the first to ask a free medical question!
+                        {% endif %}
+                    </p>
+                    {% if session.user_role == 'patient' %}
+                    <a href="{{ url_for('patients.ask_question') }}" class="btn-ask-question">
+                        <i class="fas fa-plus me-2"></i>Ask First Question
+                    </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar (sticky on lg+ while main column scrolls) -->
+        <div class="col-lg-4">
+            <div class="qa-sidebar-sticky">
+            <!-- Ask CTA Card -->
+            {% if session.user_role == 'patient' %}
+            <div class="sidebar-card sidebar-cta-card">
+                <div class="cta-icon"><i class="fas fa-stethoscope"></i></div>
+                <h5>Have a Health Concern?</h5>
+                <p>Ask our verified doctors and get a free answer within 24 hours.</p>
+                <a href="{{ url_for('patients.ask_question') }}" class="btn-sidebar-cta">
+                    <i class="fas fa-pen me-2"></i>Ask Now — It's Free
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Category Cloud -->
+            <div class="sidebar-card">
+                <h5 class="sidebar-title"><i class="fas fa-th-large me-2"></i>Search Specialty</h5>
+                <div class="category-search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text"
+                           id="categoryFilterInput"
+                           class="category-search-input"
+                           placeholder="Type specialty name..."
+                           autocomplete="off">
+                </div>
+                <div class="category-cloud" id="categoryFilterList">
+                    <a href="{{ url_for('qa.index') }}"
+                       class="cloud-tag js-category-item {{ 'active' if current_category == 'all' }}"
+                       data-category-name="all">All</a>
+                    {% for category in categories %}
+                    <a href="{{ url_for('qa.index', category=category[0]) }}"
+                       class="cloud-tag js-category-item {{ 'active' if current_category == category[0] }}"
+                       data-category-name="{{ category[0]|lower }}">
+                        {{ category[0].title() }}
+                        <span class="tag-count">{{ category[1] }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+                <p class="category-empty-note d-none" id="categoryFilterEmpty">No matching specialties found.</p>
+            </div>
+
+            <!-- Tips -->
+            <div class="sidebar-card">
+                <h5 class="sidebar-title"><i class="fas fa-lightbulb me-2"></i>Tips for Better Answers</h5>
+                <ul class="tips-list">
+                    <li><i class="fas fa-check-circle"></i>Be specific about your symptoms and duration</li>
+                    <li><i class="fas fa-check-circle"></i>Include your age and relevant medical history</li>
+                    <li><i class="fas fa-check-circle"></i>Select the correct medical specialty</li>
+                    <li><i class="fas fa-check-circle"></i>Avoid sharing personal identifiers</li>
+                </ul>
+            </div>
+
+            <!-- Book Appointment CTA -->
+            <div class="sidebar-card sidebar-book-card">
+                <h5 class="sidebar-title text-white"><i class="fas fa-video me-2"></i>Need a Private Consultation?</h5>
+                <p class="text-white-50 mb-3">Book a one-on-one video call with a top specialist.</p>
+                <a href="{{ url_for('patients.find_doctors') }}" class="btn-book-now">
+                    Find a Doctor <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<style>
+/* Page wrapper aligned with blog layout */
+.qa-page-wrapper {
+    background: #f8fafc;
+    min-height: 100vh;
+    padding: 10px 0 80px;
+}
+
+/*
+ * Sticky sidebar: row must use default stretch so .col-lg-4 matches main column height.
+ * Pins under the fixed navbar until the row ends (above footer).
+ */
+.qa-sidebar-sticky {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 72px;
+    z-index: 30;
+}
+@media (max-width: 991.98px) {
+    .qa-sidebar-sticky {
+        position: relative;
+        top: auto;
+    }
+}
+
+/* === Q&A Hero === */
+.qa-hero-banner {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 12px;
+    padding: 24px 32px;
+    min-height: 220px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+}
+.qa-hero-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+.qa-hero-text h1 {
+    color: #fff;
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+.qa-hero-text p {
+    color: rgba(255,255,255,0.85);
+    font-size: 0.95rem;
+    margin-bottom: 1.1rem;
+    max-width: 480px;
+}
+.btn-ask-question {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    color: #059669;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 10px 24px;
+    border-radius: 50px;
+    border: none;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+.btn-ask-question:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    color: #047857;
+}
+.qa-hero-stats {
+    display: flex;
+    gap: 1rem;
+}
+.stat-bubble {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 16px;
+    padding: 1rem 1.5rem;
+    text-align: center;
+    min-width: 100px;
+}
+.stat-number {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+}
+.stat-label {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.85);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* === Filters Bar === */
+.qa-filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+.qa-filter-form {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    flex-wrap: wrap;
+}
+.filter-select {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    background: #fff;
+    color: #374151;
+    min-width: 180px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+.filter-select:focus { border-color: #10b981; }
+.filter-search-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex: 1;
+    min-width: 260px;
+}
+.filter-search-wrap {
+    position: relative;
+    flex: 1;
+}
+.filter-search-wrap i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 0.8rem;
+}
+.filter-search-input {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 8px 12px 8px 32px;
+    font-size: 0.85rem;
+}
+.filter-search-input:focus {
+    outline: none;
+    border-color: #10b981;
+}
+.filter-search-btn {
+    border: none;
+    background: #10b981;
+    color: #fff;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+.filter-search-btn:hover {
+    background: #059669;
+}
+.filter-pills {
+    display: flex;
+    gap: 6px;
+}
+.filter-pill {
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #6b7280;
+    background: #f3f4f6;
+    text-decoration: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.filter-pill:hover { background: #e5e7eb; color: #374151; }
+.filter-pill.active {
+    background: #10b981;
+    color: #fff;
+}
+
+/* === Question Card === */
+.qa-card-link {
+    text-decoration: none !important;
+    color: inherit !important;
+    display: block;
+    margin-bottom: 1rem;
+}
+.qa-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+}
+.qa-card:hover {
+    border-color: rgba(16,185,129,0.4);
+    box-shadow: 0 8px 25px rgba(16,185,129,0.1);
+    transform: translateY(-2px);
+}
+.qa-card-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+.qa-avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0f172a;
+    flex-shrink: 0;
+    font-size: 1.15rem;
+    overflow: hidden;
+    border: 1px solid #d1d5db;
+}
+.qa-avatar.anonymous {
+    background: #f3f4f6;
+}
+.qa-avatar.patient {
+    background: #e5e7eb;
+}
+.qa-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.qa-card-body {
+    flex: 1;
+    min-width: 0;
+}
+.qa-card-topline {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+.qa-card-title {
+    font-size: 0.99rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.3rem;
+    line-height: 1.4;
+}
+.qa-card-excerpt {
+    font-size: 0.88rem;
+    color: #6b7280;
+    line-height: 1.5;
+    margin-bottom: 0.55rem;
+}
+.qa-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 0.55rem;
+    border-top: 1px solid #f3f4f6;
+    gap: 10px;
+}
+.qa-card-meta {
+    display: flex;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.meta-text {
+    font-size: 0.78rem;
+    color: #9ca3af;
+}
+.qa-card-answers {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.8rem;
+    color: #dc2626;
+    font-weight: 700;
+}
+.qa-author-tag {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    padding-top: 1px;
+}
+.qa-answer-count-text {
+    color: #e11d48;
+    letter-spacing: 0.2px;
+}
+.qa-time-text {
+    font-size: 0.78rem;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+/* === Empty State === */
+.qa-empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: #fff;
+    border-radius: 16px;
+    border: 2px dashed #e5e7eb;
+}
+.qa-empty-state i {
+    font-size: 3rem;
+    color: #d1d5db;
+    margin-bottom: 1rem;
+}
+.qa-empty-state h4 {
+    font-weight: 700;
+    color: #6b7280;
+}
+.qa-empty-state p {
+    color: #9ca3af;
+    max-width: 360px;
+    margin: 0 auto 1.25rem;
+}
+
+/* === Sidebar === */
+.sidebar-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+.sidebar-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+.sidebar-title i { color: #10b981; }
+
+/* CTA Card */
+.sidebar-cta-card {
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    border: 1px solid rgba(16,185,129,0.25);
+    text-align: center;
+}
+.cta-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(16,185,129,0.15);
+    color: #10b981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin: 0 auto 0.75rem;
+}
+.sidebar-cta-card h5 { font-size: 1rem; font-weight: 700; color: #065f46; }
+.sidebar-cta-card p { font-size: 0.82rem; color: #047857; margin-bottom: 1rem; }
+.btn-sidebar-cta {
+    display: inline-flex;
+    align-items: center;
+    background: #10b981;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 10px 22px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+.btn-sidebar-cta:hover {
+    background: #059669;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+/* Category Cloud */
+.category-search-wrap {
+    position: relative;
+    margin-bottom: 10px;
+}
+.category-search-wrap i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 0.8rem;
+}
+.category-search-input {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.83rem;
+    color: #374151;
+    padding: 8px 12px 8px 32px;
+}
+.category-search-input:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+}
+.category-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.cloud-tag {
+    padding: 5px 12px;
+    border-radius: 50px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #4b5563;
+    background: #f3f4f6;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.cloud-tag:hover { background: #e5e7eb; color: #1f2937; }
+.cloud-tag.active { background: #10b981; color: #fff; }
+.cloud-tag .tag-count {
+    font-size: 0.65rem;
+    background: rgba(0,0,0,0.08);
+    padding: 1px 5px;
+    border-radius: 50px;
+}
+.cloud-tag.active .tag-count { background: rgba(255,255,255,0.25); }
+.category-empty-note {
+    font-size: 0.78rem;
+    color: #6b7280;
+    margin: 10px 2px 0;
+}
+
+/* Tips */
+.tips-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.tips-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 0.82rem;
+    color: #4b5563;
+    border-bottom: 1px solid #f3f4f6;
+}
+.tips-list li:last-child { border-bottom: none; }
+.tips-list li i { color: #10b981; margin-top: 2px; font-size: 0.75rem; }
+
+/* Book Appointment Card */
+.sidebar-book-card {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    border: none;
+}
+.btn-book-now {
+    display: inline-flex;
+    align-items: center;
+    background: #fff;
+    color: #059669;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 10px 22px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+.btn-book-now:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    color: #047857;
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+    .qa-hero-inner { flex-direction: column; text-align: center; }
+    .qa-hero-text p { margin: 0 auto 1rem; }
+    .qa-hero-stats { justify-content: center; }
+    .qa-filter-form { flex-direction: column; }
+    .filter-select { width: 100%; }
+    .filter-search-group { width: 100%; min-width: auto; }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const categoryInput = document.getElementById('categoryFilterInput');
+        const categoryItems = Array.from(document.querySelectorAll('.js-category-item'));
+        const emptyState = document.getElementById('categoryFilterEmpty');
+
+        if (!categoryInput || !categoryItems.length || !emptyState) return;
+
+        function applyCategoryFilter() {
+            const term = categoryInput.value.trim().toLowerCase();
+            let visibleCount = 0;
+
+            categoryItems.forEach((item) => {
+                const haystack = (item.dataset.categoryName || '').toLowerCase();
+                const visible = !term || haystack.includes(term);
+                item.classList.toggle('d-none', !visible);
+                if (visible) visibleCount += 1;
+            });
+
+            emptyState.classList.toggle('d-none', visibleCount > 0);
+        }
+
+        categoryInput.addEventListener('input', applyCategoryFilter);
+    })();
+</script>
+{% endblock %}

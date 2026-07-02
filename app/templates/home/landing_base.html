@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/quickcare-logo.png') }}">
+    <title>{% block title %}Quick Care Connect{% endblock %}</title>
+
+    <!-- Google Fonts: Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- AOS Animate On Scroll -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Bootstrap CSS (for Modal support) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}?v=4">
+    
+    <style>
+        :root {
+            --primary: #2bc17b;
+            --primary-dark: #229c63;
+            --primary-light: #e6f7ef;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+            --bg-light: #f9fafb;
+            --white: #ffffff;
+            --border: #e5e7eb;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-dark);
+            background-color: var(--bg-light);
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* --- Navbar --- */
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 25px 4%;
+            background-color: transparent;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            transition: background-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease, padding 0.25s ease;
+        }
+
+        .navbar.navbar-sticky {
+            position: fixed;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+            padding: 14px 4%;
+            transform: translateY(0);
+        }
+
+        .navbar.navbar-sticky .btn-outline {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .navbar.navbar-sticky .btn-outline:hover {
+            color: var(--white);
+            background: var(--primary);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 24px;
+            color: var(--text-dark);
+            text-decoration: none;
+        }
+
+        .brand-logo-mark {
+            width: 34px;
+            height: 34px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            font-weight: 500;
+            font-size: 15px;
+            color: var(--text-gray);
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 28px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            outline: none;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--white);
+            border: 1.5px solid var(--white);
+            border-radius: 30px;
+            padding: 8px 24px;
+            transition: all 0.3s;
+        }
+
+        .btn-outline:hover {
+            background: var(--white);
+            color: var(--primary);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+            box-shadow: 0 4px 14px rgba(43, 193, 123, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(43, 193, 123, 0.4);
+        }
+
+        .btn-primary:focus, .btn-primary:active, .btn-primary.show {
+            background: var(--primary-dark) !important;
+            border-color: var(--primary-dark) !important;
+            color: var(--white) !important;
+            box-shadow: 0 4px 14px rgba(43, 193, 123, 0.3) !important;
+        }
+
+        /* Profile chip: text-only on hero until hover / open; pill on interaction */
+        .nav-user-dropdown .nav-user-chip.dropdown-toggle::after {
+            margin-left: 6px;
+            vertical-align: 0.2em;
+            border-top-color: rgba(255, 255, 255, 0.9);
+            transition: border-top-color 0.2s ease;
+        }
+
+        .navbar.navbar-sticky .nav-user-dropdown .nav-user-chip.dropdown-toggle::after {
+            border-top-color: var(--primary-dark);
+        }
+
+        .nav-user-dropdown .nav-user-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 18px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 15px;
+            text-decoration: none;
+            cursor: pointer;
+            border: 1px solid transparent;
+            background: transparent !important;
+            color: var(--white) !important;
+            box-shadow: none;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            transition: background 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease,
+                transform 0.22s ease, color 0.22s ease;
+        }
+
+        .navbar.navbar-sticky .nav-user-dropdown .nav-user-chip {
+            color: var(--text-dark) !important;
+            background: transparent !important;
+            border-color: transparent;
+            box-shadow: none;
+        }
+
+        .nav-user-dropdown:hover .nav-user-chip,
+        .nav-user-dropdown .nav-user-chip:focus,
+        .nav-user-dropdown .nav-user-chip:focus-visible,
+        .nav-user-dropdown .nav-user-chip.show {
+            outline: none;
+            color: var(--white) !important;
+            border-color: rgba(255, 255, 255, 0.42) !important;
+            background: rgba(34, 156, 99, 0.55) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.14);
+            transform: translateY(-1px);
+        }
+
+        .nav-user-dropdown:hover .nav-user-chip.dropdown-toggle::after,
+        .nav-user-dropdown .nav-user-chip:focus::after,
+        .nav-user-dropdown .nav-user-chip.show::after {
+            border-top-color: rgba(255, 255, 255, 0.95);
+        }
+
+        .navbar.navbar-sticky .nav-user-dropdown:hover .nav-user-chip,
+        .navbar.navbar-sticky .nav-user-dropdown .nav-user-chip:focus,
+        .navbar.navbar-sticky .nav-user-dropdown .nav-user-chip:focus-visible,
+        .navbar.navbar-sticky .nav-user-dropdown .nav-user-chip.show {
+            color: var(--white) !important;
+            border-color: rgba(255, 255, 255, 0.28) !important;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+            box-shadow: 0 4px 16px rgba(43, 193, 123, 0.35);
+        }
+
+        .navbar.navbar-sticky .nav-user-dropdown:hover .nav-user-chip.dropdown-toggle::after,
+        .navbar.navbar-sticky .nav-user-dropdown .nav-user-chip:focus::after,
+        .navbar.navbar-sticky .nav-user-dropdown .nav-user-chip.show::after {
+            border-top-color: rgba(255, 255, 255, 0.95);
+        }
+
+        /* Profile menu — solid white */
+        .nav-user-dropdown .nav-user-menu.dropdown-menu {
+            --bs-dropdown-bg: #ffffff;
+            padding: 8px !important;
+            margin-top: 12px !important;
+            border-radius: 14px !important;
+            border: 1px solid rgba(43, 193, 123, 0.18) !important;
+            box-shadow: 0 14px 40px rgba(15, 23, 42, 0.1), 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+            background-color: #ffffff !important;
+            background-image: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+
+        .navbar.navbar-sticky .nav-user-dropdown .nav-user-menu.dropdown-menu {
+            border: 1px solid rgba(43, 193, 123, 0.18) !important;
+            background-color: #ffffff !important;
+            background-image: none !important;
+        }
+
+        .nav-user-dropdown .nav-user-menu .dropdown-item {
+            border-radius: 10px !important;
+            font-weight: 500;
+            color: var(--text-dark) !important;
+            transition: background 0.18s ease, color 0.18s ease;
+        }
+
+        .nav-user-dropdown .nav-user-menu .dropdown-item:not(.dropdown-item-logout):hover {
+            background: rgba(43, 193, 123, 0.12) !important;
+            color: var(--primary-dark) !important;
+        }
+
+        .nav-user-dropdown .nav-user-menu .dropdown-item:not(.dropdown-item-logout):focus,
+        .nav-user-dropdown .nav-user-menu .dropdown-item:not(.dropdown-item-logout):active,
+        .nav-user-dropdown .nav-user-menu .dropdown-item:not(.dropdown-item-logout):focus-visible {
+            background: rgba(43, 193, 123, 0.16) !important;
+            color: var(--primary-dark) !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        .nav-user-dropdown .nav-user-menu .dropdown-item-logout:hover {
+            background: rgba(239, 68, 68, 0.08) !important;
+            color: #b91c1c !important;
+        }
+
+        .nav-user-dropdown .nav-user-menu .dropdown-item-logout:focus,
+        .nav-user-dropdown .nav-user-menu .dropdown-item-logout:active,
+        .nav-user-dropdown .nav-user-menu .dropdown-item-logout:focus-visible {
+            background: rgba(239, 68, 68, 0.12) !important;
+            color: #991b1b !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        .nav-user-dropdown .dropdown-item-logout:hover .nav-dd-icon {
+            color: #dc2626 !important;
+        }
+
+        .nav-dd-icon {
+            width: 1.1rem;
+            text-align: center;
+            margin-right: 10px !important;
+            color: rgba(55, 65, 81, 0.65);
+            transition: color 0.18s ease;
+        }
+
+        .nav-user-dropdown .nav-user-menu .dropdown-item:not(.dropdown-item-logout):hover .nav-dd-icon {
+            color: var(--primary-dark) !important;
+        }
+
+        .nav-user-dropdown .nav-user-menu .dropdown-item.dropdown-item-logout .nav-dd-icon {
+            color: #ef4444;
+            opacity: 0.92;
+        }
+
+        .nav-user-dropdown .nav-user-menu .dropdown-divider {
+            opacity: 0.5;
+            border-color: var(--border);
+            margin: 6px 0;
+        }
+
+        .nav-mobile-logout {
+            color: #b91c1c !important;
+            font-weight: 600;
+        }
+
+        .nav-mobile-logout:hover {
+            color: #991b1b !important;
+        }
+
+        /* --- Mega Menu --- */
+        .nav-dropdown {
+            position: relative;
+        }
+
+        .mega-menu {
+            position: absolute;
+            top: 150%;
+            left: -150px;
+            width: 700px;
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+            display: flex;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 200;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            padding: 24px;
+            gap: 24px;
+        }
+
+        .nav-dropdown:hover .mega-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            top: 100%;
+        }
+
+        .mega-left {
+            width: 200px;
+            border-right: 1px solid var(--border);
+            padding-right: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .mega-left h4 {
+            font-size: 18px;
+            color: var(--text-dark);
+            margin: 0 0 16px 0;
+        }
+
+        .mega-right {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .mega-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .mega-item:hover {
+            background: var(--bg-light);
+            border-color: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        }
+
+        .mega-item-icon {
+            width: 32px;
+            height: 32px;
+            margin-right: 12px;
+            object-fit: contain;
+        }
+
+        .mega-item span {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-dark);
+            transition: color 0.2s;
+        }
+
+        .mega-item:hover span {
+            color: var(--primary);
+        }
+
+        /* Navbar specific button styling for the green background */
+        .nav-actions .btn-outline {
+            color: var(--white);
+            border-color: var(--white);
+        }
+        
+        .nav-actions .btn-outline:hover {
+            background-color: var(--white);
+            color: var(--primary);
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-dark);
+        }
+        .mobile-only {
+            display: none;
+        }
+
+        @media (max-width: 992px) {
+            .navbar {
+                padding: 15px 20px;
+                background-color: rgba(255,255,255,0.98);
+                box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+                backdrop-filter: blur(10px);
+                position: fixed;
+            }
+            .navbar.navbar-sticky {
+                padding: 15px 20px;
+            }
+            .desktop-only {
+                display: none;
+            }
+            .mobile-menu-toggle {
+                display: block;
+            }
+            .mobile-only {
+                display: block;
+                padding-top: 10px;
+            }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background-color: var(--white);
+                flex-direction: column;
+                align-items: center;
+                padding: 15px 20px;
+                box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+                border-top: 1px solid var(--border);
+                gap: 15px;
+            }
+            .nav-links.active {
+                display: flex;
+            }
+            .nav-links li {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        /* Blur page content when modal is open */
+        body.modal-open-blur > *:not(.modal):not(.modal-backdrop) {
+            filter: blur(5px);
+            transition: filter 0.3s ease;
+        }
+
+        /* ===== Login Modal Styles ===== */
+        
+        /* Backdrop Blur */
+        .modal-backdrop {
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+            background-color: rgba(0, 0, 0, 0.5) !important;
+        }
+
+        /* Modal Card */
+        .login-modal-content {
+            border: none !important;
+            border-radius: 24px !important;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.2) !important;
+        }
+
+        /* Left Green Panel */
+        .login-modal-left {
+            background: linear-gradient(145deg, #3dd68c, #1fa85a);
+            color: #ffffff;
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: space-between;
+            min-height: 500px;
+        }
+
+        /* Right White Form Panel */
+        .login-modal-right {
+            padding: 50px 45px;
+            background: #ffffff;
+            position: relative;
+        }
+
+        /* Modal Close Button */
+        .modal-close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #f1f5f9;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #64748b;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+        .modal-close-btn:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        /* Modal Inputs */
+        .modal-input {
+            width: 100%;
+            padding: 14px 22px;
+            border: none;
+            border-radius: 50px;
+            background: #e8f5ed;
+            font-size: 14px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+            color: #1e293b;
+            outline: none;
+            transition: background 0.2s;
+            box-sizing: border-box;
+        }
+        .modal-input:focus {
+            background: #d1fae5;
+            box-shadow: 0 0 0 3px rgba(43, 193, 123, 0.15);
+        }
+        .modal-input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .modal-input-group .modal-input {
+            padding-right: 50px;
+        }
+
+        /* Modal Submit Button */
+        .modal-btn-submit {
+            width: 100%;
+            padding: 15px;
+            background: #119e61;
+            color: #ffffff;
+            border: none;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Outfit', sans-serif;
+        }
+        .modal-btn-submit:hover {
+            background: #0c7a49;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(17, 158, 97, 0.35);
+        }
+
+        /* Sign Up Outline Button (in green left panel) */
+        .modal-btn-outline-white {
+            display: block;
+            padding: 13px 24px;
+            border: 2px solid rgba(255,255,255,0.85);
+            border-radius: 50px;
+            color: #ffffff;
+            text-align: center;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        .modal-btn-outline-white:hover {
+            background: rgba(255,255,255,0.2);
+            color: #ffffff;
+        }
+
+        /* ─── Clinical AI assistant (floating) ─── */
+        .landing-ai-toggle {
+            position: relative;
+            right: auto;
+            bottom: auto;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(145deg, #059669 0%, #10b981 45%, #047857 100%);
+            color: #fff;
+            font-size: 1.35rem;
+            cursor: pointer;
+            z-index: 1;
+            overflow: visible;
+            box-shadow:
+                0 0 0 4px rgba(16, 185, 129, 0.2),
+                0 12px 32px rgba(5, 150, 105, 0.45);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .landing-ai-toggle:hover {
+            transform: scale(1.05);
+            box-shadow:
+                0 0 0 5px rgba(16, 185, 129, 0.28),
+                0 16px 36px rgba(5, 150, 105, 0.5);
+        }
+
+        .landing-ai-toggle-pulse {
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            border: 2px solid rgba(16, 185, 129, 0.35);
+            animation: landingAiPulse 2.4s ease-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes landingAiPulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.55;
+            }
+
+            70% {
+                transform: scale(1.12);
+                opacity: 0;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .landing-ai-toggle-wrap {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 1200;
+        }
+
+        .landing-ai-panel {
+            position: fixed;
+            right: 22px;
+            bottom: 96px;
+            width: min(500px, calc(100vw - 28px));
+            max-width: calc(100vw - 24px);
+            --landing-ai-panel-h: min(720px, calc(100vh - 110px));
+            height: var(--landing-ai-panel-h);
+            max-height: var(--landing-ai-panel-h);
+            min-height: 0;
+            background: #fff;
+            border-radius: 20px;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow:
+                0 4px 6px rgba(15, 23, 42, 0.04),
+                0 24px 48px rgba(15, 23, 42, 0.16);
+            z-index: 1200;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(12px) scale(0.98);
+            pointer-events: none;
+            transition: opacity 0.22s ease, transform 0.22s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .landing-ai-panel.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        .landing-ai-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px 16px 14px;
+            background: linear-gradient(135deg, #064e3b 0%, #047857 40%, #0d9488 100%);
+            color: #fff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            flex-shrink: 0;
+        }
+
+        .landing-ai-brand {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            min-width: 0;
+        }
+
+        .landing-ai-brand-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .landing-ai-title {
+            font-weight: 800;
+            font-size: 1.05rem;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .landing-ai-subtitle {
+            font-size: 0.72rem;
+            opacity: 0.92;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .landing-ai-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .landing-ai-badge {
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+        }
+
+        .landing-ai-close {
+            border: none;
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .landing-ai-close:hover {
+            background: rgba(255, 255, 255, 0.22);
+        }
+
+        .landing-ai-disclaimer {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 6px 12px 7px;
+            background: linear-gradient(90deg, #ecfdf5 0%, #f8fafc 55%, #f1f5f9 100%);
+            border-bottom: 1px solid #e2e8f0;
+            border-left: 3px solid #10b981;
+            font-size: 0.64rem;
+            line-height: 1.32;
+            color: #475569;
+            flex-shrink: 0;
+        }
+
+        .landing-ai-disclaimer-icon {
+            flex-shrink: 0;
+            width: 1.25rem;
+            text-align: center;
+            color: #059669;
+            font-size: 0.85rem;
+            margin-top: 1px;
+        }
+
+        .landing-ai-disclaimer-text {
+            min-width: 0;
+        }
+
+        .landing-ai-disclaimer-label {
+            font-weight: 700;
+            color: #0f172a;
+            margin-right: 0.25rem;
+        }
+
+        .landing-ai-messages {
+            flex: 1 1 0;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 14px 14px 10px;
+            background: linear-gradient(180deg, #f1f5f9 0%, #f8fafc 28%, #ffffff 100%);
+        }
+
+        .landing-ai-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .landing-ai-messages::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 6px;
+        }
+
+        .landing-ai-turn {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+            align-items: flex-start;
+        }
+
+        .landing-ai-turn.user {
+            flex-direction: row-reverse;
+        }
+
+        .landing-ai-avatar {
+            flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .landing-ai-turn.assistant .landing-ai-avatar {
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+        }
+
+        .landing-ai-turn.user .landing-ai-avatar {
+            background: #e0e7ff;
+            color: #4338ca;
+            border: 1px solid #c7d2fe;
+        }
+
+        .landing-ai-bubble-wrap {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .landing-ai-bubble {
+            border-radius: 14px;
+            padding: 11px 14px;
+            font-size: 0.875rem;
+            line-height: 1.55;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .landing-ai-turn.assistant .landing-ai-bubble {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-left: 3px solid #10b981;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+            color: #1e293b;
+        }
+
+        .landing-ai-turn.system {
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .landing-ai-system {
+            max-width: 92%;
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 12px 14px;
+            font-size: 0.8rem;
+            color: #334155;
+            text-align: center;
+            line-height: 1.45;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+        }
+
+        .landing-ai-system-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .landing-ai-system-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 7px 16px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .landing-ai-system-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .landing-ai-system-btn-yes {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(5, 150, 105, 0.35);
+        }
+
+        .landing-ai-system-btn-no {
+            background: #fff;
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
+        }
+
+        .landing-ai-turn.user .landing-ai-bubble {
+            background: linear-gradient(145deg, #059669, #10b981);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+        }
+
+        .landing-ai-foot {
+            font-size: 0.62rem;
+            color: #94a3b8;
+            margin-top: 6px;
+            line-height: 1.35;
+        }
+
+        .landing-ai-specialty-chip {
+            display: inline-block;
+            margin-bottom: 8px;
+            font-size: 0.62rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 4px 10px;
+            border-radius: 8px;
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .landing-ai-recs {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        a.landing-ai-rec {
+            display: block;
+            text-decoration: none;
+            border-radius: 12px;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            transition: border-color 0.2s, background 0.2s, transform 0.15s;
+        }
+
+        a.landing-ai-rec:hover {
+            border-color: #10b981;
+            background: #ecfdf5;
+            transform: translateY(-1px);
+        }
+
+        .landing-ai-rec-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 2px;
+        }
+
+        .landing-ai-rec-name {
+            font-weight: 700;
+            font-size: 0.84rem;
+            color: #0f172a;
+        }
+
+        .landing-ai-rec-rating {
+            font-size: 0.68rem;
+            color: #b45309;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .landing-ai-rec-meta {
+            font-size: 0.72rem;
+            color: #64748b;
+        }
+
+        .landing-ai-rec-cta {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #059669;
+            margin-top: 6px;
+        }
+
+        .landing-ai-typing {
+            display: flex;
+            gap: 6px;
+            padding: 12px 16px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            width: fit-content;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+        }
+
+        .landing-ai-typing span {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #64748b;
+            animation: landingAiDot 1.15s infinite ease-in-out both;
+        }
+
+        .landing-ai-typing span:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .landing-ai-typing span:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        @keyframes landingAiDot {
+
+            0%,
+            80%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.35;
+            }
+
+            40% {
+                transform: translateY(-5px);
+                opacity: 1;
+            }
+        }
+
+        .landing-ai-composer {
+            flex-shrink: 0;
+            padding: 12px 14px 16px;
+            border-top: 1px solid #e2e8f0;
+            background: #fff;
+        }
+
+        .landing-ai-input {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-size: 0.84rem;
+            resize: none;
+            margin-bottom: 8px;
+            min-height: 52px;
+            max-height: 96px;
+            font-family: inherit;
+            line-height: 1.45;
+        }
+
+        .landing-ai-input:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+
+        .landing-ai-send {
+            border: none;
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 12px;
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, #059669, #10b981);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+
+        .landing-ai-send:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .landing-ai-send:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            .landing-ai-toggle-wrap {
+                right: 14px;
+                bottom: 14px;
+            }
+
+            .landing-ai-toggle {
+                width: 56px;
+                height: 56px;
+            }
+
+            .landing-ai-panel {
+                right: 12px;
+                bottom: 82px;
+                width: calc(100vw - 24px);
+                --landing-ai-panel-h: min(680px, calc(100vh - 80px));
+                height: var(--landing-ai-panel-h);
+                max-height: var(--landing-ai-panel-h);
+            }
+
+            .landing-ai-messages {
+                min-height: 0;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="landing-page">
+
+    <nav class="navbar">
+        <a href="{{ url_for('home.index') }}" class="nav-logo">
+            <img src="{{ url_for('static', filename='images/quickcare-logo.png') }}" alt="Quick Care logo" class="brand-logo-mark"> QuickCare
+        </a>
+        
+        <div class="mobile-menu-toggle" id="mobileMenuBtn">
+            <i class="fas fa-bars"></i>
+        </div>
+        
+        <ul class="nav-links" id="navLinks">
+            <li><a href="{{ url_for('home.index') }}">Home</a></li>
+            <li class="nav-dropdown">
+                <a href="{{ url_for('patients.find_doctors') }}">Find Doctors <i class="fas fa-chevron-down" style="font-size: 10px; margin-left: 4px;"></i></a>
+                <!-- Mega Menu Dropdown -->
+                {% include 'components/_find_doctors_dropdown.html' %}
+            </li>
+            <li><a href="{{ url_for('qa.index') }}">Q&A</a></li>
+            <li><a href="{{ url_for('diseases.index') }}">Diseases Info</a></li>
+            <li><a href="{{ url_for('blogs.index') }}">Blogs</a></li>
+            {% if session.user_id %}
+                <li class="mobile-only"><a href="{{ url_for('auth.profile') }}">Profile</a></li>
+                <li class="mobile-only">
+                    {% if session.user_role == 'doctor' %}
+                    <a href="{{ url_for('doctors.dashboard') }}">Dashboard</a>
+                    {% elif session.user_role == 'patient' %}
+                    <a href="{{ url_for('patients.dashboard') }}">Dashboard</a>
+                    {% elif session.user_role == 'admin' %}
+                    <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+                    {% endif %}
+                </li>
+                <li class="mobile-only"><a href="{{ url_for('auth.logout') }}" class="nav-mobile-logout">Logout</a></li>
+            {% endif %}
+            <li class="mobile-only">
+                {% if not session.user_id %}
+                <a href="{{ url_for('auth.register') }}" class="btn btn-outline" style="width: 100%; display: block; margin-bottom: 15px;">Register</a>
+                <button type="button" class="btn btn-outline" data-bs-toggle="modal" data-bs-target="#loginModal" style="width: 100%; display: block;">Sign in</button>
+                {% endif %}
+            </li>
+        </ul>
+        
+        <div class="nav-actions desktop-only" style="display: flex; align-items: center; gap: 16px;">
+            {% if not session.user_id %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-outline">Register</a>
+            <button type="button" class="btn btn-outline" data-bs-toggle="modal" data-bs-target="#loginModal">Sign in</button>
+            {% else %}
+            <div class="dropdown hover-dropdown nav-user-dropdown">
+                {% set _nav_name = (session.user_name or '')|trim %}
+                {% if session.user_role == 'admin' and _nav_name|lower in ['admin', 'administrator'] %}
+                    {% set _nav_name = 'Admin User' %}
+                {% endif %}
+                <a class="nav-user-chip dropdown-toggle" href="#" role="button" id="userProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
+                    <i class="fas fa-user-circle" style="font-size: 1.2rem; opacity: 0.95;"></i>
+                    <span>{{ _nav_name }}</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end nav-user-menu" aria-labelledby="userProfileDropdown" style="min-width: 220px;">
+                    <li>
+                        <a class="dropdown-item py-2 d-flex align-items-center" href="{{ url_for('auth.profile') }}">
+                            <i class="fas fa-user nav-dd-icon"></i> Profile
+                        </a>
+                    </li>
+                    <li>
+                        {% if session.user_role == 'doctor' %}
+                        <a class="dropdown-item py-2 d-flex align-items-center" href="{{ url_for('doctors.dashboard') }}">
+                        {% elif session.user_role == 'patient' %}
+                        <a class="dropdown-item py-2 d-flex align-items-center" href="{{ url_for('patients.dashboard') }}">
+                        {% elif session.user_role == 'admin' %}
+                        <a class="dropdown-item py-2 d-flex align-items-center" href="{{ url_for('admin.dashboard') }}">
+                        {% endif %}
+                            <i class="fas fa-tachometer-alt nav-dd-icon"></i> Dashboard
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item py-2 d-flex align-items-center dropdown-item-logout" href="{{ url_for('auth.logout') }}">
+                            <i class="fas fa-sign-out-alt nav-dd-icon"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    {% include 'partials/site_footer.html' %}
+
+    {% include 'partials/scroll_to_top.html' %}
+
+    <div class="landing-ai-toggle-wrap">
+        <button id="landingAiToggle" class="landing-ai-toggle" type="button" aria-label="Open clinical assistant">
+            <span class="landing-ai-toggle-pulse" aria-hidden="true"></span>
+            <i class="fas fa-user-md" aria-hidden="true"></i>
+        </button>
+    </div>
+
+    <div id="landingAiPanel" class="landing-ai-panel" aria-hidden="true">
+        <div class="landing-ai-header">
+            <div class="landing-ai-brand">
+                <div class="landing-ai-brand-icon" aria-hidden="true">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <div>
+                    <div class="landing-ai-title">Quick Care Clinical Assistant</div>
+                    <div class="landing-ai-subtitle">Triage-style guidance · doctor discovery · platform help</div>
+                    <div class="landing-ai-badges">
+                        <span class="landing-ai-badge">Not a diagnosis</span>
+                        <span class="landing-ai-badge">Emergency: 1122 / 15</span>
+                    </div>
+                </div>
+            </div>
+            <button id="landingAiClose" class="landing-ai-close" type="button" aria-label="Close chat">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="landing-ai-disclaimer" role="note">
+            <span class="landing-ai-disclaimer-icon" aria-hidden="true"><i class="fas fa-circle-info"></i></span>
+            <p class="landing-ai-disclaimer-text mb-0">
+                <span class="landing-ai-disclaimer-label">Disclaimer.</span>
+                General information only—not medical advice or a replacement for a licensed clinician.
+                For chest pain, stroke signs, severe bleeding, or breathing emergencies, call emergency services (e.g. 1122 / 15).
+            </p>
+        </div>
+        <div id="landingAiMessages" class="landing-ai-messages" aria-live="polite"></div>
+        <div class="landing-ai-composer">
+            <label for="landingAiInput" class="visually-hidden">Your message to the clinical assistant</label>
+            <textarea id="landingAiInput" class="landing-ai-input" rows="2" maxlength="700"
+                placeholder="Describe symptoms or ask how to book a specialist…"></textarea>
+            <button id="landingAiSend" class="landing-ai-send" type="button">
+                <i class="fas fa-paper-plane"></i> Send securely
+            </button>
+        </div>
+    </div>
+
+    {% block extra_js %}{% endblock %}
+
+    <!-- AOS Animate On Scroll Script -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+
+        // Sticky navbar: keep initial landing look, switch to fixed only after scroll.
+        (function() {
+            const navbar = document.querySelector('.navbar');
+            if (!navbar) return;
+
+            const onScroll = function() {
+                if (window.scrollY > 20) {
+                    navbar.classList.add('navbar-sticky');
+                } else {
+                    navbar.classList.remove('navbar-sticky');
+                }
+            };
+
+            onScroll();
+            window.addEventListener('scroll', onScroll, { passive: true });
+        })();
+
+        // Mobile Menu Toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+            document.getElementById('navLinks').classList.toggle('active');
+        });
+
+        // Toggle Password Visibility in Modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const togglePassword = document.getElementById('modalTogglePassword');
+            const passwordInput = document.getElementById('modalPassword');
+            
+            if (togglePassword && passwordInput) {
+                togglePassword.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    
+                    if (type === 'text') {
+                        this.classList.remove('fa-eye');
+                        this.classList.add('fa-eye-slash');
+                    } else {
+                        this.classList.remove('fa-eye-slash');
+                        this.classList.add('fa-eye');
+                    }
+                });
+            }
+
+            const aiToggleBtn = document.getElementById('landingAiToggle');
+            const aiPanel = document.getElementById('landingAiPanel');
+            const aiCloseBtn = document.getElementById('landingAiClose');
+            const aiMessages = document.getElementById('landingAiMessages');
+            const aiInput = document.getElementById('landingAiInput');
+            const aiSend = document.getElementById('landingAiSend');
+            const loginModalEl = document.getElementById('loginModal');
+            const isLoggedIn = {{ 'true' if session.user_id else 'false' }};
+
+            if (aiToggleBtn && aiPanel && aiCloseBtn && aiMessages && aiInput && aiSend) {
+                const history = [];
+                var clientRecommendationGate = null;
+                var lastUserChatMessageAt = Date.now();
+                var hasHadUserTurn = false;
+                var idleTickInterval = null;
+                var idleQuitRow = null;
+                var IDLE_PROMPT_MS = 5 * 60 * 1000;
+                var IDLE_KILL_MS = 10 * 60 * 1000;
+                var welcomeSeqTimeouts = [];
+                var welcomeAnimationPending = false;
+
+                function clearWelcomeSequenceTimers() {
+                    welcomeSeqTimeouts.forEach(function (tid) {
+                        clearTimeout(tid);
+                    });
+                    welcomeSeqTimeouts.length = 0;
+                    removeTyping();
+                }
+
+                function abortWelcomeAnimation() {
+                    clearWelcomeSequenceTimers();
+                    welcomeAnimationPending = false;
+                }
+
+                function markUserSentChat() {
+                    hasHadUserTurn = true;
+                    lastUserChatMessageAt = Date.now();
+                    removeIdleQuitRow();
+                }
+
+                function removeIdleQuitRow() {
+                    if (idleQuitRow && idleQuitRow.parentNode) {
+                        idleQuitRow.remove();
+                    }
+                    idleQuitRow = null;
+                }
+
+                function pushIdleQuitPrompt() {
+                    if (idleQuitRow) {
+                        return;
+                    }
+                    var turn = document.createElement('div');
+                    turn.className = 'landing-ai-turn system';
+                    idleQuitRow = turn;
+                    var box = document.createElement('div');
+                    box.className = 'landing-ai-system';
+                    box.appendChild(document.createTextNode('You have been quiet for a while. Do you want to quit this conversation?'));
+                    var actions = document.createElement('div');
+                    actions.className = 'landing-ai-system-actions';
+                    var y = document.createElement('button');
+                    var n = document.createElement('button');
+                    y.type = 'button';
+                    n.type = 'button';
+                    y.className = 'landing-ai-system-btn landing-ai-system-btn-yes';
+                    n.className = 'landing-ai-system-btn landing-ai-system-btn-no';
+                    y.textContent = 'Yes, quit';
+                    n.textContent = 'No, continue';
+                    y.addEventListener('click', function () {
+                        resetLandingAiSession();
+                        closePanel();
+                    });
+                    n.addEventListener('click', function () {
+                        removeIdleQuitRow();
+                    });
+                    actions.appendChild(y);
+                    actions.appendChild(n);
+                    box.appendChild(actions);
+                    turn.appendChild(box);
+                    aiMessages.appendChild(turn);
+                    scrollChat();
+                }
+
+                function endConversationHardIdle() {
+                    stopIdleWatch();
+                    removeIdleQuitRow();
+                    abortWelcomeAnimation();
+                    clientRecommendationGate = null;
+                    history.length = 0;
+                    hasHadUserTurn = false;
+                    aiMessages.innerHTML = '';
+                    closePanel();
+                }
+
+                function startIdleWatch() {
+                    stopIdleWatch();
+                    idleTickInterval = setInterval(function () {
+                        if (!aiPanel.classList.contains('open') || !hasHadUserTurn) {
+                            return;
+                        }
+                        var idle = Date.now() - lastUserChatMessageAt;
+                        if (idle >= IDLE_KILL_MS) {
+                            endConversationHardIdle();
+                            return;
+                        }
+                        if (idle >= IDLE_PROMPT_MS) {
+                            pushIdleQuitPrompt();
+                        }
+                    }, 5000);
+                }
+
+                function stopIdleWatch() {
+                    if (idleTickInterval) {
+                        clearInterval(idleTickInterval);
+                        idleTickInterval = null;
+                    }
+                }
+
+                function resetLandingAiSession() {
+                    clientRecommendationGate = null;
+                    history.length = 0;
+                    hasHadUserTurn = false;
+                    abortWelcomeAnimation();
+                    aiMessages.innerHTML = '';
+                    stopIdleWatch();
+                    removeIdleQuitRow();
+                    lastUserChatMessageAt = Date.now();
+                }
+
+                function seedWelcomeTwo() {
+                    abortWelcomeAnimation();
+                    welcomeAnimationPending = true;
+                    showTyping();
+                    welcomeSeqTimeouts.push(
+                        setTimeout(function () {
+                            removeTyping();
+                            pushAssistantTurn('Welcome to Quick Care.', {
+                                llm_provider: null,
+                                recommendations: [],
+                                specialty: null,
+                                hideFoot: true,
+                            });
+                            showTyping();
+                            welcomeSeqTimeouts.push(
+                                setTimeout(function () {
+                                    removeTyping();
+                                    pushAssistantTurn(
+                                        'I can help you make sense of symptoms in everyday language, think about which kind of specialist may fit your situation on Quick Care, and walk through bookings or payments. What would you like to start with?',
+                                        { llm_provider: null, recommendations: [], specialty: null }
+                                    );
+                                    welcomeAnimationPending = false;
+                                }, 820)
+                            );
+                        }, 780)
+                    );
+                }
+
+                function scrollChat() {
+                    aiMessages.scrollTop = aiMessages.scrollHeight;
+                }
+
+                function removeTyping() {
+                    const el = document.getElementById('landingAiTyping');
+                    if (el) el.remove();
+                }
+
+                function showTyping() {
+                    removeTyping();
+                    const turn = document.createElement('div');
+                    turn.id = 'landingAiTyping';
+                    turn.className = 'landing-ai-turn assistant';
+                    const av = document.createElement('div');
+                    av.className = 'landing-ai-avatar';
+                    av.innerHTML = '<i class="fas fa-stethoscope" aria-hidden="true"></i>';
+                    const wrap = document.createElement('div');
+                    wrap.className = 'landing-ai-bubble-wrap';
+                    const typing = document.createElement('div');
+                    typing.className = 'landing-ai-typing';
+                    typing.appendChild(document.createElement('span'));
+                    typing.appendChild(document.createElement('span'));
+                    typing.appendChild(document.createElement('span'));
+                    wrap.appendChild(typing);
+                    turn.appendChild(av);
+                    turn.appendChild(wrap);
+                    aiMessages.appendChild(turn);
+                    scrollChat();
+                }
+
+                function pushUserTurn(text) {
+                    const turn = document.createElement('div');
+                    turn.className = 'landing-ai-turn user';
+                    const wrap = document.createElement('div');
+                    wrap.className = 'landing-ai-bubble-wrap';
+                    const bubble = document.createElement('div');
+                    bubble.className = 'landing-ai-bubble';
+                    bubble.textContent = text;
+                    wrap.appendChild(bubble);
+                    const av = document.createElement('div');
+                    av.className = 'landing-ai-avatar';
+                    av.innerHTML = '<i class="fas fa-user" aria-hidden="true"></i>';
+                    turn.appendChild(wrap);
+                    turn.appendChild(av);
+                    aiMessages.appendChild(turn);
+                    scrollChat();
+                }
+
+                function pushAssistantTurn(reply, meta) {
+                    meta = meta || {};
+                    const turn = document.createElement('div');
+                    turn.className = 'landing-ai-turn assistant';
+                    const av = document.createElement('div');
+                    av.className = 'landing-ai-avatar';
+                    av.innerHTML = '<i class="fas fa-stethoscope" aria-hidden="true"></i>';
+                    const wrap = document.createElement('div');
+                    wrap.className = 'landing-ai-bubble-wrap';
+
+                    if (meta.specialty) {
+                        const chip = document.createElement('div');
+                        chip.className = 'landing-ai-specialty-chip';
+                        chip.textContent = 'Suggested focus: ' + meta.specialty;
+                        wrap.appendChild(chip);
+                    }
+
+                    const bubble = document.createElement('div');
+                    bubble.className = 'landing-ai-bubble';
+                    bubble.textContent = reply;
+                    wrap.appendChild(bubble);
+
+                    const recs = meta.recommendations || [];
+                    if (recs.length) {
+                        const box = document.createElement('div');
+                        box.className = 'landing-ai-recs';
+                        recs.forEach(function (r) {
+                            const a = document.createElement('a');
+                            a.className = 'landing-ai-rec';
+                            a.href = r.profile_url || '#';
+                            const top = document.createElement('div');
+                            top.className = 'landing-ai-rec-top';
+                            const nameEl = document.createElement('span');
+                            nameEl.className = 'landing-ai-rec-name';
+                            nameEl.textContent = r.name || 'Doctor';
+                            top.appendChild(nameEl);
+                            if (r.rating != null && r.rating !== '') {
+                                const rt = document.createElement('span');
+                                rt.className = 'landing-ai-rec-rating';
+                                rt.innerHTML = '<i class="fas fa-star" style="font-size:0.65rem"></i> ' + Number(r.rating).toFixed(1);
+                                top.appendChild(rt);
+                            }
+                            a.appendChild(top);
+                            const metaLine = document.createElement('div');
+                            metaLine.className = 'landing-ai-rec-meta';
+                            var bits = [];
+                            if (r.category) bits.push(r.category);
+                            if (r.city) bits.push(r.city);
+                            if (r.experience_years != null && r.experience_years !== '') bits.push(r.experience_years + ' yrs exp');
+                            metaLine.textContent = bits.join(' · ');
+                            a.appendChild(metaLine);
+                            const cta = document.createElement('div');
+                            cta.className = 'landing-ai-rec-cta';
+                            cta.textContent = 'View verified profile';
+                            a.appendChild(cta);
+                            box.appendChild(a);
+                        });
+                        wrap.appendChild(box);
+                    }
+
+                    if (!meta.hideFoot) {
+                        const foot = document.createElement('div');
+                        foot.className = 'landing-ai-foot';
+                        var src = meta.llm_provider;
+                        if (src === 'gemini') {
+                            foot.textContent = 'Engine: Google Gemini · always confirm with a licensed clinician.';
+                        } else if (src === 'openrouter') {
+                            foot.textContent = 'Engine: OpenRouter · always confirm with a licensed clinician.';
+                        } else if (src === 'fallback') {
+                            foot.textContent = 'Offline template — live AI was unavailable; facts may be incomplete.';
+                        } else {
+                            foot.textContent = 'Informational only · not a substitute for professional care.';
+                        }
+                        wrap.appendChild(foot);
+                    }
+
+                    turn.appendChild(av);
+                    turn.appendChild(wrap);
+                    aiMessages.appendChild(turn);
+                    scrollChat();
+                }
+
+                const openPanel = function () {
+                    aiPanel.classList.add('open');
+                    aiPanel.setAttribute('aria-hidden', 'false');
+                    if (!aiMessages.children.length) {
+                        seedWelcomeTwo();
+                    }
+                    if (!hasHadUserTurn) {
+                        lastUserChatMessageAt = Date.now();
+                    }
+                    startIdleWatch();
+                    aiInput.focus();
+                    scrollChat();
+                };
+
+                const closePanel = function () {
+                    clearWelcomeSequenceTimers();
+                    if (welcomeAnimationPending) {
+                        aiMessages.innerHTML = '';
+                        welcomeAnimationPending = false;
+                    }
+                    aiPanel.classList.remove('open');
+                    aiPanel.setAttribute('aria-hidden', 'true');
+                    stopIdleWatch();
+                };
+
+                const sendMessage = async function () {
+                    if (!isLoggedIn) {
+                        if (loginModalEl && window.bootstrap && window.bootstrap.Modal) {
+                            window.bootstrap.Modal.getOrCreateInstance(loginModalEl).show();
+                        }
+                        return;
+                    }
+
+                    const message = aiInput.value.trim();
+                    if (!message) return;
+
+                    abortWelcomeAnimation();
+
+                    aiInput.value = '';
+                    markUserSentChat();
+                    pushUserTurn(message);
+                    history.push({ role: 'user', text: message });
+
+                    aiSend.disabled = true;
+                    aiSend.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Analyzing…';
+                    showTyping();
+
+                    try {
+                        const res = await fetch('{{ url_for('qa.ai_chat') }}', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'same-origin',
+                            body: JSON.stringify({
+                                message: message,
+                                history: history,
+                                recommendation_gate: clientRecommendationGate,
+                            }),
+                        });
+
+                        const data = await res.json();
+                        removeTyping();
+
+                        if (!res.ok || !data.success) {
+                            throw new Error(data.message || 'Unable to process request');
+                        }
+
+                        clientRecommendationGate = data.recommendation_gate || null;
+
+                        const reply = data.reply || 'I could not generate a response right now.';
+                        pushAssistantTurn(reply, {
+                            recommendations: data.recommendations || [],
+                            specialty: data.specialty || null,
+                            llm_provider: data.llm_provider,
+                        });
+                        history.push({ role: 'assistant', text: reply });
+                    } catch (err) {
+                        removeTyping();
+                        pushAssistantTurn(
+                            'The clinical assistant is temporarily unavailable. Please try again in a moment, or use Find Doctors to browse specialists directly.',
+                            { llm_provider: null, recommendations: [], specialty: null }
+                        );
+                    } finally {
+                        aiSend.disabled = false;
+                        aiSend.innerHTML = '<i class="fas fa-paper-plane"></i> Send securely';
+                    }
+                };
+
+                aiToggleBtn.addEventListener('click', function () {
+                    if (!isLoggedIn) {
+                        if (loginModalEl && window.bootstrap && window.bootstrap.Modal) {
+                            window.bootstrap.Modal.getOrCreateInstance(loginModalEl).show();
+                        }
+                        return;
+                    }
+
+                    if (aiPanel.classList.contains('open')) {
+                        closePanel();
+                    } else {
+                        openPanel();
+                    }
+                });
+
+                aiCloseBtn.addEventListener('click', closePanel);
+                aiSend.addEventListener('click', sendMessage);
+                aiInput.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault();
+                        sendMessage();
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content login-modal-content">
+                <div class="row g-0">
+                    <!-- Left Side (Green) -->
+                    <div class="col-md-5 login-modal-left">
+                        <div style="text-align: left; width: 100%;">
+                            <h2 style="font-weight: 800; font-size: 2.2rem; margin-bottom: 10px;">Welcome to<br>Quick Care</h2>
+                            <p style="opacity: 0.8; font-size: 0.95rem; margin-bottom: 40px;">We make healthcare accessible for you</p>
+                        </div>
+                        
+                        <div class="my-4">
+                            <img src="{{ url_for('static', filename='images/quickcare-logo.png') }}" alt="Quick Care logo" style="width: 112px; height: 112px; object-fit: contain; opacity: 0.95;">
+                        </div>
+                        
+                        <div class="mt-auto pt-4" style="width: 100%;">
+                            <p style="opacity: 0.85; margin-bottom: 15px;">Don't have an account?</p>
+                            <a href="{{ url_for('auth.register') }}" class="modal-btn-outline-white" style="width: 100%;">SIGN UP</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Side (Form) -->
+                    <div class="col-md-7 login-modal-right">
+                        <button type="button" class="modal-close-btn" data-bs-dismiss="modal" aria-label="Close">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        
+                        <h3 style="color: #119E61; font-weight: 700; margin-bottom: 30px;">Sign in to Quick Care</h3>
+                        
+                        <form action="{{ url_for('auth.login') }}" method="POST">
+                            <!-- Try to include CSRF token if available, otherwise rely on external disabling or standard handling -->
+                            {% if csrf_token is defined %}
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            {% endif %}
+                            
+                            <div class="mb-4">
+                                <label style="font-weight: 600; font-size: 0.9rem; color: #475569; margin-bottom: 8px; display: block;">Email</label>
+                                <input type="email" name="email" class="modal-input" placeholder="Enter your email" required autofocus>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label style="font-weight: 600; font-size: 0.9rem; color: #475569; margin-bottom: 8px; display: block;">Password</label>
+                                <div class="modal-input-group">
+                                    <input type="password" name="password" id="modalPassword" class="modal-input" placeholder="Enter your password" required>
+                                    <i class="fas fa-eye" id="modalTogglePassword" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b;"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="remember" id="modalRemember" style="border-radius: 4px; border-color: #cbd5e1; margin-top: 0.3rem;">
+                                    <label class="form-check-label" for="modalRemember" style="color: #64748b; font-size: 0.9rem;">
+                                        Remember me
+                                    </label>
+                                </div>
+                                <a href="#" style="color: #119E61; font-weight: 600; font-size: 0.9rem; text-decoration: none;">Forgot password?</a>
+                            </div>
+                            
+                            <button type="submit" class="modal-btn-submit mt-2">SIGN IN</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle (for Modal) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Blur background when modal is open -->
+    <script>
+        (function() {
+            var loginModalEl = document.getElementById('loginModal');
+            if (loginModalEl) {
+                loginModalEl.addEventListener('show.bs.modal', function() {
+                    document.body.classList.add('modal-open-blur');
+                });
+                loginModalEl.addEventListener('hidden.bs.modal', function() {
+                    document.body.classList.remove('modal-open-blur');
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

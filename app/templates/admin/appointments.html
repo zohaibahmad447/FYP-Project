@@ -1,0 +1,1203 @@
+{% extends "base.html" %}
+
+{% block title %}Appointments Management - Quick Care Connect{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-3 py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-xl-2 col-lg-3 col-md-4 mb-4 admin-sidebar-col">
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center p-4">
+                    <div class="admin-avatar mb-3 mx-auto" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 2.2rem;">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h5 class="card-title fw-bold mb-1">Admin Panel</h5>
+                    <p class="text-muted small mb-0">{{ get_current_user().name }}</p>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4 mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-cogs me-2"></i>Management</h6>
+                </div>
+                <div class="card-body p-0">
+                    {% include 'admin/_management_sidebar.html' %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-xl-10 col-lg-9 col-md-8 admin-main-col">
+            <h2 class="mb-4">
+                <i class="fas fa-calendar-check me-2" style="color: #10b981;"></i>Appointments Management
+            </h2>
+
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3 mb-3">
+                <div>
+                    <p class="filter-panel-kicker mb-1">Quick filters</p>
+                    <h5 class="filter-panel-title mb-1">Primary appointment states</h5>
+                    <p class="filter-panel-text mb-0">Use the cards for the most common workflow states.</p>
+                </div>
+                {% if current_status != 'all' %}
+                <span class="filter-active-chip">
+                    <i class="fas fa-filter me-2"></i>
+                    Active: {{ current_status|replace('_', ' ')|title }}
+                </span>
+                {% endif %}
+            </div>
+
+            <div class="row g-2 g-xl-3 mb-4 admin-appt-quick-filters">
+                    <div class="col-xl-3 col-md-6 admin-appt-quick-col">
+                        <a href="{{ url_for('admin.appointments', status='all') }}" class="text-decoration-none admin-appt-filter-link">
+                            <div class="qc-admin-filter-tile filter-card-all {% if current_status == 'all' %}active{% endif %}">
+                                <div class="icon-wrapper" style="color: #6366f1; background: rgba(99, 102, 241, 0.15);">
+                                    <i class="fas fa-layer-group"></i>
+                                </div>
+                                <div class="stats-info">
+                                    <h3 class="mb-0 text-dark">{{ stats.total }}</h3>
+                                    <p class="text-muted mb-0 small text-uppercase fw-bold">All</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-xl-3 col-md-6 admin-appt-quick-col">
+                        <a href="{{ url_for('admin.appointments', status='pending') }}" class="text-decoration-none admin-appt-filter-link">
+                            <div class="qc-admin-filter-tile filter-card-pending {% if current_status != 'all' and current_status == 'pending' %}active{% endif %}">
+                                <div class="icon-wrapper" style="color: #8b5cf6; background: rgba(139, 92, 246, 0.15);">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="stats-info">
+                                    <h3 class="mb-0 text-dark">{{ stats.pending }}</h3>
+                                    <p class="text-muted mb-0 small text-uppercase fw-bold">Pending</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-xl-3 col-md-6 admin-appt-quick-col">
+                        <a href="{{ url_for('admin.appointments', status='approved') }}" class="text-decoration-none admin-appt-filter-link">
+                            <div class="qc-admin-filter-tile filter-card-approved {% if current_status != 'all' and current_status == 'approved' %}active{% endif %}">
+                                <div class="icon-wrapper" style="color: #f59e0b; background: rgba(245, 158, 11, 0.15);">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <div class="stats-info">
+                                    <h3 class="mb-0 text-dark">{{ stats.approved }}</h3>
+                                    <p class="text-muted mb-0 small text-uppercase fw-bold">Approved</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-xl-3 col-md-6 admin-appt-quick-col">
+                        <a href="{{ url_for('admin.appointments', status='completed') }}" class="text-decoration-none admin-appt-filter-link">
+                            <div class="qc-admin-filter-tile filter-card-completed {% if current_status != 'all' and current_status == 'completed' %}active{% endif %}">
+                                <div class="icon-wrapper" style="color: #10b981; background: rgba(16, 185, 129, 0.15);">
+                                    <i class="fas fa-check-double"></i>
+                                </div>
+                                <div class="stats-info">
+                                    <h3 class="mb-0 text-dark">{{ stats.completed }}</h3>
+                                    <p class="text-muted mb-0 small text-uppercase fw-bold">Completed</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+            </div>
+
+            <div class="advanced-filter-shell mb-4">
+                <div class="advanced-filter-copy">
+                    <div class="advanced-filter-label">Advanced filter</div>
+                </div>
+                <form method="GET" action="{{ url_for('admin.appointments') }}" class="advanced-filter-form">
+                    {% set fc = request.args.get('filter_category', '') %}
+                    {% if fc == 'status' %}
+                        {% set adv_cat_label = 'Status' %}
+                    {% elif fc == 'date' %}
+                        {% set adv_cat_label = 'Date range' %}
+                    {% elif fc == 'email' %}
+                        {% set adv_cat_label = 'Email' %}
+                    {% elif fc == 'patient' %}
+                        {% set adv_cat_label = 'Patient' %}
+                    {% elif fc == 'doctor' %}
+                        {% set adv_cat_label = 'Doctor' %}
+                    {% else %}
+                        {% set adv_cat_label = 'Quick (cards)' %}
+                    {% endif %}
+                    <div class="adv-filter-toolbar">
+                        <label class="adv-filter-by-label">Filter by</label>
+                        <div class="adv-filter-category-shell">
+                            <input type="hidden" name="filter_category" id="filter-category" value="{{ fc }}">
+                            <div class="adv-filter-category-custom">
+                                <button type="button" class="adv-filter-cat-trigger advanced-filter-select" id="adv-filter-cat-btn" aria-expanded="false" aria-haspopup="true">
+                                    <span id="adv-filter-cat-display">{{ adv_cat_label }}</span>
+                                    <i class="fas fa-chevron-down adv-filter-cat-chevron"></i>
+                                </button>
+                                <div class="adv-filter-cat-panel" id="adv-filter-cat-panel" hidden>
+                                    <button type="button" class="adv-filter-cat-row" data-cat="">Quick (cards)</button>
+                                    <div class="adv-filter-cat-status-wrap">
+                                        <button type="button" class="adv-filter-cat-row adv-filter-cat-row--has-flyout" data-cat="status">
+                                            Status <i class="fas fa-chevron-right ms-1 small opacity-75"></i>
+                                        </button>
+                                        <div class="adv-filter-status-flyout" id="adv-filter-status-flyout" aria-hidden="true">
+                                            <div class="adv-filter-status-flyout-kicker">Appointment status</div>
+                                            <button type="button" class="adv-filter-status-opt" data-status="">All</button>
+                                            {% for s in status_options %}
+                                            <button type="button" class="adv-filter-status-opt" data-status="{{ s }}">{{ s.replace('_',' ')|title }}</button>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <button type="button" class="adv-filter-cat-row" data-cat="date">Date range</button>
+                                    <button type="button" class="adv-filter-cat-row" data-cat="email">Email</button>
+                                    <button type="button" class="adv-filter-cat-row" data-cat="patient">Patient</button>
+                                    <button type="button" class="adv-filter-cat-row" data-cat="doctor">Doctor</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="filter-input-container" class="adv-filter-values">
+                            {% if request.args.get('filter_category') == 'status' %}
+                                <div class="status-filter-select adv-filter-status-wrap">
+                                    <button type="button" class="status-filter-trigger adv-filter-field-control">
+                                        <span class="status-filter-value">{% if request.args.get('status') and request.args.get('status') != '' %}{{ request.args.get('status').replace('_',' ')|title }}{% else %}All{% endif %}</span>
+                                        <i class="fas fa-chevron-down" style="color:#0f766e;"></i>
+                                    </button>
+                                    <div class="status-filter-options adv-filter-status-options">
+                                        <button type="button" class="status-filter-option" data-value="" style="display:block;width:100%;text-align:left;border:1px solid rgba(15,23,42,0.04);padding:0.5rem 0.75rem;margin-bottom:0.35rem;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfdfe);cursor:pointer;font-weight:700;color:#0f172a;">All</button>
+                                        {% for s in status_options %}
+                                            <button type="button" class="status-filter-option" data-value="{{ s }}" style="display:block;width:100%;text-align:left;border:1px solid rgba(15,23,42,0.04);padding:0.5rem 0.75rem;margin-bottom:0.35rem;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfdfe);cursor:pointer;font-weight:700;color:#0f172a;">{{ s.replace('_',' ')|title }}</button>
+                                        {% endfor %}
+                                    </div>
+                                    <input type="hidden" name="status" class="status-filter-hidden" value="{{ request.args.get('status','') }}">
+                                </div>
+                            {% elif request.args.get('filter_category') == 'date' %}
+                                <input type="date" name="date_from" value="{{ request.args.get('date_from','') }}" class="advanced-filter-select adv-filter-date-input">
+                                <input type="date" name="date_to" value="{{ request.args.get('date_to','') }}" class="advanced-filter-select adv-filter-date-input">
+                            {% elif request.args.get('filter_category') == 'email' %}
+                                <input type="search" name="email" placeholder="Search by patient email" value="{{ request.args.get('email','') }}" class="advanced-filter-select adv-filter-field-control">
+                            {% elif request.args.get('filter_category') == 'patient' %}
+                                <select name="patient_id" class="advanced-filter-select adv-filter-field-control">
+                                    <option value="">Any patient</option>
+                                    {% for p in patients %}
+                                        <option value="{{ p.id }}" {% if request.args.get('patient_id')==p.id|string %}selected{% endif %}>{{ p.user.name }} — {{ p.user.email }}</option>
+                                    {% endfor %}
+                                </select>
+                            {% elif request.args.get('filter_category') == 'doctor' %}
+                                <select name="doctor_id" class="advanced-filter-select adv-filter-field-control">
+                                    {% for d in doctors %}
+                                        <option value="{{ d.id }}" {% if request.args.get('doctor_id')==d.id|string %}selected{% endif %}>{{ d.user.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            {% else %}
+                                <!-- empty placeholder -->
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="advanced-filter-btn adv-filter-apply-btn">Apply</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Appointments List -->
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                <div class="card-header qc-admin-card__header border-0 py-3 px-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2" style="color: #10b981;"></i>All Appointments ({{ appointments|length
+                        }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Date & Time</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Payment Status</th>
+                                    <th>Amount</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in appointments %}
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <strong>{{ appointment.patient.user.name }}</strong><br>
+                                            <small class="text-muted">{{ appointment.patient.user.email }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ appointment.doctor.user.name }}</strong><br>
+                                            <small class="text-muted">{{ appointment.doctor.specialization }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <i class="fas fa-calendar me-1"></i>{{
+                                            appointment.appointment_date.strftime('%B %d, %Y') }}<br>
+                                            <i class="fas fa-clock me-1"></i>{{
+                                            appointment.appointment_time.strftime('%I:%M %p') }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="badge badge-{% if appointment.appointment_type == 'video' %}success{% else %}primary{% endif %}"
+                                            style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                            <i
+                                                class="fas fa-{% if appointment.appointment_type == 'video' %}video{% else %}hospital{% endif %} me-1"></i>
+                                            {{ appointment.appointment_type.title() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% include 'partials/appointment_status_badge.html' %}
+                                    </td>
+                                    <td>
+                                        {% if appointment.status == 'approved' %}
+                                        {% if appointment.payment_status == 'pending' %}
+                                        <span class="badge badge-warning"
+                                            style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                            Payment Pending
+                                        </span>
+                                        {% elif appointment.payment_status == 'submitted' %}
+                                        <span class="badge badge-info"
+                                            style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                            Under Review
+                                        </span>
+                                        {% elif appointment.payment_status == 'approved' %}
+                                        <span class="badge badge-success"
+                                            style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                            Payment Approved
+                                        </span>
+                                        {% elif appointment.payment_status == 'rejected' %}
+                                        <span class="badge badge-danger"
+                                            style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                            Payment Rejected
+                                        </span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>PKR {{ "%.0f"|format(appointment.charges) }}</strong>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1 flex-wrap">
+                                            <a href="{{ url_for('appointments.view_appointment', appointment_id=appointment.id) }}"
+                                                class="btn btn-sm btn-outline-primary" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if appointment.appointment_type == 'video' %}
+                                            <a href="{{ url_for('admin.appointment_recordings', appointment_id=appointment.id) }}"
+                                                class="btn btn-sm btn-outline-secondary" title="View Recordings">
+                                                <i class="fas fa-video"></i>
+                                            </a>
+                                            {% endif %}
+                                            {% if appointment.status == 'approved' and appointment.payment_status ==
+                                            'submitted' %}
+                                            <a href="{{ url_for('admin.payments') }}"
+                                                class="btn btn-sm btn-success" title="Review Payment">
+                                                <i class="fas fa-money-bill-wave"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-calendar-times text-muted mb-3" style="font-size: 4rem;"></i>
+                        <h5 class="text-muted mb-3">No appointments found</h5>
+                        <p class="text-muted">No appointments match your filters.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Admin avatar styling */
+    .admin-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        font-size: 2rem;
+        color: #10b981;
+    }
+
+    /* Payment notification badge styling - like WhatsApp */
+    .payment-badge {
+        font-size: 0.7rem;
+        font-weight: 600;
+        min-width: 20px;
+        height: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 6px;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 6px rgba(220, 53, 69, 0.4);
+        animation: pulse 2s infinite;
+        white-space: nowrap;
+    }
+
+    @keyframes pulse {
+
+        0%,
+        100% {
+            transform: translate(-50%, -50%) scale(1) !important;
+        }
+
+        50% {
+            transform: translate(-50%, -50%) scale(1.1) !important;
+        }
+    }
+
+    .list-group-item:hover .payment-badge {
+        animation: pulse 1s infinite;
+    }
+
+    .list-group-item {
+        overflow: visible !important;
+    }
+
+    .list-group-item.active {
+        background: rgba(16, 185, 129, 0.08);
+        border: 2.5px solid rgba(16, 185, 129, 0.6);
+        color: #10b981;
+        font-weight: 600;
+        box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.1), 0 8px 32px rgba(16, 185, 129, 0.2);
+        backdrop-filter: blur(25px) saturate(180%);
+        -webkit-backdrop-filter: blur(25px) saturate(180%);
+    }
+
+    .advanced-filter-copy {
+        flex: 0 0 100%;
+        display: block;
+    }
+
+    .advanced-filter-label {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.13em;
+        font-weight: 900;
+        color: #0f766e;
+        margin: 0 0 0.5rem 0;
+        display: block;
+    }
+
+    .advanced-filter-form {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.8rem;
+        flex: 1 1 auto;
+    }
+
+    .advanced-select-wrap {
+        position: relative;
+        flex: 0 1 420px;
+        min-width: 220px;
+        max-width: 520px;
+    }
+
+    /* Custom select styles */
+    .custom-select {
+        position: relative;
+        width: 100%;
+        font-weight: 700;
+    }
+
+    .custom-select-trigger {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        height: 50px;
+        padding: 0.5rem 0.9rem;
+        border-radius: 14px;
+        border: 1.5px solid rgba(16,185,129,0.3);
+        background: rgba(255,255,255,0.98);
+        cursor: pointer;
+    }
+
+    .custom-select .custom-select-value {
+        flex: 1 1 auto;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .custom-select .custom-select-caret {
+        color: #0f766e;
+    }
+
+    .custom-options {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 8px);
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 12px 24px rgba(15,23,42,0.08);
+        z-index: 99999; /* ensure dropdown floats above page content */
+        padding: 0.8rem;
+        display: none;
+        max-height: 260px;
+        overflow: auto;
+    }
+
+    .custom-select[data-expanded="true"] .custom-options { display: block; }
+
+    .custom-optgroup { margin-bottom: 0.6rem; }
+
+    .custom-optgroup-label {
+        font-size: 0.78rem;
+        font-weight: 900;
+        color: #0f766e;
+        margin-bottom: 0.45rem;
+    }
+
+    .custom-option {
+        display: block;
+        width: 100%;
+        text-align: left;
+        border: 1px solid rgba(15,23,42,0.04);
+        padding: 0.5rem 0.75rem;
+        margin-bottom: 0.35rem;
+        border-radius: 10px;
+        background: linear-gradient(180deg, #fff, #fbfdfe);
+        cursor: pointer;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .custom-option:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(15,23,42,0.06); }
+
+    /* Ensure dropdown floats above other page elements */
+    .custom-select { z-index: 99999; position: relative; }
+
+
+    .advanced-select-icon {
+        position: absolute;
+        left: 0.9rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #0f766e;
+        pointer-events: none;
+        z-index: 2;
+        font-size: 0.9rem;
+    }
+
+    /* When using custom-select, render the icon inline to avoid overlap */
+    .advanced-select-wrap .custom-select .advanced-select-icon {
+        position: static;
+        transform: none;
+        left: auto;
+        top: auto;
+        margin-right: 0.6rem;
+        z-index: 1;
+        font-size: 1rem;
+    }
+
+    .advanced-filter-select {
+        width: 100%;
+        height: 50px;
+        padding-left: 2.35rem;
+        padding-right: 0.9rem;
+        border-radius: 14px;
+        border: 1.5px solid rgba(16, 185, 129, 0.3);
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+        font-weight: 600;
+        font-size: 0.93rem;
+        color: #0f172a;
+        transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .advanced-filter-select:hover {
+        border-color: rgba(16, 185, 129, 0.5);
+    }
+
+    .advanced-filter-select:focus {
+        outline: none;
+        border-color: rgba(16, 185, 129, 0.8);
+        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04), 0 0 0 3px rgba(16, 185, 129, 0.12);
+    }
+
+    .advanced-filter-btn {
+        height: 50px;
+        padding: 0 1.15rem;
+        border-radius: 14px;
+        border: 1px solid rgba(5, 150, 105, 0.5);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.92), rgba(5, 150, 105, 0.92));
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.9rem;
+        box-shadow: 0 10px 24px rgba(16, 185, 129, 0.22);
+        transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+        white-space: nowrap;
+        flex: 0 0 auto;
+    }
+
+    .advanced-filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 28px rgba(16, 185, 129, 0.28);
+        color: #fff;
+    }
+
+    .adv-filter-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.65rem 0.85rem;
+        width: 100%;
+    }
+
+    .adv-filter-by-label {
+        flex: 0 0 auto;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+    }
+
+    /* Category trigger + primary search/value fields share sizing */
+    .adv-filter-cat-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        width: clamp(13.5rem, 20vw, 17rem);
+        max-width: 100%;
+    }
+
+    .adv-filter-cat-trigger.advanced-filter-select {
+        padding-left: 0.95rem;
+        padding-right: 0.9rem;
+    }
+
+    .adv-filter-cat-trigger #adv-filter-cat-display {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: left;
+        flex: 1 1 auto;
+    }
+
+    .adv-filter-values {
+        flex: 1 1 18rem;
+        min-width: 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem 0.75rem;
+    }
+
+    .adv-filter-values .advanced-filter-select.adv-filter-field-control,
+    .adv-filter-values select.advanced-filter-select.adv-filter-field-control {
+        width: min(100%, 28rem);
+        min-width: min(100%, 16rem);
+        max-width: 100%;
+    }
+
+    .adv-filter-toolbar .advanced-filter-select.adv-filter-field-control {
+        padding-left: 1rem;
+    }
+
+    .adv-filter-date-input.advanced-filter-select {
+        width: auto;
+        flex: 1 1 11rem;
+        min-width: 10.75rem;
+        max-width: 12.5rem;
+        padding-left: 0.9rem;
+        padding-right: 0.5rem;
+    }
+
+    .adv-filter-status-wrap {
+        position: relative;
+        display: block;
+        width: min(100%, 28rem);
+        max-width: 100%;
+    }
+
+    .adv-filter-status-wrap .adv-filter-field-control.status-filter-trigger {
+        width: 100%;
+        min-height: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        font-weight: 700;
+        color: #0f172a;
+        cursor: pointer;
+        border-radius: 14px;
+        border: 1.5px solid rgba(16, 185, 129, 0.3);
+        background: rgba(255, 255, 255, 0.98);
+        position: relative;
+        padding-right: 2.2rem;
+    }
+
+    .adv-filter-status-wrap .status-filter-trigger .status-filter-value {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .adv-filter-status-wrap .status-filter-trigger i {
+        position: absolute;
+        right: 0.9rem;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .adv-filter-status-options {
+        display: none;
+        position: absolute;
+        left: 0;
+        top: calc(100% + 8px);
+        z-index: 99999;
+        width: 100%;
+        min-width: 14rem;
+        max-height: 260px;
+        overflow: auto;
+        padding: 0.8rem;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .adv-filter-apply-btn {
+        flex: 0 0 auto;
+    }
+
+    .adv-filter-cat-chevron { flex-shrink: 0; opacity: 0.7; font-size: 0.75rem; }
+
+    .adv-filter-category-shell {
+        position: relative;
+        z-index: 100020;
+    }
+    .adv-filter-category-custom {
+        position: relative;
+    }
+
+    .adv-filter-cat-panel {
+        position: absolute;
+        left: 0;
+        top: calc(100% + 6px);
+        min-width: 100%;
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid rgba(16, 185, 129, 0.22);
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
+        padding: 0.4rem 0;
+        z-index: 100021;
+    }
+
+    .adv-filter-cat-row {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.55rem 0.85rem;
+        border: none;
+        background: transparent;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #0f172a;
+        cursor: pointer;
+        text-align: left;
+        transition: background 0.15s ease;
+    }
+    .adv-filter-cat-row:hover,
+    .adv-filter-cat-row:focus-visible {
+        background: rgba(16, 185, 129, 0.08);
+        outline: none;
+    }
+
+    .adv-filter-cat-status-wrap {
+        position: relative;
+    }
+
+    /* Status sub-menu beside primary menu (hover + focus) */
+    .adv-filter-status-flyout {
+        display: none;
+        position: absolute;
+        left: calc(100% + 4px);
+        top: 0;
+        min-width: 220px;
+        max-height: 280px;
+        overflow-y: auto;
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
+        padding: 0.35rem 0 0.5rem;
+        z-index: 100022;
+    }
+
+    .adv-filter-cat-status-wrap:hover > .adv-filter-status-flyout,
+    .adv-filter-cat-status-wrap:focus-within > .adv-filter-status-flyout,
+    .adv-filter-status-flyout:hover {
+        display: block;
+    }
+
+    .adv-filter-status-flyout-kicker {
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #64748b;
+        padding: 0.35rem 0.75rem 0.25rem;
+    }
+
+    .adv-filter-status-opt {
+        display: block;
+        width: 100%;
+        text-align: left;
+        border: none;
+        border-top: 1px solid rgba(241, 245, 249, 0.9);
+        padding: 0.45rem 0.85rem;
+        background: #fff;
+        font-weight: 600;
+        font-size: 0.84rem;
+        color: #0f172a;
+        cursor: pointer;
+    }
+    .adv-filter-status-opt:hover {
+        background: rgba(236, 253, 245, 0.95);
+        color: #047857;
+    }
+
+    /* Quick appointment filter row — icon glows (match Q&A / blogs); card shell from main.css */
+    .admin-appt-filter-link {
+        display: block;
+        height: 100%;
+        border-radius: 20px;
+        color: inherit;
+    }
+
+    .admin-appt-filter-link:focus-visible {
+        outline: 2px solid rgba(16, 185, 129, 0.65);
+        outline-offset: 3px;
+    }
+
+    @keyframes appt-icon-glow-indigo {
+        0%, 100% {
+            box-shadow:
+                0 0 0 1px rgba(129, 140, 248, 0.42),
+                0 3px 12px rgba(99, 102, 241, 0.22),
+                0 0 18px rgba(129, 140, 248, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+        50% {
+            box-shadow:
+                0 0 0 1px rgba(165, 180, 252, 0.65),
+                0 5px 16px rgba(99, 102, 241, 0.3),
+                0 0 26px rgba(129, 140, 248, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.68);
+        }
+    }
+
+    @keyframes appt-icon-glow-violet {
+        0%, 100% {
+            box-shadow:
+                0 0 0 1px rgba(167, 139, 250, 0.42),
+                0 3px 12px rgba(139, 92, 246, 0.22),
+                0 0 18px rgba(167, 139, 250, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+        50% {
+            box-shadow:
+                0 0 0 1px rgba(196, 181, 253, 0.65),
+                0 5px 16px rgba(139, 92, 246, 0.3),
+                0 0 26px rgba(167, 139, 250, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.68);
+        }
+    }
+
+    @keyframes appt-icon-glow-amber {
+        0%, 100% {
+            box-shadow:
+                0 0 0 1px rgba(251, 191, 36, 0.42),
+                0 3px 12px rgba(245, 158, 11, 0.22),
+                0 0 18px rgba(251, 191, 36, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        }
+        50% {
+            box-shadow:
+                0 0 0 1px rgba(253, 224, 71, 0.58),
+                0 5px 16px rgba(245, 158, 11, 0.3),
+                0 0 26px rgba(251, 191, 36, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+    }
+
+    @keyframes appt-icon-glow-emerald {
+        0%, 100% {
+            box-shadow:
+                0 0 0 1px rgba(52, 211, 153, 0.4),
+                0 3px 12px rgba(16, 185, 129, 0.22),
+                0 0 18px rgba(52, 211, 153, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        50% {
+            box-shadow:
+                0 0 0 1px rgba(167, 243, 208, 0.65),
+                0 5px 16px rgba(16, 185, 129, 0.3),
+                0 0 26px rgba(52, 211, 153, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.62);
+        }
+    }
+
+    .admin-appt-quick-filters .filter-card-all .icon-wrapper {
+        border: 1px solid rgba(99, 102, 241, 0.28);
+        animation: appt-icon-glow-indigo 3.2s ease-in-out infinite;
+    }
+
+    .admin-appt-quick-filters .filter-card-pending .icon-wrapper {
+        border: 1px solid rgba(139, 92, 246, 0.28);
+        animation: appt-icon-glow-violet 3.2s ease-in-out infinite 0.28s;
+    }
+
+    .admin-appt-quick-filters .filter-card-approved .icon-wrapper {
+        border: 1px solid rgba(245, 158, 11, 0.32);
+        animation: appt-icon-glow-amber 3.2s ease-in-out infinite 0.56s;
+    }
+
+    .admin-appt-quick-filters .filter-card-completed .icon-wrapper {
+        border: 1px solid rgba(16, 185, 129, 0.28);
+        animation: appt-icon-glow-emerald 3.2s ease-in-out infinite 0.84s;
+    }
+
+    .admin-appt-quick-filters .admin-appt-filter-link:hover .icon-wrapper {
+        animation-duration: 2.5s;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .admin-appt-quick-filters .filter-card-all .icon-wrapper,
+        .admin-appt-quick-filters .filter-card-pending .icon-wrapper,
+        .admin-appt-quick-filters .filter-card-approved .icon-wrapper,
+        .admin-appt-quick-filters .filter-card-completed .icon-wrapper {
+            animation: none;
+        }
+
+        .admin-appt-quick-filters .filter-card-all .icon-wrapper {
+            box-shadow:
+                0 0 0 1px rgba(129, 140, 248, 0.48),
+                0 3px 14px rgba(99, 102, 241, 0.24),
+                0 0 20px rgba(129, 140, 248, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+
+        .admin-appt-quick-filters .filter-card-pending .icon-wrapper {
+            box-shadow:
+                0 0 0 1px rgba(167, 139, 250, 0.48),
+                0 3px 14px rgba(139, 92, 246, 0.24),
+                0 0 20px rgba(167, 139, 250, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+
+        .admin-appt-quick-filters .filter-card-approved .icon-wrapper {
+            box-shadow:
+                0 0 0 1px rgba(251, 191, 36, 0.48),
+                0 3px 14px rgba(245, 158, 11, 0.24),
+                0 0 20px rgba(251, 191, 36, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        }
+
+        .admin-appt-quick-filters .filter-card-completed .icon-wrapper {
+            box-shadow:
+                0 0 0 1px rgba(52, 211, 153, 0.48),
+                0 3px 14px rgba(16, 185, 129, 0.24),
+                0 0 20px rgba(52, 211, 153, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+    }
+
+    /* Quick filter cards — balanced width (Bootstrap cols handle layout) */
+    .admin-appt-quick-filters .admin-appt-quick-col {
+        min-width: 0;
+    }
+
+    .admin-appt-quick-filters .qc-admin-filter-tile {
+        padding: 1rem 1.2rem;
+        min-height: 1px;
+    }
+
+    .admin-appt-quick-filters .qc-admin-filter-tile .stats-info h3 {
+        font-size: 1.45rem;
+    }
+
+    .admin-appt-quick-filters .qc-admin-filter-tile .stats-info .small {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+    }
+
+    @media (max-width: 575.98px) {
+        .adv-filter-status-flyout {
+            left: 0;
+            top: calc(100% + 6px);
+            position: absolute;
+            width: min(100vw - 2rem, 320px);
+        }
+        .adv-filter-cat-panel {
+            max-width: calc(100vw - 2rem);
+        }
+    }
+
+    @media (max-width: 991.98px) {
+        .advanced-filter-shell {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .advanced-filter-form {
+            flex-direction: column;
+        }
+
+        .advanced-select-wrap,
+        .advanced-filter-btn {
+            width: 100%;
+        }
+    }
+
+</style>
+    <script type="text/template" id="tpl-status">
+        <div class="status-filter-select adv-filter-status-wrap">
+            <button type="button" class="status-filter-trigger adv-filter-field-control">
+                <span class="status-filter-value">Any</span>
+                <i class="fas fa-chevron-down" style="color:#0f766e;"></i>
+            </button>
+            <div class="status-filter-options adv-filter-status-options">
+                <button type="button" class="status-filter-option" data-value="" style="display:block;width:100%;text-align:left;border:1px solid rgba(15,23,42,0.04);padding:0.5rem 0.75rem;margin-bottom:0.35rem;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfdfe);cursor:pointer;font-weight:700;color:#0f172a;">Any</button>
+                {% for s in status_options %}
+                    <button type="button" class="status-filter-option" data-value="{{ s }}" style="display:block;width:100%;text-align:left;border:1px solid rgba(15,23,42,0.04);padding:0.5rem 0.75rem;margin-bottom:0.35rem;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfdfe);cursor:pointer;font-weight:700;color:#0f172a;">{{ s.replace('_',' ')|title }}</button>
+                {% endfor %}
+            </div>
+            <input type="hidden" name="status" class="status-filter-hidden" value="">
+        </div>
+    </script>
+    <script type="text/template" id="tpl-date">
+        <input type="date" name="date_from" class="advanced-filter-select adv-filter-date-input" />
+        <input type="date" name="date_to" class="advanced-filter-select adv-filter-date-input" />
+    </script>
+    <script type="text/template" id="tpl-email">
+        <input type="search" name="email" placeholder="Search by patient email" class="advanced-filter-select adv-filter-field-control" />
+    </script>
+    <script type="text/template" id="tpl-patient">
+        <select name="patient_id" class="advanced-filter-select adv-filter-field-control">
+            <option value="">Any patient</option>
+            {% for p in patients %}
+                <option value="{{ p.id }}">{{ p.user.name }} — {{ p.user.email }}</option>
+            {% endfor %}
+        </select>
+    </script>
+    <script type="text/template" id="tpl-doctor">
+        <select name="doctor_id" class="advanced-filter-select adv-filter-field-control">
+            {% for d in doctors %}
+                <option value="{{ d.id }}">{{ d.user.name }}</option>
+            {% endfor %}
+        </select>
+    </script>
+
+    <script>
+    (function () {
+        var STATUS_DOC_CLOSE_BOUND = false;
+
+        function titleCaseStatus(s) {
+            if (!s) return '';
+            return String(s).replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+        }
+
+        function bindStatusOutsideClose() {
+            if (STATUS_DOC_CLOSE_BOUND) return;
+            STATUS_DOC_CLOSE_BOUND = true;
+            document.addEventListener('click', function (e) {
+                var wrap = document.querySelector('#filter-input-container .status-filter-select');
+                if (!wrap) return;
+                var opts = wrap.querySelector('.status-filter-options');
+                if (!opts) return;
+                if (wrap.contains(e.target)) return;
+                opts.style.display = 'none';
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var categoryInput = document.getElementById('filter-category');
+            var container = document.getElementById('filter-input-container');
+            var panel = document.getElementById('adv-filter-cat-panel');
+            var catBtn = document.getElementById('adv-filter-cat-btn');
+            var catDisplay = document.getElementById('adv-filter-cat-display');
+            var filterByRow = document.querySelector('.adv-filter-toolbar');
+
+            if (!categoryInput || !container || !panel || !catBtn || !catDisplay) return;
+
+            var tplStatus = document.getElementById('tpl-status');
+            var tplDate = document.getElementById('tpl-date');
+            var tplEmail = document.getElementById('tpl-email');
+            var tplPatient = document.getElementById('tpl-patient');
+            var tplDoctor = document.getElementById('tpl-doctor');
+            if (!tplStatus || !tplDate || !tplEmail || !tplPatient || !tplDoctor) return;
+
+            var templates = {
+                status: tplStatus.innerHTML,
+                date: tplDate.innerHTML,
+                email: tplEmail.innerHTML,
+                patient: tplPatient.innerHTML,
+                doctor: tplDoctor.innerHTML
+            };
+
+            var LABELS = { '': 'Quick (cards)', date: 'Date range', email: 'Email', patient: 'Patient', doctor: 'Doctor' };
+
+            function formatDisplay(cat) {
+                if (cat === 'status') {
+                    var hid = container.querySelector('.status-filter-hidden');
+                    var v = hid ? hid.value : '';
+                    return 'Status';
+                }
+                return LABELS.hasOwnProperty(cat) ? LABELS[cat] : LABELS[''];
+            }
+
+            function refreshCategoryLabel() {
+                catDisplay.textContent = formatDisplay(categoryInput.value);
+            }
+
+            function closeCategoryPanel() {
+                panel.hidden = true;
+                catBtn.setAttribute('aria-expanded', 'false');
+            }
+
+            function mountInputs(cat, opts) {
+                opts = opts || {};
+                if (!cat || cat === 'quick') {
+                    container.innerHTML = '';
+                    return;
+                }
+                var html = templates[cat] || '';
+                container.innerHTML = html;
+                if (cat === 'status') {
+                    var hiddenInp = container.querySelector('.status-filter-hidden');
+                    var span = container.querySelector('.status-filter-value');
+                    if (opts.status !== undefined && hiddenInp) {
+                        hiddenInp.value = opts.status;
+                        if (span) {
+                            span.textContent = opts.status ? titleCaseStatus(opts.status) : 'Any';
+                        }
+                    }
+                    initStatusFilterDropdown(refreshCategoryLabel);
+                } else {
+                    var first = container.querySelector('input, select');
+                    if (first) first.focus();
+                }
+            }
+
+            catBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                panel.hidden = !panel.hidden;
+                catBtn.setAttribute('aria-expanded', panel.hidden ? 'false' : 'true');
+            });
+
+            document.addEventListener('click', function (e) {
+                if (panel.hidden) return;
+                var inBar = filterByRow && filterByRow.contains(e.target);
+                if (inBar) return;
+                closeCategoryPanel();
+            });
+
+            panel.addEventListener('click', function (e) {
+                var opt = e.target.closest('.adv-filter-status-opt');
+                if (opt) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var st = opt.getAttribute('data-status');
+                    if (st === null) st = '';
+                    categoryInput.value = 'status';
+                    mountInputs('status', { status: st });
+                    refreshCategoryLabel();
+                    closeCategoryPanel();
+                    return;
+                }
+
+                var row = e.target.closest('.adv-filter-cat-row');
+                if (!row) return;
+
+                if (row.classList.contains('adv-filter-cat-row--has-flyout')) {
+                    e.preventDefault();
+                    categoryInput.value = 'status';
+                    mountInputs('status', { status: '' });
+                    refreshCategoryLabel();
+                    closeCategoryPanel();
+                    return;
+                }
+
+                var raw = row.getAttribute('data-cat');
+                if (raw === null) return;
+                if (raw === '') {
+                    categoryInput.value = '';
+                    mountInputs('', {});
+                } else {
+                    categoryInput.value = raw;
+                    mountInputs(raw, {});
+                }
+                refreshCategoryLabel();
+                closeCategoryPanel();
+            });
+
+            if (categoryInput.value === 'status') {
+                initStatusFilterDropdown(refreshCategoryLabel);
+            }
+        });
+
+        function initStatusFilterDropdown(onStatusChange) {
+            var wrap = document.querySelector('#filter-input-container .status-filter-select');
+            if (!wrap || wrap.getAttribute('data-status-ui') === '1') return;
+            wrap.setAttribute('data-status-ui', '1');
+
+            bindStatusOutsideClose();
+
+            var trigger = wrap.querySelector('.status-filter-trigger');
+            var options = wrap.querySelector('.status-filter-options');
+            var hidden = wrap.querySelector('.status-filter-hidden');
+            var valueSpan = wrap.querySelector('.status-filter-value');
+
+            if (!trigger || !options || !hidden) return;
+
+            var optionButtons = Array.from(wrap.querySelectorAll('.status-filter-option'));
+
+            trigger.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                options.style.display = options.style.display === 'block' ? 'none' : 'block';
+            });
+
+            optionButtons.forEach(function (btn) {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var val = btn.getAttribute('data-value');
+                    hidden.value = val != null ? val : '';
+                    valueSpan.textContent = val ? btn.textContent.trim() : 'Any';
+                    options.style.display = 'none';
+                    if (typeof onStatusChange === 'function') onStatusChange();
+                });
+            });
+        }
+    })();
+    </script>
+{% endblock %}

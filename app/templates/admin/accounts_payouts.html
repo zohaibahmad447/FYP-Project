@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Payout Requests - Quick Care Connect{% endblock %}
+{% block content %}
+<div class="container-fluid px-2 px-md-3 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0"><i class="fas fa-money-check-alt me-2" style="color: #10b981;"></i>Payout Requests</h2>
+        <a href="{{ url_for('admin.accounts') }}" class="btn btn-outline-secondary btn-sm">Accounts</a>
+    </div>
+    <div class="card qc-admin-card border-0 shadow-sm rounded-4">
+        <div class="card-body p-0">
+            {% if payout_requests %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Doctor</th>
+                            <th>Amount (PKR)</th>
+                            <th>Method</th>
+                            <th>Destination</th>
+                            <th>Balance</th>
+                            <th>Requested</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in payout_requests %}
+                        <tr>
+                            <td>{{ p.id }}</td>
+                            <td>
+                                <a href="{{ url_for('admin.doctor_financials', doctor_id=p.doctor_id) }}">{{ p.doctor.user.name if p.doctor and p.doctor.user else '-' }}</a>
+                            </td>
+                            <td>{{ "%.2f"|format(p.amount) }}</td>
+                            <td>{{ (p.payout_method or 'legacy')|replace('_', ' ')|title }}</td>
+                            <td>
+                                {% if p.payout_method == 'bank_transfer' %}
+                                    <div><strong>{{ p.provider_name or '-' }}</strong></div>
+                                    <div class="small text-muted">A/C: {{ p.account_number or '-' }}</div>
+                                    {% if p.iban %}
+                                    <div class="small text-muted">IBAN: {{ p.iban }}</div>
+                                    {% endif %}
+                                {% elif p.payout_method == 'mobile_wallet' %}
+                                    <div><strong>{{ p.provider_name or '-' }}</strong></div>
+                                    <div class="small text-muted">Wallet: {{ p.account_number or '-' }}</div>
+                                {% elif p.payout_method == 'visa_card' %}
+                                    <div><strong>Visa</strong></div>
+                                    <div class="small text-muted">Card: ****{{ p.visa_card_last4 or '-' }}</div>
+                                    <div class="small text-muted">ID: {{ p.visa_recipient_id or '-' }}</div>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ "%.2f"|format(p.doctor.balance) if p.doctor else '-' }}</td>
+                            <td>{{ p.requested_at.strftime('%d %b %Y %H:%M') if p.requested_at else '-' }}</td>
+                            <td><span class="badge {% if p.status == 'pending' %}bg-warning{% elif p.status in ['approved','paid'] %}bg-success{% else %}bg-danger{% endif %}">{{ p.status }}</span></td>
+                            <td>
+                                {% if p.status == 'pending' %}
+                                <form method="post" action="{{ url_for('admin.payout_approve', request_id=p.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                                    <input type="text" name="admin_notes" placeholder="Notes" class="form-control form-control-sm d-inline-block w-auto me-1">
+                                    <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                </form>
+                                <form method="post" action="{{ url_for('admin.payout_reject', request_id=p.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                                    <input type="text" name="admin_notes" placeholder="Reason" class="form-control form-control-sm d-inline-block w-auto me-1">
+                                    <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                                </form>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">No payout requests.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

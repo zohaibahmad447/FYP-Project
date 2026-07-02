@@ -1,0 +1,904 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Profile - Quick Care Connect{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e6fffa 100%);
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        min-height: 100vh;
+    }
+
+    .profile-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    /* Hero Section - Emerald Green Glassy */
+    .profile-hero {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.9) 0%, rgba(5, 150, 105, 0.85) 100%);
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 20px 60px rgba(16, 185, 129, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 500px;
+        height: 500px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .profile-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -5%;
+        width: 400px;
+        height: 400px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+    }
+
+    .profile-avatar-wrapper {
+        position: relative;
+        z-index: 2;
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-avatar {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 5px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        font-weight: 700;
+        color: white;
+        margin: 0 auto;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+    }
+
+    .profile-avatar:hover {
+        transform: scale(1.05);
+    }
+
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .profile-header-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        color: white;
+    }
+
+    .profile-name {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .profile-specialization {
+        font-size: 1.3rem;
+        opacity: 0.95;
+        margin-bottom: 1rem;
+        font-weight: 400;
+    }
+
+    .profile-location {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .status-badge-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin: 0.25rem;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .status-badge-modern.approved {
+        background: rgba(40, 167, 69, 0.3);
+        border-color: rgba(40, 167, 69, 0.5);
+    }
+
+    .status-badge-modern.pending {
+        background: rgba(255, 193, 7, 0.3);
+        border-color: rgba(255, 193, 7, 0.5);
+    }
+
+    .status-badge-modern.rejected {
+        background: rgba(220, 53, 69, 0.3);
+        border-color: rgba(220, 53, 69, 0.5);
+    }
+
+    .status-badge-modern.suspended {
+        background: rgba(108, 117, 125, 0.3);
+        border-color: rgba(108, 117, 125, 0.5);
+    }
+
+    /* Statistics Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card-modern {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.9) 0%, rgba(5, 150, 105, 0.85) 100%);
+    }
+
+    .stat-card-modern:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-icon-modern {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.9) 0%, rgba(5, 150, 105, 0.85) 100%);
+        color: white;
+    }
+
+    .stat-value-modern {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 0.25rem;
+        line-height: 1;
+    }
+
+    .stat-label-modern {
+        font-size: 0.85rem;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+    }
+
+    /* Content Grid */
+    .content-grid {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 992px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Sidebar Cards */
+    .sidebar-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        margin-bottom: 1.5rem;
+    }
+
+    .sidebar-card-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #f0f0f0;
+        color: #1a1a1a;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .sidebar-card-title i {
+        color: #10b981;
+        font-size: 1.2rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f5f5f5;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label-modern {
+        font-size: 0.75rem;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .info-value-modern {
+        font-size: 0.95rem;
+        color: #1a1a1a;
+        font-weight: 500;
+        line-height: 1.5;
+    }
+
+    /* Main Content Cards */
+    .main-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
+    }
+
+    .main-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .main-card-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .main-card-title i {
+        color: #667eea;
+        font-size: 1.4rem;
+    }
+
+    /* Quick Actions */
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+
+    .quick-action-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        padding: 1.5rem 1rem;
+        text-align: center;
+        text-decoration: none;
+        color: #1a1a1a;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .quick-action-card:hover {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.9) 0%, rgba(5, 150, 105, 0.85) 100%);
+        color: white;
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        border-color: transparent;
+    }
+
+    .quick-action-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+
+    .quick-action-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    /* List Items */
+    .list-item-modern {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid #667eea;
+        transition: all 0.3s ease;
+    }
+
+    .list-item-modern:hover {
+        background: #f0f0f0;
+        transform: translateX(5px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .list-item-modern:last-child {
+        margin-bottom: 0;
+    }
+
+    .list-item-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+    }
+
+    .list-item-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 0.5rem;
+    }
+
+    .list-item-meta i {
+        margin-right: 0.25rem;
+        color: #667eea;
+    }
+
+    .badge-modern {
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Empty State */
+    .empty-state-modern {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #999;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+        color: #667eea;
+    }
+
+    .empty-state-text {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Alert Styles */
+    .alert-modern {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .profile-hero {
+            padding: 2rem 1.5rem;
+        }
+
+        .profile-name {
+            font-size: 2rem;
+        }
+
+        .profile-specialization {
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .quick-actions-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Hero Section -->
+    <div class="profile-hero">
+        <div class="profile-avatar-wrapper">
+            <div class="profile-avatar">
+                {% if doctor.user.profile_picture %}
+                <img src="{{ url_for('static', filename='uploads/' + doctor.user.profile_picture) }}"
+                    alt="{{ doctor.user.name }}"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div style="display: none;">{{ doctor.user.name[0].upper() }}</div>
+                {% else %}
+                <div>{{ doctor.user.name[0].upper() }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="profile-header-content">
+            <h1 class="profile-name">{{ doctor.user.name }}</h1>
+            <p class="profile-specialization">{{ doctor.specialization|title }}</p>
+            <div class="profile-location">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>{{ doctor.city|title }}, Pakistan</span>
+            </div>
+            <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-3">
+                {% if is_approved %}
+                <span class="status-badge-modern approved">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Approved & Verified</span>
+                </span>
+                {% elif is_pending %}
+                <span class="status-badge-modern pending">
+                    <i class="fas fa-clock"></i>
+                    <span>Pending Approval</span>
+                </span>
+                {% elif is_rejected %}
+                <span class="status-badge-modern rejected">
+                    <i class="fas fa-times-circle"></i>
+                    <span>Rejected</span>
+                </span>
+                {% elif is_suspended %}
+                <span class="status-badge-modern suspended">
+                    <i class="fas fa-ban"></i>
+                    <span>Suspended</span>
+                </span>
+                {% endif %}
+                {% if is_approved %}
+                <a href="{{ url_for('doctors.edit_profile') }}" class="btn btn-light btn-sm">
+                    <i class="fas fa-edit me-1"></i>Edit Profile
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Alerts -->
+    {% if is_rejected and not is_suspended %}
+    <div class="alert alert-danger alert-modern alert-dismissible fade show" role="alert">
+        <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Registration Rejected</h5>
+        {% if doctor.rejection_reason %}
+        <p class="mb-2"><strong>Reason:</strong> {{ doctor.rejection_reason }}</p>
+        {% endif %}
+        <p class="mb-0">You have {{ 3 - doctor.appeal_count }} appeal{{ 's' if (3 - doctor.appeal_count) != 1 else '' }}
+            remaining.</p>
+        <hr>
+        <a href="{{ url_for('doctors.edit_registration') }}" class="btn btn-danger">
+            <i class="fas fa-gavel me-1"></i>Submit Appeal
+        </a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% elif is_pending %}
+    <div class="alert alert-warning alert-modern alert-dismissible fade show" role="alert">
+        <h5 class="alert-heading"><i class="fas fa-clock me-2"></i>Pending Approval</h5>
+        <p class="mb-0">Your profile is under review by the admin team. You'll be notified once approved.</p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% elif is_suspended %}
+    <div class="alert alert-danger alert-modern alert-dismissible fade show" role="alert">
+        <h5 class="alert-heading"><i class="fas fa-ban me-2"></i>Account Suspended</h5>
+        <p class="mb-0">Your account has been permanently suspended. Maximum appeals reached.</p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card-modern">
+            <div class="stat-icon-modern">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-value-modern">{{ stats.total_appointments }}</div>
+            <div class="stat-label-modern">Total Appointments</div>
+        </div>
+        <div class="stat-card-modern">
+            <div class="stat-icon-modern">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-value-modern">{{ stats.pending_appointments }}</div>
+            <div class="stat-label-modern">Pending</div>
+        </div>
+        <div class="stat-card-modern">
+            <div class="stat-icon-modern">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-value-modern">{{ stats.completed_appointments }}</div>
+            <div class="stat-label-modern">Completed</div>
+        </div>
+        <div class="stat-card-modern">
+            <div class="stat-icon-modern">
+                <i class="fas fa-newspaper"></i>
+            </div>
+            <div class="stat-value-modern">{{ stats.total_blogs }}</div>
+            <div class="stat-label-modern">Blog Posts</div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="content-grid">
+        <!-- Sidebar -->
+        <div>
+            <!-- Personal Information -->
+            <div class="sidebar-card">
+                <h3 class="sidebar-card-title">
+                    <i class="fas fa-user"></i>
+                    <span>Personal Info</span>
+                </h3>
+                <div class="info-item">
+                    <div class="info-label-modern">Full Name</div>
+                    <div class="info-value-modern">{{ doctor.user.name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label-modern">Email</div>
+                    <div class="info-value-modern">{{ doctor.user.email }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label-modern">Phone</div>
+                    <div class="info-value-modern">{{ doctor.user.phone|format_phone }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label-modern">CNIC</div>
+                    <div class="info-value-modern">{{ doctor.user.cnic }}</div>
+                </div>
+                {% if doctor.user.date_of_birth %}
+                <div class="info-item">
+                    <div class="info-label-modern">Date of Birth</div>
+                    <div class="info-value-modern">{{ doctor.user.date_of_birth.strftime('%B %d, %Y') }}</div>
+                </div>
+                {% endif %}
+                {% if doctor.user.gender %}
+                <div class="info-item">
+                    <div class="info-label-modern">Gender</div>
+                    <div class="info-value-modern">{{ doctor.user.gender.title() }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Professional Information -->
+            <div class="sidebar-card">
+                <h3 class="sidebar-card-title">
+                    <i class="fas fa-stethoscope"></i>
+                    <span>Professional</span>
+                </h3>
+                <div class="info-item">
+                    <div class="info-label-modern">Category</div>
+                    <div class="info-value-modern">{{ doctor.category|title }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label-modern">Specialization</div>
+                    <div class="info-value-modern">{{ doctor.specialization|title }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label-modern">Experience</div>
+                    <div class="info-value-modern">{{ doctor.experience|int }} Year{{ 's' if doctor.experience|int != 1
+                        else
+                        '' }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label-modern">PMC Code</div>
+                    <div class="info-value-modern">{{ doctor.pmc_code }}</div>
+                </div>
+                {% if doctor.education %}
+                <div class="info-item">
+                    <div class="info-label-modern">Education</div>
+                    <div class="info-value-modern">{{ doctor.education }}</div>
+                </div>
+                {% endif %}
+                <div class="info-item">
+                    <div class="info-label-modern">Location</div>
+                    <div class="info-value-modern">{{ doctor.location }}, {{ doctor.city|title }}</div>
+                </div>
+                {% if doctor.video_charges %}
+                <div class="info-item">
+                    <div class="info-label-modern">Video Consultation</div>
+                    <div class="info-value-modern">Rs. {{ doctor.video_charges }}</div>
+                </div>
+                {% endif %}
+                {% if doctor.physical_charges %}
+                <div class="info-item">
+                    <div class="info-label-modern">Physical Appointment</div>
+                    <div class="info-value-modern">Rs. {{ doctor.physical_charges }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Bio -->
+            {% if doctor.bio %}
+            <div class="sidebar-card">
+                <h3 class="sidebar-card-title">
+                    <i class="fas fa-info-circle"></i>
+                    <span>About</span>
+                </h3>
+                <p style="line-height: 1.8; color: #555; margin: 0;">{{ doctor.bio }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Main Content -->
+        <div>
+            <!-- Quick Actions -->
+            <div class="main-card">
+                <div class="main-card-header">
+                    <h3 class="main-card-title">
+                        <i class="fas fa-bolt"></i>
+                        <span>Quick Actions</span>
+                    </h3>
+                </div>
+                <div class="quick-actions-grid">
+                    <a href="{{ url_for('doctors.appointments') }}" class="quick-action-card">
+                        <i class="fas fa-calendar-alt quick-action-icon"></i>
+                        <span class="quick-action-label">Appointments</span>
+                    </a>
+                    {% if is_approved %}
+                    <a href="{{ url_for('doctors.new_blog') }}" class="quick-action-card">
+                        <i class="fas fa-pen quick-action-icon"></i>
+                        <span class="quick-action-label">Write Blog</span>
+                    </a>
+                    <a href="{{ url_for('doctors.qa') }}" class="quick-action-card">
+                        <i class="fas fa-question-circle quick-action-icon"></i>
+                        <span class="quick-action-label">Answer Q&A</span>
+                    </a>
+                    {% endif %}
+                    {% if is_approved %}
+                    <a href="{{ url_for('doctors.edit_profile') }}" class="quick-action-card">
+                        <i class="fas fa-edit quick-action-icon"></i>
+                        <span class="quick-action-label">Edit Profile</span>
+                    </a>
+                    <a href="{{ url_for('doctors.appointment_settings') }}" class="quick-action-card">
+                        <i class="fas fa-calendar-alt quick-action-icon"></i>
+                        <span class="quick-action-label">Appointment Settings</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Appointments -->
+            <div class="main-card">
+                <div class="main-card-header">
+                    <h3 class="main-card-title">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Recent Appointments</span>
+                    </h3>
+                    <a href="{{ url_for('doctors.appointments') }}" class="btn btn-sm btn-outline-primary">
+                        View All <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                {% if recent_appointments %}
+                {% for appointment in recent_appointments %}
+                <div class="list-item-modern">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div style="flex: 1;">
+                            <div class="list-item-title">{{ appointment.patient.user.name }}</div>
+                            <div class="list-item-meta">
+                                <span><i class="fas fa-tag"></i>{{ appointment.disease_category }}</span>
+                                <span><i class="fas fa-calendar"></i>{{ appointment.appointment_date.strftime('%B %d,
+                                    %Y')
+                                    }}</span>
+                                <span><i class="fas fa-clock"></i>{{ appointment.appointment_time.strftime('%I:%M %p')
+                                    }}</span>
+                                <span>
+                                    <i
+                                        class="fas fa-{{ 'video' if appointment.appointment_type == 'video' else 'hospital' }}"></i>
+                                    {{ appointment.appointment_type|title }}
+                                </span>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                            <a href="{{ url_for('appointments.view_appointment', appointment_id=appointment.id) }}"
+                                class="btn btn-sm btn-outline-primary" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {% if appointment.status == 'pending' %}
+                            {% if appointment.payment_status == 'approved' %}
+                            <span class="badge badge-modern bg-warning">Pending Approval</span>
+                            {% elif appointment.payment_status == 'submitted' %}
+                            <span class="badge badge-modern bg-info text-dark">Payment Under Review</span>
+                            {% else %}
+                            <span class="badge badge-modern bg-secondary">Awaiting Payment</span>
+                            {% endif %}
+                            {% elif appointment.status in ['approved', 'completed'] %}
+                            {% if appointment.payment_status == 'approved' %}
+                            <a href="{{ url_for('appointments.chat', appointment_id=appointment.id) }}"
+                                class="btn btn-sm {% if appointment.status == 'completed' %}btn-outline-secondary{% else %}btn-success{% endif %}"
+                                title="{% if appointment.status == 'completed' %}View Chat History (Read-Only){% else %}Start Chat{% endif %}">
+                                <i class="fas fa-comments me-1"></i>{% if appointment.status == 'completed' %}View
+                                Chat{% else %}Chat{% endif %}
+                            </a>
+                            {% endif %}
+                            <span class="badge badge-modern bg-success">Approved</span>
+                            {% elif appointment.status == 'completed' %}
+                            <span class="badge badge-modern bg-info">Completed</span>
+                            {% else %}
+                            <span class="badge badge-modern bg-secondary">{{ appointment.status|title }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state-modern">
+                    <i class="fas fa-calendar-times empty-state-icon"></i>
+                    <p class="empty-state-text">No appointments yet</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Recent Blogs -->
+            <div class="main-card">
+                <div class="main-card-header">
+                    <h3 class="main-card-title">
+                        <i class="fas fa-newspaper"></i>
+                        <span>Recent Blog Posts</span>
+                    </h3>
+                    <a href="{{ url_for('doctors.blogs') }}" class="btn btn-sm btn-outline-primary">
+                        View All <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                {% if recent_blogs %}
+                {% for blog in recent_blogs %}
+                <div class="list-item-modern">
+                    <div class="list-item-title">{{ blog.title }}</div>
+                    <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">{{ blog.excerpt or blog.content[:150]
+                        }}...
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="list-item-meta">
+                            <span><i class="fas fa-calendar"></i>{{ blog.created_at.strftime('%B %d, %Y') }}</span>
+                        </div>
+                        {% if blog.status == 'published' %}
+                        <span class="badge badge-modern bg-success">Published</span>
+                        {% elif blog.status == 'pending' %}
+                        <span class="badge badge-modern bg-warning">Pending</span>
+                        {% else %}
+                        <span class="badge badge-modern bg-secondary">{{ blog.status|title }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state-modern">
+                    <i class="fas fa-newspaper empty-state-icon"></i>
+                    <p class="empty-state-text">No blog posts yet</p>
+                    {% if is_approved %}
+                    <a href="{{ url_for('doctors.new_blog') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Create Your First Blog
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Q&A Activity -->
+            <div class="main-card">
+                <div class="main-card-header">
+                    <h3 class="main-card-title">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Q&A Activity</span>
+                    </h3>
+                    <a href="{{ url_for('doctors.qa') }}" class="btn btn-sm btn-outline-primary">
+                        View All <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+
+                {% if unanswered_questions %}
+                <h6 style="color: #667eea; font-weight: 600; margin-bottom: 1rem; font-size: 0.95rem;">
+                    <i class="fas fa-exclamation-circle me-1"></i>Unanswered Questions ({{ unanswered_questions|length
+                    }})
+                </h6>
+                {% for question in unanswered_questions %}
+                <div class="list-item-modern" style="border-left-color: #ffc107;">
+                    <div class="list-item-title">{{ question.title }}</div>
+                    <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">{{ question.content[:150] }}...</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="list-item-meta">
+                            <span><i class="fas fa-calendar"></i>{{ question.created_at.strftime('%B %d, %Y') }}</span>
+                            <span><i class="fas fa-tag"></i>{{ question.category|title }}</span>
+                        </div>
+                        <a href="{{ url_for('doctors.answer_question', question_id=question.id) }}"
+                            class="btn btn-sm btn-warning">
+                            <i class="fas fa-reply me-1"></i>Answer
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                {% if recent_answers %}
+                <h6 style="color: #667eea; font-weight: 600; margin: 1.5rem 0 1rem 0; font-size: 0.95rem;">
+                    <i class="fas fa-check-circle me-1"></i>Recent Answers ({{ recent_answers|length }})
+                </h6>
+                {% for answer in recent_answers %}
+                <div class="list-item-modern">
+                    <div class="list-item-title">{{ answer.question.title }}</div>
+                    <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">{{ answer.content[:150] }}...</p>
+                    <div class="list-item-meta">
+                        <span><i class="fas fa-calendar"></i>{{ answer.created_at.strftime('%B %d, %Y') }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                {% if not unanswered_questions and not recent_answers %}
+                <div class="empty-state-modern">
+                    <i class="fas fa-question-circle empty-state-icon"></i>
+                    <p class="empty-state-text">No Q&A activity yet</p>
+                    {% if is_approved %}
+                    <a href="{{ url_for('doctors.qa') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Browse Questions
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

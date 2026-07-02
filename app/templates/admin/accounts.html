@@ -1,0 +1,533 @@
+{% extends "base.html" %}
+{% block title %}Accounts - Quick Care Connect{% endblock %}
+{% block content %}
+<div class="container-fluid px-2 px-md-3 py-4">
+    <div class="row gx-3">
+        <div class="col-xl-2 col-lg-3 col-md-4 mb-4 admin-sidebar-col">
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center p-4">
+                    <div class="admin-avatar mb-3 mx-auto" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 2.2rem;">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h5 class="card-title fw-bold mb-1">Admin Panel</h5>
+                    <p class="text-muted small mb-0">{{ get_current_user().name }}</p>
+                </div>
+            </div>
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4 mt-3">
+                <div class="card-header"><h6 class="mb-0"><i class="fas fa-cogs me-2"></i>Management</h6></div>
+                <div class="card-body p-0">
+                    {% include 'admin/_management_sidebar.html' %}
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-10 col-lg-9 col-md-8 admin-main-col">
+            <h2 class="mb-4"><i class="fas fa-chart-line me-2" style="color: #10b981;"></i>Accounts Dashboard</h2>
+
+            <div class="row mb-4">
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="card qc-admin-card h-100 border-0 shadow-sm rounded-4 border-start border-primary border-4">
+                        <div class="card-body py-2 d-flex flex-column justify-content-center" style="min-height: 92px;">
+                            <div class="text-muted small">Platform Revenue</div>
+                            <div class="h6 mb-0 text-primary">PKR {{ "%.0f"|format(total_platform_revenue) }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="card qc-admin-card h-100 border-0 shadow-sm rounded-4 border-start border-secondary border-4">
+                        <div class="card-body py-2 d-flex flex-column justify-content-center" style="min-height: 92px;">
+                            <div class="text-muted small">Reserve (held)</div>
+                            <div class="h6 mb-0 text-dark">PKR {{ "%.0f"|format(reserve_total) }}</div>
+                            <div class="small text-muted">{{ reserve_count }} appointment{% if reserve_count != 1 %}s{% endif %} held</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="card qc-admin-card h-100 border-0 shadow-sm rounded-4 border-start border-success border-4">
+                        <div class="card-body py-2 d-flex flex-column justify-content-center" style="min-height: 92px;">
+                            <div class="text-muted small">Total Paid Out</div>
+                            <div class="h6 mb-0 text-success">PKR {{ "%.0f"|format(total_paid_out) }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="card qc-admin-card h-100 border-0 shadow-sm rounded-4 border-start border-warning border-4">
+                        <div class="card-body py-2 d-flex flex-column justify-content-center" style="min-height: 92px;">
+                            <div class="text-muted small">Pending Refunds</div>
+                            <div class="h6 mb-0 text-warning">PKR {{ "%.0f"|format(total_refunds_pending) }}</div>
+                            <a href="{{ url_for('admin.accounts_refunds') }}?status=pending" class="small">View</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="card qc-admin-card h-100 border-0 shadow-sm rounded-4 border-start border-info border-4">
+                        <div class="card-body py-2 d-flex flex-column justify-content-center" style="min-height: 92px;">
+                            <div class="text-muted small">Pending Payouts</div>
+                            <div class="h6 mb-0 text-info">{{ pending_payouts|length }}</div>
+                            <a href="{{ url_for('admin.accounts_payouts') }}" class="small">Process</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="card qc-admin-card h-100 border-0 shadow-sm rounded-4 border-start border-danger border-4">
+                        <div class="card-body py-2 d-flex flex-column justify-content-center" style="min-height: 92px;">
+                            <div class="text-muted small">Open Disputes</div>
+                            <div class="h6 mb-0 text-danger">{{ disputes|length }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-8 mb-3">
+                    <div class="card qc-admin-card border-0 shadow-sm rounded-4">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <h5 class="mb-0">Platform Revenue (Last {{ selected_days }} Day{% if selected_days > 1 %}s{% endif %})</h5>
+                            <form method="GET" action="{{ url_for('admin.accounts') }}" class="d-flex align-items-center gap-2">
+                                <label for="daysFilter" class="small text-muted mb-0">Range</label>
+                                <select id="daysFilter" name="days" class="form-select form-select-sm">
+                                    {% for d in day_options %}
+                                    <option value="{{ d }}" {% if d == selected_days %}selected{% endif %}>{{ d }} day{% if d > 1 %}s{% endif %}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">Apply</button>
+                            </form>
+                        </div>
+                        <div class="card-body">
+                            <div style="height: 260px; position: relative;">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card qc-admin-card border-0 shadow-sm rounded-4">
+                        <div class="card-header bg-white"><h5 class="mb-0">Appointments by Status (Last {{ selected_days }} Day{% if selected_days > 1 %}s{% endif %})</h5></div>
+                        <div class="card-body">
+                            <div style="height: 260px; position: relative;">
+                                <canvas id="statusChart"></canvas>
+                            </div>
+                            {% if not status_has_data %}
+                            <div class="text-center pt-2 small text-muted">No appointment status data in selected range.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment flow log -->
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-exchange-alt me-2"></i>Payment flow log</h5>
+                    <button class="btn btn-sm btn-outline-primary"
+                        type="button" data-bs-toggle="collapse" data-bs-target="#paymentFlowCollapse"
+                        aria-expanded="false" aria-controls="paymentFlowCollapse">View details</button>
+                </div>
+                <div id="paymentFlowCollapse" class="collapse">
+                <div class="card-body p-0">
+                    {% if payment_flow %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Appt</th>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Amount</th>
+                                    <th>Booked</th>
+                                    <th>Approved</th>
+                                    <th>Payment</th>
+                                    <th>Paid at</th>
+                                    <th>Completed</th>
+                                    <th>Doctor credited</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for a in payment_flow[:15] %}
+                                <tr>
+                                    <td>#{{ a.id }}</td>
+                                    <td>{{ a.patient.user.name if a.patient and a.patient.user else '-' }}</td>
+                                    <td>{{ a.doctor.user.name if a.doctor and a.doctor.user else '-' }}</td>
+                                    <td>PKR {{ "%.0f"|format(a.charges) }}</td>
+                                    <td>{{ a.created_at.strftime('%d %b %H:%M') if a.created_at else '-' }}</td>
+                                    <td>{{ a.approved_at.strftime('%d %b %H:%M') if a.approved_at else '-' }}</td>
+                                    <td><span class="badge {% if a.payment_status == 'approved' %}bg-success{% elif a.payment_status == 'rejected' %}bg-danger{% else %}bg-warning{% endif %}">{{ a.payment_status }}</span></td>
+                                    <td>{{ a.payment_approved_at.strftime('%d %b %H:%M') if a.payment_approved_at else (a.payment_submitted_at.strftime('%d %b %H:%M') if a.payment_submitted_at else '-') }}</td>
+                                    <td>{{ a.completed_at.strftime('%d %b %H:%M') if a.completed_at else '-' }}</td>
+                                    <td>{{ a.doctor_earning_credited_at.strftime('%d %b %H:%M') if a.doctor_earning_credited_at else 'Reserve' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3 text-muted small">No payment flow records yet.</div>
+                    {% endif %}
+                </div>
+                </div>
+            </div>
+
+            <!-- Reserve (holding money) – released after 24h -->
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="mb-0"><i class="fas fa-lock me-2"></i>Reserve (held) – released after 24h review</h5>
+                        <small class="text-muted d-block">Full payment held in reserve; after completion + 24h, 80% credits to doctor and 20% records as platform revenue.</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary mt-1"
+                        type="button" data-bs-toggle="collapse" data-bs-target="#reserveCollapse"
+                        aria-expanded="false" aria-controls="reserveCollapse">View details</button>
+                </div>
+                <div id="reserveCollapse" class="collapse">
+                <div class="card-body p-0">
+                    {% if reserve_appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 small">
+                            <thead class="table-light">
+                                <tr><th>Appt</th><th>Doctor</th><th>Patient</th><th>Held amount (100%)</th><th>Release after</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for a in reserve_appointments[:15] %}
+                                <tr>
+                                    <td>#{{ a.id }}</td>
+                                    <td>{{ a.doctor.user.name if a.doctor and a.doctor.user else '-' }}</td>
+                                    <td>{{ a.patient.user.name if a.patient and a.patient.user else '-' }}</td>
+                                    <td>PKR {{ "%.0f"|format(a.charges or 0) }}</td>
+                                    <td>
+                                        {% if a.completion_review_deadline %}
+                                            {{ a.completion_review_deadline.strftime('%d %b %Y %H:%M') }}
+                                        {% elif a.status == 'approved' %}
+                                            After completion + 24h
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3 text-muted small">No reserve (no appointments in 24h review window).</div>
+                    {% endif %}
+                </div>
+                </div>
+            </div>
+
+            <!-- Open disputes -->
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2 text-danger"></i>Open disputes</h5>
+                    <button class="btn btn-sm btn-outline-primary"
+                        type="button" data-bs-toggle="collapse" data-bs-target="#disputesCollapse"
+                        aria-expanded="false" aria-controls="disputesCollapse">View details</button>
+                </div>
+                <div id="disputesCollapse" class="collapse">
+                <div class="card-body p-0">
+                    {% if disputes %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 small">
+                            <thead class="table-light">
+                                <tr><th>Appt</th><th>Patient</th><th>Doctor</th><th>Dispute reason</th><th>Date</th><th>Recordings</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for a in disputes[:10] %}
+                                <tr>
+                                    <td>#{{ a.id }}</td>
+                                    <td>{{ a.patient.user.name if a.patient and a.patient.user else '-' }}</td>
+                                    <td>{{ a.doctor.user.name if a.doctor and a.doctor.user else '-' }}</td>
+                                    <td>{{ (a.dispute_reason or '-')[:80] }}{% if a.dispute_reason and a.dispute_reason|length > 80 %}...{% endif %}</td>
+                                    <td>{{ a.updated_at.strftime('%d %b %Y %H:%M') if a.updated_at else '-' }}</td>
+                                    <td><a href="{{ url_for('admin.appointment_recordings', appointment_id=a.id) }}" class="btn btn-sm btn-outline-primary">View</a></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3 text-muted small">No open disputes.</div>
+                    {% endif %}
+                </div>
+                </div>
+            </div>
+
+            <!-- No-show cases -->
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="mb-0"><i class="fas fa-user-clock me-2"></i>No-show cases</h5>
+                        <small class="text-muted d-block">Mutual / patient no-show / doctor no-show</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary mt-1"
+                        type="button" data-bs-toggle="collapse" data-bs-target="#noShowCollapse"
+                        aria-expanded="false" aria-controls="noShowCollapse">View details</button>
+                </div>
+                <div id="noShowCollapse" class="collapse">
+                <div class="card-body p-0">
+                    {% if no_show_cases %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 small">
+                            <thead class="table-light">
+                                <tr><th>Type</th><th>Appt</th><th>Patient</th><th>Doctor</th><th>Refund</th><th>Doctor effect</th><th>Date</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for a in no_show_cases[:15] %}
+                                <tr>
+                                    <td>
+                                        {% if a.status == 'expired_mutual_noshow' %}
+                                        <span class="badge rounded-pill px-3 py-2" style="background: #e2e8f0; color: #1f2937; border: 1px solid #cbd5e1;">Mutual no-show</span>
+                                        {% elif a.status == 'expired_patient_noshow' %}
+                                        <span class="badge rounded-pill px-3 py-2" style="background: #fef3c7; color: #92400e; border: 1px solid #fcd34d;">Patient no-show</span>
+                                        {% elif a.status == 'expired_provider_failure' %}
+                                        <span class="badge rounded-pill px-3 py-2" style="background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;">Doctor no-show</span>
+                                        {% else %}
+                                        <span class="badge rounded-pill px-3 py-2" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1;">{{ a.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>#{{ a.id }}</td>
+                                    <td>{{ a.patient.user.name if a.patient and a.patient.user else '-' }}</td>
+                                    <td>{{ a.doctor.user.name if a.doctor and a.doctor.user else '-' }}</td>
+                                    <td>{% if a.status in ['expired_mutual_noshow','expired_provider_failure'] %}PKR {{ "%.0f"|format(a.charges) }} (refund){% else %}-{% endif %}</td>
+                                    <td>{% if a.status == 'expired_patient_noshow' %}80% to doctor{% elif a.status == 'expired_provider_failure' %}20% penalty{% else %}-{% endif %}</td>
+                                    <td>{{ a.updated_at.strftime('%d %b %Y %H:%M') if a.updated_at else '-' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3 text-muted small">No no-show cases.</div>
+                    {% endif %}
+                </div>
+                </div>
+            </div>
+
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Pending Refunds</h5>
+                    <button class="btn btn-sm btn-outline-primary"
+                        type="button" data-bs-toggle="collapse" data-bs-target="#pendingRefundsCollapse"
+                        aria-expanded="false" aria-controls="pendingRefundsCollapse">View details</button>
+                </div>
+                <div id="pendingRefundsCollapse" class="collapse">
+                <div class="card-body p-0">
+                    {% if pending_refunds %}
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light"><tr><th>Appointment</th><th>Patient</th><th>Reason</th><th>Amount</th><th>Date</th><th></th></tr></thead>
+                        <tbody>
+                            {% for r in pending_refunds[:10] %}
+                            <tr>
+                                <td>#{{ r.appointment_id }}</td>
+                                <td>{{ r.patient.user.name if r.patient and r.patient.user else '-' }}</td>
+                                <td>
+                                    {% set reason_key = (r.reason or '')|lower %}
+                                    {% if reason_key in ['mutual_no_show', 'mutual no show'] %}
+                                    <span class="badge rounded-pill px-3 py-2" style="background: #e2e8f0; color: #1f2937; border: 1px solid #cbd5e1;">
+                                        {{ (r.reason or 'n/a')|replace('_', ' ')|title }}
+                                    </span>
+                                    {% else %}
+                                    <span class="badge rounded-pill px-3 py-2" style="background: #dcfce7; color: #166534; border: 1px solid #86efac;">
+                                        {{ (r.reason or 'n/a')|replace('_', ' ')|title }}
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>PKR {{ "%.2f"|format(r.amount) }}</td>
+                                <td>{{ r.created_at.strftime('%d %b %Y') if r.created_at else '-' }}</td>
+                                <td><a href="{{ url_for('admin.accounts_refunds') }}" class="btn btn-sm btn-success">Process</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">No pending refunds.</div>
+                    {% endif %}
+                </div>
+                </div>
+            </div>
+
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Pending Payout Requests</h5>
+                    <button class="btn btn-sm btn-outline-primary"
+                        type="button" data-bs-toggle="collapse" data-bs-target="#pendingPayoutsCollapse"
+                        aria-expanded="false" aria-controls="pendingPayoutsCollapse">View details</button>
+                </div>
+                <div id="pendingPayoutsCollapse" class="collapse">
+                <div class="card-body p-0">
+                    {% if pending_payouts %}
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light"><tr><th>Doctor</th><th>Amount</th><th>Requested</th><th></th></tr></thead>
+                        <tbody>
+                            {% for p in pending_payouts[:10] %}
+                            <tr>
+                                <td>{{ p.doctor.user.name if p.doctor and p.doctor.user else '-' }}</td>
+                                <td>PKR {{ "%.2f"|format(p.amount) }}</td>
+                                <td>{{ p.requested_at.strftime('%d %b %Y %H:%M') if p.requested_at else '-' }}</td>
+                                <td><a href="{{ url_for('admin.accounts_payouts') }}" class="btn btn-sm btn-success">Approve/Reject</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">No pending payout requests.</div>
+                    {% endif %}
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+    var revenueCtx = document.getElementById('revenueChart');
+    if (revenueCtx) {
+        var revenueLabels = {{ revenue_labels|tojson }};
+        var revenueValues = {{ revenue_data|tojson }};
+        var movingAvg = [];
+        for (var i = 0; i < revenueValues.length; i++) {
+            var start = Math.max(0, i - 6);
+            var sum = 0;
+            var count = 0;
+            for (var j = start; j <= i; j++) {
+                sum += Number(revenueValues[j] || 0);
+                count++;
+            }
+            movingAvg.push(count ? +(sum / count).toFixed(2) : 0);
+        }
+
+        // Build y-axis bounds from actual values so scale grows with profits.
+        var combinedValues = revenueValues.concat(movingAvg).map(function(v) {
+            return Number(v || 0);
+        });
+        var peakValue = combinedValues.length ? Math.max.apply(null, combinedValues) : 0;
+        var nonZeroValues = combinedValues.filter(function(v) { return v > 0; });
+        var minNonZero = nonZeroValues.length ? Math.min.apply(null, nonZeroValues) : 0;
+        var axisPadding = peakValue > 0 ? peakValue * 0.12 : 0;
+        var yMin = minNonZero > 0 ? Math.max(0, minNonZero - axisPadding) : 0;
+        var yMax = peakValue > 0 ? peakValue + axisPadding : 1;
+
+        var labelCount = revenueLabels.length;
+        var maxTicksForRange = labelCount <= 10 ? labelCount : (labelCount <= 25 ? 12 : 15);
+
+        new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: revenueLabels,
+                datasets: [{
+                    label: 'Daily Revenue (PKR)',
+                    data: revenueValues,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.18)',
+                    pointBackgroundColor: '#8b5cf6',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    tension: 0.35,
+                    borderWidth: 3,
+                    fill: false
+                }, {
+                    label: '7-day Trend',
+                    data: movingAvg,
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.14)',
+                    pointBackgroundColor: '#f59e0b',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    tension: 0.35,
+                    borderWidth: 3,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                return ctx.dataset.label + ': PKR ' + Number(ctx.parsed.y || 0).toFixed(2);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            autoSkip: labelCount > 10,
+                            maxTicksLimit: maxTicksForRange
+                        }
+                    },
+                    y: {
+                        min: yMin,
+                        max: yMax,
+                        grace: peakValue > 0 ? '8%' : 0,
+                        grid: {
+                            color: 'rgba(100, 116, 139, 0.18)',
+                            borderDash: [4, 4],
+                            drawBorder: false
+                        },
+                        ticks: {
+                            maxTicksLimit: 6,
+                            callback: function(value) {
+                                return 'PKR ' + Number(value).toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    var statusCtx = document.getElementById('statusChart');
+    if (statusCtx) {
+        var hasStatusData = {{ status_has_data|tojson }};
+        var statusLabels = hasStatusData ? {{ status_labels|tojson }} : ['No Appointments'];
+        var statusData = hasStatusData ? {{ status_data|tojson }} : [1];
+        var statusColors = hasStatusData
+            ? ['#10b981', '#f59e0b', '#6366f1', '#ef4444', '#8b5cf6', '#64748b']
+            : ['#e5e7eb'];
+
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusData,
+                    backgroundColor: statusColors
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: hasStatusData ? '#374151' : '#9ca3af'
+                        }
+                    }
+                }
+            }
+        });
+    }
+})();
+</script>
+{% endblock %}

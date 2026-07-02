@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Details - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-3 py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-xl-2 col-lg-3 col-md-4 mb-4 admin-sidebar-col">
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center p-4">
+                    <div class="admin-avatar mb-3 mx-auto" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 2.2rem;">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h5 class="card-title fw-bold mb-1">Admin Panel</h5>
+                    <p class="text-muted small mb-0">{{ get_current_user().name }}</p>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4 mt-3">
+                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                    <h6 class="mb-0 text-uppercase text-muted fw-bold" style="font-size: 0.8rem; letter-spacing: 1px;"><i class="fas fa-cogs me-2"></i>Management</h6>
+                </div>
+                <div class="card-body p-0">
+                    {% include 'admin/_management_sidebar.html' %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-xl-10 col-lg-9 col-md-8 admin-main-col">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-4 rounded-4 shadow-sm border border-light">
+                <div class="d-flex align-items-center">
+                    <!-- Fixed: proper dark circle with white icon, not a flat green blob -->
+                    <div class="me-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; background: linear-gradient(135deg, #1e293b, #334155); color: white; font-size: 1.3rem; flex-shrink: 0;">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold">Patient Details</h3>
+                        <p class="text-muted mb-0 small">View and manage patient information</p>
+                    </div>
+                </div>
+                <div>
+                    <a href="{{ url_for('admin.patients') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Patients
+                    </a>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Profile & Personal Information (Left Column) -->
+                <div class="col-xl-4 col-lg-5">
+                    <div class="card qc-admin-card border-0 shadow-sm h-100 rounded-4 overflow-hidden">
+                        <div class="card-body p-0">
+                            <!-- Avatar section -->
+                            <div class="text-center p-4" style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-bottom: 1px solid #bbf7d0;">
+                                <div class="patient-avatar-large mx-auto mb-3 shadow border border-3 border-white">
+                                    {% if patient_user.profile_picture %}
+                                    <img src="{{ url_for('static', filename='uploads/' + patient_user.profile_picture) }}"
+                                        alt="{{ patient_user.name }}" class="img-fluid rounded-circle"
+                                        style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% else %}
+                                    {{ patient_user.name[0].upper() }}
+                                    {% endif %}
+                                </div>
+                                <h4 class="fw-bold mb-1">{{ patient_user.name }}</h4>
+                                <span class="badge px-3 py-2 rounded-pill" style="background:#d1fae5; color:#065f46; font-size:0.82rem;">
+                                    <i class="fas fa-check-circle me-1"></i>Active Patient
+                                </span>
+                            </div>
+
+                            <!-- Info rows: stacked label+value so nothing overflows -->
+                            <div class="p-4">
+                                <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1.2px;">Contact Information</h6>
+
+                                <div class="info-row">
+                                    <div class="info-icon" style="background:#eff6ff;"><i class="fas fa-envelope" style="color:#3b82f6;"></i></div>
+                                    <div>
+                                        <div class="info-label">Email</div>
+                                        <div class="info-value">{{ patient_user.email }}</div>
+                                    </div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-icon" style="background:#f0fdf4;"><i class="fas fa-phone" style="color:#22c55e;"></i></div>
+                                    <div>
+                                        <div class="info-label">Phone</div>
+                                        <div class="info-value">{{ patient_user.phone|format_phone }}</div>
+                                    </div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-icon" style="background:#faf5ff;"><i class="fas fa-id-card" style="color:#a855f7;"></i></div>
+                                    <div>
+                                        <div class="info-label">CNIC</div>
+                                        <div class="info-value">{{ patient_user.cnic }}</div>
+                                    </div>
+                                </div>
+
+                                <h6 class="text-uppercase text-muted fw-bold mt-4 mb-3" style="font-size: 0.75rem; letter-spacing: 1.2px;">Demographics</h6>
+
+                                <div class="info-row">
+                                    <div class="info-icon" style="background:#fff7ed;"><i class="fas fa-birthday-cake" style="color:#f97316;"></i></div>
+                                    <div>
+                                        <div class="info-label">Date of Birth</div>
+                                        <div class="info-value">{{ patient_user.date_of_birth.strftime('%B %d, %Y') if patient_user.date_of_birth else 'Not provided' }}</div>
+                                    </div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-icon" style="background:#fdf2f8;"><i class="fas fa-venus-mars" style="color:#ec4899;"></i></div>
+                                    <div>
+                                        <div class="info-label">Gender</div>
+                                        <div class="info-value">{{ patient_user.gender.title() if patient_user.gender else 'Not provided' }}</div>
+                                    </div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-icon" style="background:#f0f9ff;"><i class="fas fa-calendar-alt" style="color:#0ea5e9;"></i></div>
+                                    <div>
+                                        <div class="info-label">Registered</div>
+                                        <div class="info-value">{{ patient_user.created_at.strftime('%B %d, %Y') if patient_user.created_at else 'N/A' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="col-xl-8 col-lg-7">
+
+                    <!-- 1. STATS CARDS AT THE TOP — Premium high-contrast design -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="qc-admin-stat-tile qc-admin-stat-tile--compact shadow-sm">
+                                <div class="qc-admin-stat-tile__icon qc-admin-stat-tile__icon--slate"><i class="fas fa-calendar-alt"></i></div>
+                                <div class="qc-admin-stat-tile__value">{{ stats.total }}</div>
+                                <div class="qc-admin-stat-tile__kicker">Total Appointments</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="qc-admin-stat-tile qc-admin-stat-tile--compact shadow-sm">
+                                <div class="qc-admin-stat-tile__icon qc-admin-stat-tile__icon--emerald"><i class="fas fa-check-circle"></i></div>
+                                <div class="qc-admin-stat-tile__value">{{ stats.completed }}</div>
+                                <div class="qc-admin-stat-tile__kicker">Completed</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="qc-admin-stat-tile qc-admin-stat-tile--compact shadow-sm">
+                                <div class="qc-admin-stat-tile__icon qc-admin-stat-tile__icon--amber"><i class="fas fa-clock"></i></div>
+                                <div class="qc-admin-stat-tile__value">{{ stats.pending }}</div>
+                                <div class="qc-admin-stat-tile__kicker">Pending</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="qc-admin-stat-tile qc-admin-stat-tile--compact shadow-sm">
+                                <div class="qc-admin-stat-tile__icon qc-admin-stat-tile__icon--sky"><i class="fas fa-thumbs-up"></i></div>
+                                <div class="qc-admin-stat-tile__value">{{ stats.approved }}</div>
+                                <div class="qc-admin-stat-tile__kicker">Approved</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Quick Actions -->
+                    <div class="card qc-admin-card border-0 shadow-sm rounded-4 mb-4">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-3"><i class="fas fa-bolt text-warning me-2"></i>Quick Actions</h5>
+                            <div class="d-flex flex-wrap gap-3">
+                                <a href="{{ url_for('admin.view_patient_appointments', patient_id=patient_user.id) }}"
+                                    class="btn btn-primary rounded-pill px-4 py-2 d-flex align-items-center shadow-sm">
+                                    <i class="fas fa-calendar-check me-2"></i>View Appointments
+                                </a>
+                                <a href="{{ url_for('admin.view_patient_medical_history', patient_id=patient_user.id) }}"
+                                    class="btn btn-success rounded-pill px-4 py-2 d-flex align-items-center shadow-sm">
+                                    <i class="fas fa-file-medical me-2"></i>View Medical History
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Medical Profile -->
+                    <div class="card qc-admin-card border-0 shadow-sm rounded-4">
+                        <div class="card-header bg-white border-bottom p-4 rounded-top-4">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-heartbeat text-danger me-2"></i>Medical Profile</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="medical-item p-3 rounded-4 bg-light border-start border-4 border-danger h-100">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-danger-subtle text-danger me-2" style="width:30px;height:30px;">
+                                                <i class="fas fa-tint small"></i>
+                                            </div>
+                                            <h6 class="fw-bold mb-0 text-danger small text-uppercase">Blood Group</h6>
+                                        </div>
+                                        <div class="fs-4 fw-bold text-dark ps-4 ms-2">{{ patient.blood_group if patient.blood_group else '--' }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="medical-item p-3 rounded-4 bg-light border-start border-4 border-warning h-100">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-warning-subtle text-warning me-2" style="width:30px;height:30px;">
+                                                <i class="fas fa-phone-alt small"></i>
+                                            </div>
+                                            <h6 class="fw-bold mb-0 text-warning small text-uppercase">Emergency Contact</h6>
+                                        </div>
+                                        <div class="fs-5 fw-bold text-dark ps-4 ms-2">{{ patient.emergency_contact if patient.emergency_contact else 'Not provided' }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="medical-item p-3 rounded-4 bg-light border-start border-4 border-purple h-100" style="border-color: #a855f7 !important;">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-purple-subtle text-purple me-2" style="width:30px;height:30px; background: #f3e8ff; color: #a855f7;">
+                                                <i class="fas fa-allergies small"></i>
+                                            </div>
+                                            <h6 class="fw-bold mb-0 small text-uppercase" style="color: #a855f7;">Allergies</h6>
+                                        </div>
+                                        <div class="text-dark ps-4 ms-2">{{ patient.allergies if patient.allergies else 'No allergies recorded.' }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="medical-item p-3 rounded-4 bg-light border-start border-4 border-primary h-100">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-primary-subtle text-primary me-2" style="width:30px;height:30px;">
+                                                <i class="fas fa-notes-medical small"></i>
+                                            </div>
+                                            <h6 class="fw-bold mb-0 text-primary small text-uppercase">Medical History Summary</h6>
+                                        </div>
+                                        <div class="text-dark ps-4 ms-2">{{ patient.medical_history if patient.medical_history else 'No general medical history recorded.' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Patient avatar */
+    .patient-avatar-large {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #10b981, #059669);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 3.5rem;
+        font-weight: 700;
+    }
+
+    /* Info rows — stacked label+value, no overflow */
+    .info-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+    .info-label {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+    }
+    .info-value {
+        font-size: 0.95rem;
+        color: #1e293b;
+        font-weight: 500;
+        word-break: break-all;
+    }
+
+    /* Medical blocks */
+    .medical-block {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 14px 16px;
+    }
+    .medical-block-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+    .medical-block-value {
+        font-size: 0.95rem;
+        color: #334155;
+        font-weight: 500;
+    }
+
+</style>
+{% endblock %}

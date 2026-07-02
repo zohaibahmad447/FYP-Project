@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% block title %}Refund Center - Quick Care Connect{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hidden by default; shown by JS based on selected payment method */
+    .refund-details-form [data-field-group] {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0"><i class="fas fa-undo me-2" style="color:#f59e0b;"></i>Refund Center</h2>
+        <a href="{{ url_for('patients.dashboard') }}" class="btn btn-outline-secondary btn-sm">Dashboard</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="small text-muted">Total Disputes</div>
+                            <div class="h4 mb-0">{{ refund_stats.total_disputes }}</div>
+                        </div>
+                        <i class="fas fa-gavel text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="small text-muted">Pending Refunds</div>
+                            <div class="h4 mb-0">{{ refund_stats.pending_refunds }}</div>
+                        </div>
+                        <i class="fas fa-hourglass-half text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="small text-muted">Processed Refunds</div>
+                            <div class="h4 mb-0">{{ refund_stats.processed_refunds }}</div>
+                        </div>
+                        <i class="fas fa-check-circle text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="small text-muted">Rejected Disputes</div>
+                            <div class="h4 mb-0">{{ refund_stats.rejected_disputes }}</div>
+                        </div>
+                        <i class="fas fa-times-circle text-danger"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if refunds %}
+    <div class="row g-3">
+        {% for r in refunds %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                        <div>
+                            <h5 class="mb-1">Refund #{{ r.id }} <span class="text-muted">(Appointment #{{ r.appointment_id }})</span></h5>
+                            <div class="small text-muted">
+                                Reason: {{ (r.reason or 'other')|replace('_', ' ')|title }}
+                                <span class="ms-3">Created: {{ r.created_at.strftime('%d %b %Y %H:%M') if r.created_at else '-' }}</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="h5 mb-1">PKR {{ "%.2f"|format(r.amount) }}</div>
+                            <span class="badge {% if r.status == 'pending' %}bg-warning text-dark{% else %}bg-success{% endif %}">{{ r.status }}</span>
+                        </div>
+                    </div>
+
+                    {% if r.status == 'pending' %}
+                    <div class="alert alert-info py-2">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Submit your payment details so admin can transfer your refund and upload proof.
+                    </div>
+
+                    <form method="POST" action="{{ url_for('patients.submit_refund_details', refund_id=r.id) }}" class="row g-2 refund-details-form">
+                        <div class="col-md-3">
+                            <label class="form-label small">Payment Method</label>
+                            <select name="payment_method" class="form-select form-select-sm js-refund-method" required>
+                                <option value="" disabled {% if not r.payout_detail %}selected{% endif %}>Select...</option>
+                                <option value="bank_transfer" {% if r.payout_detail and r.payout_detail.payment_method == 'bank_transfer' %}selected{% endif %}>Bank Transfer</option>
+                                <option value="mobile_wallet" {% if r.payout_detail and r.payout_detail.payment_method in ['mobile_wallet', 'easypaisa', 'jazzcash'] %}selected{% endif %}>Mobile Wallet</option>
+                                <option value="visa_card" {% if r.payout_detail and r.payout_detail.payment_method == 'visa_card' %}selected{% endif %}>Visa Card</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3" data-field-group="account_title">
+                            <label class="form-label small">Account Title</label>
+                            <input type="text" name="account_title" class="form-control form-control-sm js-field-account-title" value="{{ r.payout_detail.account_title if r.payout_detail else '' }}" required>
+                        </div>
+
+                        <div class="col-md-3" data-field-group="bank">
+                            <label class="form-label small">Bank Name</label>
+                            <input type="text" name="bank_name" class="form-control form-control-sm js-field-bank-name" value="{{ r.payout_detail.bank_name if r.payout_detail else '' }}" placeholder="e.g. HBL / Meezan">
+                        </div>
+
+                        <div class="col-md-3" data-field-group="bank">
+                            <label class="form-label small">Account Number</label>
+                            <input type="text" name="account_number" class="form-control form-control-sm js-field-account-number" value="{{ r.payout_detail.account_number if r.payout_detail else '' }}" placeholder="Bank account no.">
+                        </div>
+
+                        <div class="col-md-3" data-field-group="bank">
+                            <label class="form-label small">IBAN</label>
+                            <input type="text" name="iban" class="form-control form-control-sm js-field-iban" value="{{ r.payout_detail.iban if r.payout_detail else '' }}" placeholder="PK..">
+                        </div>
+
+                        <div class="col-md-3" data-field-group="wallet">
+                            <label class="form-label small">Wallet Provider</label>
+                            <input type="text" name="wallet_provider" class="form-control form-control-sm js-field-wallet-provider" value="{{ r.payout_detail.wallet_provider if r.payout_detail else '' }}" placeholder="EasyPaisa/JazzCash">
+                        </div>
+
+                        <div class="col-md-3" data-field-group="wallet">
+                            <label class="form-label small">Wallet Number</label>
+                            <input type="text" name="wallet_number" class="form-control form-control-sm js-field-wallet-number" value="{{ r.payout_detail.wallet_number if r.payout_detail else '' }}" placeholder="03xxxxxxxxx">
+                        </div>
+
+                        <div class="col-md-3" data-field-group="visa">
+                            <label class="form-label small">Visa Provider / Bank</label>
+                            <input type="text" name="visa_provider" class="form-control form-control-sm js-field-visa-provider" value="{{ r.payout_detail.bank_name if r.payout_detail and r.payout_detail.payment_method == 'visa_card' else '' }}" placeholder="e.g. Standard Chartered">
+                        </div>
+
+                        <div class="col-md-3" data-field-group="visa">
+                            <label class="form-label small">Visa Recipient ID / Account No.</label>
+                            <input type="text" name="visa_recipient_id" class="form-control form-control-sm js-field-visa-account" value="{{ r.payout_detail.account_number if r.payout_detail and r.payout_detail.payment_method == 'visa_card' else '' }}" placeholder="Recipient ID / card-linked account">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label small">Note (optional)</label>
+                            <input type="text" name="patient_note" class="form-control form-control-sm" value="{{ r.payout_detail.patient_note if r.payout_detail else '' }}" placeholder="Optional instruction">
+                        </div>
+                        <div class="col-12 text-end mt-2">
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i>
+                                {% if r.payout_detail %}Update Details{% else %}Submit Details{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                    {% else %}
+                    <div class="alert alert-success mb-0">
+                        <i class="fas fa-check-circle me-1"></i>
+                        Refund completed on {{ r.processed_at.strftime('%d %b %Y %H:%M') if r.processed_at else '-' }}.
+                        {% if r.payout_detail and r.payout_detail.admin_proof_path %}
+                        <a class="ms-2" href="{{ url_for('static', filename='uploads/' + r.payout_detail.admin_proof_path) }}" target="_blank">View admin proof</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5 text-muted">
+            <i class="fas fa-wallet fa-3x mb-3"></i>
+            <h5>No refunds yet</h5>
+            <p class="mb-0">If any refund is created for your appointments, it will appear here.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    function applyVisibility(form) {
+        const methodEl = form.querySelector('.js-refund-method');
+        if (!methodEl) return;
+        const method = (methodEl.value || '').toLowerCase();
+
+        const groups = form.querySelectorAll('[data-field-group]');
+        groups.forEach(function (el) {
+            el.style.display = 'none';
+        });
+
+        const accountTitle = form.querySelector('[data-field-group="account_title"]');
+        const bankFields = form.querySelectorAll('[data-field-group="bank"]');
+        const walletFields = form.querySelectorAll('[data-field-group="wallet"]');
+        const visaFields = form.querySelectorAll('[data-field-group="visa"]');
+
+        // Clear dynamic required flags first
+        const requiredTargets = form.querySelectorAll('.js-field-account-title, .js-field-bank-name, .js-field-account-number, .js-field-wallet-provider, .js-field-wallet-number, .js-field-visa-provider, .js-field-visa-account');
+        requiredTargets.forEach(function (el) {
+            el.required = false;
+        });
+
+        if (method === 'bank_transfer') {
+            if (accountTitle) accountTitle.style.display = '';
+            bankFields.forEach(function (el) { el.style.display = ''; });
+            const title = form.querySelector('.js-field-account-title');
+            const bankName = form.querySelector('.js-field-bank-name');
+            const accNo = form.querySelector('.js-field-account-number');
+            if (title) title.required = true;
+            if (bankName) bankName.required = true;
+            if (accNo) accNo.required = true;
+        } else if (method === 'mobile_wallet' || method === 'easypaisa' || method === 'jazzcash') {
+            if (accountTitle) accountTitle.style.display = '';
+            walletFields.forEach(function (el) { el.style.display = ''; });
+            const title = form.querySelector('.js-field-account-title');
+            const provider = form.querySelector('.js-field-wallet-provider');
+            const number = form.querySelector('.js-field-wallet-number');
+            if (title) title.required = true;
+            if (provider) provider.required = true;
+            if (number) number.required = true;
+        } else if (method === 'visa_card') {
+            if (accountTitle) {
+                accountTitle.style.display = '';
+                const label = accountTitle.querySelector('label');
+                if (label) label.textContent = 'Card Holder Name';
+            }
+            visaFields.forEach(function (el) { el.style.display = ''; });
+            const title = form.querySelector('.js-field-account-title');
+            const provider = form.querySelector('.js-field-visa-provider');
+            const recipient = form.querySelector('.js-field-visa-account');
+            if (title) title.required = true;
+            if (provider) provider.required = true;
+            if (recipient) recipient.required = true;
+        } else {
+            // Default label reset when no valid method selected
+            if (accountTitle) {
+                const label = accountTitle.querySelector('label');
+                if (label) label.textContent = 'Account Title';
+            }
+        }
+
+        // Reset account title label for non-visa methods
+        if (method !== 'visa_card' && accountTitle) {
+            const label = accountTitle.querySelector('label');
+            if (label) label.textContent = 'Account Title';
+        }
+    }
+
+    document.querySelectorAll('.refund-details-form').forEach(function (form) {
+        applyVisibility(form);
+        const methodEl = form.querySelector('.js-refund-method');
+        if (methodEl) {
+            methodEl.addEventListener('change', function () {
+                applyVisibility(form);
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

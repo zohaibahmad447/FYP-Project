@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Quick Care Connect{% endblock %}
+
+{% block extra_css %}
+<!-- Prevent browser caching of login form -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<style>
+    /* Password Toggle Icon Styling */
+    .password-input-wrapper {
+        position: relative;
+    }
+
+    .password-field {
+        padding-right: 50px !important;
+        /* Space for eye icon + validation icon */
+    }
+
+    .password-field.is-invalid {
+        padding-right: 55px !important;
+        /* Space when validation icon is present */
+    }
+
+    .password-toggle-icon {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #6c757d;
+        user-select: none;
+        transition: color 0.2s, right 0.2s;
+        z-index: 11;
+        /* Above validation icon */
+        pointer-events: auto;
+        background-color: white;
+        /* Background to prevent overlap visual issues */
+        padding: 0 3px;
+        /* Small padding for better click area */
+        font-size: 1.1rem;
+    }
+
+    /* When field has validation error, move icon slightly left but still close to error icon */
+    .password-input-wrapper .password-field.is-invalid~.password-toggle-icon,
+    .password-input-wrapper:has(.is-invalid) .password-toggle-icon {
+        right: 30px !important;
+        /* Still close to error icon */
+    }
+
+    /* Alternative approach using JavaScript to dynamically adjust */
+    .password-input-wrapper.has-error .password-toggle-icon {
+        right: 30px !important;
+    }
+
+    .password-toggle-icon:hover {
+        color: var(--primary-color);
+    }
+
+    .password-toggle-icon.active {
+        color: var(--primary-color);
+    }
+    
+    /* --- Modern Split Layout Auth Styling --- */
+    /* Hide Navbar and Footer for Auth Pages so it looks like an app screen */
+    .navbar, footer, .footer-area { display: none !important; }
+    body > div[style*="height: 80px"] { display: none !important; }
+    body { background-color: #f3f5f7 !important; padding-top: 0 !important; }
+    
+    .auth-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+    
+    .auth-card-split {
+        display: flex;
+        flex-direction: row;
+        background: #fff;
+        border-radius: 30px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+        overflow: hidden;
+        width: 100%;
+        max-width: 900px;
+        min-height: 550px;
+    }
+    
+    .auth-left {
+        flex: 1;
+        background: linear-gradient(135deg, #10b981, #059669);
+        padding: 50px 40px;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+    }
+    
+    .auth-right {
+        flex: 1.2;
+        padding: 60px 50px;
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .auth-title-left {
+        font-size: 2.2rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 0.5rem;
+    }
+    
+    .auth-title-right {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #059669;
+        margin-bottom: 2rem;
+    }
+    
+    /* Buttons */
+    .auth-btn-solid {
+        background: #059669 !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 30px !important;
+        padding: 14px 24px !important;
+        font-weight: 600 !important;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3) !important;
+        transition: all 0.3s ease !important;
+        width: 100%;
+    }
+    .auth-btn-solid:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4) !important;
+        background: #047857 !important;
+    }
+    
+    .auth-btn-outline-white {
+        border: 2px solid rgba(255,255,255,0.8) !important;
+        color: #ffffff !important;
+        border-radius: 30px !important;
+        padding: 12px 24px !important;
+        font-weight: 600 !important;
+        letter-spacing: 1px;
+        background: transparent !important;
+        transition: all 0.3s ease !important;
+        display: inline-block;
+        width: 100%;
+        text-align: center;
+        text-decoration: none;
+    }
+    .auth-btn-outline-white:hover {
+        background: #ffffff !important;
+        color: #059669 !important;
+    }
+    
+    /* Input Styling Override */
+    .form-control {
+        border-radius: 30px !important;
+        padding: 15px 24px !important;
+        border: none !important;
+        background-color: #e8f5ed !important;
+        font-size: 14px;
+        font-weight: 500;
+        color: #1f2937;
+    }
+    .form-control:focus {
+        background-color: #d1fae5 !important;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1) !important;
+    }
+    .form-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 6px;
+        margin-left: 12px;
+    }
+    
+    /* Password Icon adjustments for pill input */
+    .password-toggle-icon {
+        right: 20px;
+        background-color: transparent !important;
+    }
+    
+    @media (max-width: 768px) {
+        .auth-card-split { flex-direction: column; border-radius: 20px; }
+        .auth-left { padding: 40px 30px; min-height: 250px; border-radius: 20px 20px 0 0; }
+        .auth-right { padding: 40px 30px; border-radius: 0 0 20px 20px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card-split">
+        <!-- Left Banner Panel -->
+        <div class="auth-left text-center text-md-start">
+            <div>
+                <h2 class="auth-title-left">Welcome to<br>Quick Care</h2>
+                <p class="opacity-75" style="font-size: 15px;">We make healthcare accessible for you</p>
+            </div>
+            
+            <div class="text-center my-5 my-md-0 flex-grow-1 d-flex align-items-center justify-content-center">
+                <img src="{{ url_for('static', filename='images/quickcare-logo.png') }}" alt="Quick Care logo" style="width: 112px; height: 112px; object-fit: contain; opacity: 0.95; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.1));">
+            </div>
+            
+            <div class="mt-auto pt-4 text-center">
+                <p class="mb-3 opacity-75 small">Don't have an account?</p>
+                <a href="{{ url_for('auth.register') }}" class="auth-btn-outline-white">SIGN UP</a>
+            </div>
+        </div>
+
+        <!-- Right Form Panel -->
+        <div class="auth-right">
+            <h3 class="auth-title-right text-center text-md-start">Sign in to Quick Care</h3>
+            
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show rounded-pill px-4"
+                role="alert">
+                {{ message }}
+                <button type="button" class="btn-close mt-1" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST" id="login-form" novalidate autocomplete="off">
+                {{ form.hidden_tag() }}
+
+                <div class="mb-3">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control", autocomplete="off", autofill="off",
+                    id="login-email", placeholder="Enter your email") }}
+                    {% if form.email.errors %}
+                    <div class="text-danger small mt-1 ms-3">
+                        {% for error in form.email.errors %}
+                        <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    {{ form.password.label(class="form-label") }}
+                    <div class="password-input-wrapper">
+                        {{ form.password(class="form-control password-field",
+                        autocomplete="off", autofill="off", id="login-password", placeholder="Enter your password") }}
+                        <i class="fas fa-eye password-toggle-icon" id="login-password-toggle"></i>
+                    </div>
+                    {% if form.password.errors %}
+                    <div class="text-danger small mt-1 ms-3">
+                        {% for error in form.password.errors %}
+                        <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="rememberMe">
+                        <label class="form-check-label small text-muted font-weight-500" for="rememberMe">
+                            Remember me
+                        </label>
+                    </div>
+                    <a href="{{ url_for('auth.forgot_password') }}" class="small text-decoration-none" style="color: #059669; font-weight: 600;">
+                        Forgot password?
+                    </a>
+                </div>
+
+                <div class="mt-2">
+                    <button type="submit" class="auth-btn-solid">
+                        SIGN IN
+                    </button>
+                </div>
+
+                <!-- Form Errors -->
+                {% if form.errors %}
+                <div class="alert alert-danger rounded-pill px-4 mt-3">
+                    <h6 class="mb-1">Please fix the following errors:</h6>
+                    <ul class="mb-0 ps-3 small">
+                        {% for field, errors in form.errors.items() %}
+                        {% for error in errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('login-form');
+
+        // Forcefully clear all form fields on page load
+        if (form) {
+            // Clear all input fields immediately
+            const emailField = document.getElementById('login-email');
+            const passwordField = document.getElementById('login-password');
+
+            if (emailField) {
+                emailField.value = '';
+                emailField.setAttribute('autocomplete', 'off');
+                emailField.setAttribute('readonly', true);
+                setTimeout(function () {
+                    emailField.removeAttribute('readonly');
+                }, 100);
+            }
+
+            if (passwordField) {
+                passwordField.value = '';
+                passwordField.setAttribute('autocomplete', 'off');
+                passwordField.setAttribute('readonly', true);
+                setTimeout(function () {
+                    passwordField.removeAttribute('readonly');
+                }, 100);
+            }
+
+            // Reset form completely
+            form.reset();
+
+            // Clear any browser autocomplete data
+            const inputs = form.querySelectorAll('input');
+            inputs.forEach(input => {
+                if (input.type !== 'hidden') {
+                    input.value = '';
+                    input.setAttribute('autocomplete', 'off');
+                    // Force browser to forget autocomplete by setting readonly then removing it
+                    if (input.type === 'text' || input.type === 'email' || input.type === 'password') {
+                        input.setAttribute('readonly', true);
+                        setTimeout(function () {
+                            input.removeAttribute('readonly');
+                        }, 50);
+                    }
+                }
+            });
+        }
+
+        // Check if there's a redirect URL in sessionStorage
+        const redirectUrl = sessionStorage.getItem('redirect_after_login');
+        if (redirectUrl) {
+            // Add hidden input to form to pass redirect URL
+            if (form) {
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'next_url';
+                hiddenInput.value = redirectUrl;
+                form.appendChild(hiddenInput);
+            }
+
+            // Clear sessionStorage
+            sessionStorage.removeItem('redirect_after_login');
+        }
+
+        // Password Toggle Functionality - Press and hold to show password
+        const passwordInput = document.getElementById('login-password');
+        const passwordToggle = document.getElementById('login-password-toggle');
+
+        // Function to toggle password visibility
+        function togglePasswordVisibility(input, toggleIcon, isVisible) {
+            if (isVisible) {
+                input.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+                toggleIcon.classList.add('active');
+            } else {
+                input.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+                toggleIcon.classList.remove('active');
+            }
+        }
+
+        // Password field toggle - press and hold behavior
+        if (passwordToggle && passwordInput) {
+            let passwordMouseDown = false;
+
+            // Mouse down - show password
+            passwordToggle.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                passwordMouseDown = true;
+                togglePasswordVisibility(passwordInput, passwordToggle, true);
+            });
+
+            // Mouse up - hide password
+            document.addEventListener('mouseup', function () {
+                if (passwordMouseDown) {
+                    passwordMouseDown = false;
+                    togglePasswordVisibility(passwordInput, passwordToggle, false);
+                }
+            });
+
+            // Mouse leave - hide password (if user drags away while holding)
+            passwordToggle.addEventListener('mouseleave', function () {
+                if (passwordMouseDown) {
+                    passwordMouseDown = false;
+                    togglePasswordVisibility(passwordInput, passwordToggle, false);
+                }
+            });
+
+            // Touch events for mobile
+            passwordToggle.addEventListener('touchstart', function (e) {
+                e.preventDefault();
+                togglePasswordVisibility(passwordInput, passwordToggle, true);
+            });
+
+            passwordToggle.addEventListener('touchend', function (e) {
+                e.preventDefault();
+                togglePasswordVisibility(passwordInput, passwordToggle, false);
+            });
+        }
+    });
+</script>
+{% endblock %}

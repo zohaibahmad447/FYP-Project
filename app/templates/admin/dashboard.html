@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Quick Care Connect{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-3 py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-xl-2 col-lg-3 col-md-4 mb-4 admin-sidebar-col">
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body text-center p-4">
+                    <div class="admin-avatar mb-3 mx-auto" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 2.2rem;">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h5 class="card-title fw-bold mb-1">Admin Panel</h5>
+                    <p class="text-muted small mb-0">{{ get_current_user().name }}</p>
+                </div>
+            </div>
+
+            <div class="card qc-admin-card border-0 shadow-sm mt-3 rounded-4 overflow-hidden">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h6 class="mb-0 text-uppercase text-muted fw-bold small" style="letter-spacing:1px;"><i class="fas fa-rocket me-2"></i>Quick Navigation</h6>
+                </div>
+                <div class="card-body p-0">
+                    {% include 'admin/_management_sidebar.html' %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-xl-10 col-lg-9 col-md-8 admin-main-col">
+            <!-- Header Banner -->
+            <div class="bg-white p-4 rounded-4 shadow-sm border border-light mb-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-1 fw-bold text-dark">System Overview</h3>
+                    <p class="text-muted mb-0 small"><i class="fas fa-calendar-day me-1"></i>Today is {{ now_local().strftime('%A, %d %B %Y') }}</p>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2 fw-bold">SYSTEM ACTIVE</span>
+                </div>
+            </div>
+
+            <!-- Modern Statistics (Clinical Trust Palette) -->
+            <div class="row g-4 mb-5">
+                <div class="col-xl-3 col-md-6">
+                    <div class="qc-admin-stat-tile shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="stat-title mb-0">Active Medical Staff</div>
+                            <div class="icon-wrapper icon-doctors mb-0" style="width:36px;height:36px;font-size:1rem;"><i class="fas fa-stethoscope"></i></div>
+                        </div>
+                        <div class="d-flex align-items-end gap-2">
+                            <div class="stat-val mb-0">{{ stats.doctors.approved }}</div>
+                            {% if stats.doctors.pending > 0 or stats.appeals > 0 %}
+                            <span class="badge bg-danger-subtle text-danger rounded-pill px-2 py-1 mb-1" style="font-size: 0.7rem;">Action Needed</span>
+                            {% endif %}
+                        </div>
+                        <div class="stat-trend d-flex align-items-center mt-2">
+                            {% if stats.doctors.pending > 0 %}
+                            <a href="{{ url_for('admin.dashboard') }}#pending-approvals" class="text-decoration-none text-danger-accent me-3"><i class="fas fa-clock me-1"></i>{{ stats.doctors.pending }} Pending</a>
+                            {% endif %}
+                            {% if stats.appeals > 0 %}
+                            <span class="text-warning-accent"><i class="fas fa-gavel me-1"></i>{{ stats.appeals }} Appeals</span>
+                            {% endif %}
+                            {% if stats.doctors.pending == 0 and stats.appeals == 0 %}
+                            <span class="text-success-accent"><i class="fas fa-check-circle me-1"></i>Up to date</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6">
+                    <div class="qc-admin-stat-tile shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="stat-title mb-0">Pending Payment Approvals</div>
+                            <div class="icon-wrapper icon-appointments mb-0" style="width:36px;height:36px;font-size:1rem;"><i class="fas fa-calendar-check"></i></div>
+                        </div>
+                        <div class="d-flex align-items-end gap-2">
+                            <div class="stat-val mb-0">{{ stats.pending_payments }}</div>
+                            {% if stats.pending_payments > 0 %}
+                            <span class="badge bg-danger text-white rounded-pill px-2 py-1 mb-1"><i class="fas fa-bell me-1"></i>Review</span>
+                            {% endif %}
+                        </div>
+                        <div class="stat-trend text-muted mt-2">
+                            <span class="text-dark"><i class="fas fa-calendar-day me-1"></i>{{ stats.appointments.today }}</span> appts scheduled today
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="qc-admin-stat-tile shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="stat-title mb-0">Payout Requests</div>
+                            <div class="icon-wrapper icon-finance mb-0" style="width:36px;height:36px;font-size:1rem;"><i class="fas fa-wallet"></i></div>
+                        </div>
+                        <div class="d-flex align-items-end gap-2">
+                            <div class="stat-val mb-0">{{ stats.pending_payouts }}</div>
+                        </div>
+                        <div class="stat-trend mt-2">
+                            {% if stats.pending_payouts > 0 %}
+                            <span class="text-warning-accent"><i class="fas fa-exclamation-circle me-1"></i>Requires processing</span>
+                            {% else %}
+                            <span class="text-success-accent"><i class="fas fa-check me-1"></i>All caught up</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="qc-admin-stat-tile shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="stat-title mb-0">Total Verified Patients</div>
+                            <div class="icon-wrapper icon-patients mb-0" style="width:36px;height:36px;font-size:1rem;"><i class="fas fa-users"></i></div>
+                        </div>
+                        <div class="d-flex align-items-end gap-2">
+                            <div class="stat-val mb-0">{{ stats.patients }}</div>
+                        </div>
+                        <div class="stat-trend text-muted mt-2">
+                            <i class="fas fa-chart-line me-1"></i>Total network users
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <!-- Data Table 1: Pending Payments -->
+                <div class="col-lg-6">
+                    <div class="card qc-admin-card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-header bg-white border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="fw-bold mb-0">Pending Payment Reviews</h5>
+                                <span class="text-muted small">Appointments awaiting visual payment verification</span>
+                            </div>
+                            <a href="{{ url_for('admin.accounts_payment_flow') }}" class="btn btn-sm btn-light rounded-pill px-3">View All</a>
+                        </div>
+                        <div class="card-body p-4">
+                            {% if recent_pending_payments %}
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light text-muted small text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                        <tr>
+                                            <th class="border-0 rounded-start">Appt ID</th>
+                                            <th class="border-0">Doctor</th>
+                                            <th class="border-0">Amount</th>
+                                            <th class="border-0 rounded-end text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="border-top-0">
+                                        {% for payment in recent_pending_payments %}
+                                        <tr>
+                                            <td><span class="text-primary fw-bold">#{{ payment.id }}</span></td>
+                                            <td class="fw-bold text-dark">{{ payment.doctor.user.name }}</td>
+                                            <td class="fw-bold">PKR {{ payment.charges }}</td>
+                                            <td class="text-end">
+                                               <a href="{{ url_for('admin.accounts_payment_flow') }}?appt_id={{ payment.id }}" class="btn btn-sm btn-primary rounded-pill px-3" style="font-size: 0.75rem;">Review</a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="d-flex align-items-center gap-3 p-4 bg-light rounded-4">
+                                <i class="fas fa-check-double text-success fs-3"></i>
+                                <div>
+                                    <div class="fw-bold">Inbox Zero</div>
+                                    <div class="text-muted small">No pending payment screenshots to review.</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Table 2: Pending Doctor Approvals -->
+                <div class="col-lg-6">
+                    <div class="card qc-admin-card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-header bg-white border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="fw-bold mb-0">Doctors Awaiting Approval</h5>
+                                <span class="text-muted small">New registration applications to validate</span>
+                            </div>
+                            <a href="{{ url_for('admin.doctors') }}?filter=pending" class="btn btn-sm btn-light rounded-pill px-3">View All</a>
+                        </div>
+                        <div class="card-body p-4">
+                            {% if pending_doctors %}
+                            <div class="d-flex flex-column gap-3">
+                                {% for doctor in pending_doctors %}
+                                <div class="px-0 border-0 border-bottom pb-2 d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-3">
+                                        {% if doctor.user.profile_picture %}
+                                        <img src="{{ url_for('static', filename='uploads/' + doctor.user.profile_picture) }}" class="rounded-circle object-fit-cover shadow-sm" width="40" height="40" alt="Profile">
+                                        {% else %}
+                                        <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width:40px;height:40px;font-size:0.8rem;">
+                                            {{ doctor.user.name[:2].upper() }}
+                                        </div>
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-bold fs-6">{{ doctor.user.name }}</div>
+                                            <div class="text-muted mb-1" style="font-size:0.75rem;"><i class="fas fa-stethoscope me-1 text-primary"></i>{{ doctor.specialization }}</div>
+                                        </div>
+                                    </div>
+                                    <a href="{{ url_for('admin.view_doctor_details', doctor_id=doctor.id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">Evaluate Form</a>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="d-flex align-items-center gap-3 p-4 bg-light rounded-4">
+                                <i class="fas fa-user-check text-success fs-3"></i>
+                                <div>
+                                    <div class="fw-bold">All Caught Up</div>
+                                    <div class="text-muted small">No pending registrations found.</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Data Table 3: Payout Requests -->
+                <div class="col-lg-6">
+                    <div class="card qc-admin-card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-header bg-white border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="fw-bold mb-0">Payout Requests</h5>
+                                <span class="text-muted small">Doctors requesting balance withdrawals</span>
+                            </div>
+                            <a href="{{ url_for('admin.accounts_payouts') }}" class="btn btn-sm btn-light rounded-pill px-3">Manage Payouts</a>
+                        </div>
+                        <div class="card-body p-4">
+                            {% if recent_payouts %}
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light text-muted small text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                        <tr>
+                                            <th class="border-0 rounded-start">Date</th>
+                                            <th class="border-0">Doctor</th>
+                                            <th class="border-0">Requested amount</th>
+                                            <th class="border-0 rounded-end text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="border-top-0">
+                                        {% for request in recent_payouts %}
+                                        <tr>
+                                            <td class="text-muted small">{{ request.requested_at.strftime('%d %b, %Y') }}</td>
+                                            <td class="fw-bold text-dark">{{ request.doctor.user.name }}</td>
+                                            <td class="fw-bold text-danger">PKR {{ request.amount }}</td>
+                                            <td class="text-end">
+                                               <a href="{{ url_for('admin.accounts_payouts') }}" class="btn btn-sm btn-outline-danger rounded-pill px-3" style="font-size: 0.75rem;">Process</a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="d-flex align-items-center gap-3 p-4 bg-light rounded-4">
+                                <i class="fas fa-wallet text-success fs-3"></i>
+                                <div>
+                                    <div class="fw-bold">No Pending Payouts</div>
+                                    <div class="text-muted small">All doctor withdrawal requests are fulfilled.</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Table 4: Blogs waiting for approval -->
+                <div class="col-lg-6">
+                    <div class="card qc-admin-card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-header bg-white border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="fw-bold mb-0">Pending Health Articles</h5>
+                                <span class="text-muted small">Submitted blogs awaiting moderation</span>
+                            </div>
+                            <a href="{{ url_for('admin.blogs') }}" class="btn btn-sm btn-light rounded-pill px-3">Content Moderation</a>
+                        </div>
+                        <div class="card-body p-4">
+                            {% if pending_blogs %}
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light text-muted small text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                        <tr>
+                                            <th class="border-0 rounded-start">Title</th>
+                                            <th class="border-0">Author</th>
+                                            <th class="border-0 rounded-end text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="border-top-0">
+                                        {% for blog in pending_blogs %}
+                                        <tr>
+                                            <td>
+                                                <div class="text-truncate fw-bold text-dark" style="max-width: 200px;">{{ blog.title }}</div>
+                                            </td>
+                                            <td class="text-muted small">{{ blog.doctor.user.name }}</td>
+                                            <td class="text-end">
+                                               <a href="{{ url_for('admin.blogs') }}" class="btn btn-sm btn-outline-info rounded-pill px-3" style="font-size: 0.75rem;">Review Post</a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="d-flex align-items-center gap-3 p-4 bg-light rounded-4">
+                                <i class="fas fa-newspaper text-success fs-3"></i>
+                                <div>
+                                    <div class="fw-bold">Content Queue Empty</div>
+                                    <div class="text-muted small">No new health articles waiting for approval.</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<!-- Removed Chart JS as requested to focus completely on actionable datatables -->
+{% endblock %}
+{% endblock %}

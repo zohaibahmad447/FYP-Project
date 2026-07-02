@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Q&A - Answer Questions - Quick Care Connect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-2">
+                <i class="fas fa-question-circle me-2" style="color: #10b981;"></i>Questions to Answer
+            </h2>
+            <p class="text-muted mb-0">Answer questions in your category: <strong>{{ doctor_category }}</strong></p>
+        </div>
+    </div>
+
+    <!-- Info Card -->
+    <div class="alert alert-info mb-4">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Note:</strong> You can only see and answer questions that match your medical category. 
+        Patients need your expert advice!
+    </div>
+
+    <!-- Unanswered Questions -->
+    {% if unanswered_questions %}
+        <h5 class="mb-3 text-danger">Unanswered Questions ({{ unanswered_questions|length }})</h5>
+        {% for question in unanswered_questions %}
+        <div class="card mb-4" style="border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; transition: all 0.3s ease;">
+            <div class="card-header" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border-bottom: 2px solid #10b981;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <h5 class="mb-2">
+                            <a href="{{ url_for('qa.view_question', question_id=question.id) }}" 
+                               class="text-decoration-none" style="color: #10b981;">
+                                {{ question.title }}
+                            </a>
+                        </h5>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <span class="badge badge-primary">{{ question.category }}</span>
+                            <span class="badge badge-{{ 'success' if question.is_answered else 'warning' }}">
+                                {{ 'Answered' if question.is_answered else 'Unanswered' }}
+                            </span>
+                            {% if question.is_stale %}
+                            <span class="badge bg-danger">
+                                <i class="fas fa-exclamation-circle me-1"></i>{{ question.pending_days }}d pending
+                            </span>
+                            {% endif %}
+                            {% if question.answers.count() > 0 %}
+                            <span class="badge badge-info">
+                                <i class="fas fa-comments me-1"></i>{{ question.answers.count() }} answer{{ 's' if question.answers.count() != 1 }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="question-preview mb-3">
+                    <p class="text-muted mb-0">
+                        {{ question.content[:200] }}{% if question.content|length > 200 %}...{% endif %}
+                    </p>
+                </div>
+                
+                <div class="question-meta mb-3 pt-3 border-top">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <i class="fas fa-user me-1"></i>Asked by <strong>{{ question.patient.user.name }}</strong>
+                            </small>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>{{ question.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('qa.view_question', question_id=question.id) }}" 
+                       class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-eye me-1"></i>View Details
+                    </a>
+                    <a href="{{ url_for('doctors.answer_question', question_id=question.id) }}" 
+                       class="btn btn-success btn-sm" style="background: rgba(16, 185, 129, 0.8); border: 1px solid rgba(16, 185, 129, 0.5);">
+                        <i class="fas fa-reply me-1"></i>Answer Question
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Answered Questions -->
+    {% if answered_questions %}
+        <h5 class="mb-3 mt-4 text-success">Already Answered ({{ answered_questions|length }})</h5>
+        {% for question in answered_questions %}
+        <div class="card mb-4" style="border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; transition: all 0.3s ease;">
+            <div class="card-header" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border-bottom: 2px solid #10b981;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <h5 class="mb-2">
+                            <a href="{{ url_for('qa.view_question', question_id=question.id) }}"
+                               class="text-decoration-none" style="color: #10b981;">
+                                {{ question.title }}
+                            </a>
+                        </h5>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <span class="badge badge-primary">{{ question.category }}</span>
+                            <span class="badge badge-success">Answered</span>
+                            <span class="badge badge-info">
+                                <i class="fas fa-comments me-1"></i>{{ question.answers.count() }} answer{{ 's' if question.answers.count() != 1 }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    {{ question.content[:200] }}{% if question.content|length > 200 %}...{% endif %}
+                </p>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('qa.view_question', question_id=question.id) }}"
+                       class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-eye me-1"></i>View Details
+                    </a>
+                    <a href="{{ url_for('doctors.answer_question', question_id=question.id) }}"
+                       class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-comment me-1"></i>Add Another Answer
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if not questions %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-check-circle text-success mb-3" style="font-size: 4rem;"></i>
+                <h4 class="text-muted mb-3">No Questions Available</h4>
+                <p class="text-muted mb-4">
+                    There are currently no unanswered questions in your category (<strong>{{ doctor_category }}</strong>). 
+                    Check back later or patients can ask new questions anytime!
+                </p>
+                <a href="{{ url_for('qa.index') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-2"></i>View All Questions
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}
+

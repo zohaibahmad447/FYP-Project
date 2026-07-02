@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Prescription #{{ prescription.id }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm 1.5cm 2.8cm 1.5cm;
+
+            @frame footer_frame {
+                -pdf-frame-content: footer_content;
+                left: 1.5cm;
+                right: 1.5cm;
+                bottom: 0.5cm;
+                height: 1.8cm;
+            }
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10pt;
+            color: #111827;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ─── TOP BRAND STRIP ─── */
+        .letterhead-table {
+            width: 100%;
+            border-top: 5px solid #059669;
+            border-collapse: collapse;
+            margin-bottom: 0;
+        }
+
+        .letterhead-table td {
+            vertical-align: middle;
+            padding-top: 8px;
+            padding-bottom: 8px;
+        }
+
+        .clinic-name {
+            font-size: 20pt;
+            font-weight: bold;
+            color: #059669;
+            letter-spacing: -0.5px;
+            line-height: 1;
+        }
+
+        .clinic-tagline {
+            font-size: 7pt;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        .doctor-name {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #111827;
+            text-align: right;
+            line-height: 1;
+        }
+
+        .doctor-spec {
+            font-size: 9.5pt;
+            font-weight: bold;
+            color: #059669;
+            text-align: right;
+            margin-top: 2px;
+            line-height: 1;
+        }
+
+        .doctor-contact {
+            font-size: 8pt;
+            color: #6b7280;
+            text-align: right;
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+
+        /* ─── PATIENT STRIP ─── */
+        .patient-strip-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-top: 1px solid #e5e7eb;
+            border-bottom: 2px solid #059669;
+            margin-bottom: 14px;
+            background-color: #f9fafb;
+        }
+
+        .patient-strip-table td {
+            padding: 9px 14px;
+            border-right: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+
+        .patient-strip-table td:last-child {
+            border-right: none;
+        }
+
+        .ps-label {
+            font-size: 7pt;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #9ca3af;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .ps-value {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .ps-value-green {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #059669;
+        }
+
+        /* ─── BODY: TWO COLUMNS ─── */
+        .body-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .left-col {
+            width: 33%;
+            vertical-align: top;
+            padding: 0 14px 0 0;
+            border-right: 1px solid #e5e7eb;
+            background-color: #fafafa;
+        }
+
+        .right-col {
+            width: 67%;
+            vertical-align: top;
+            padding: 0 0 0 18px;
+        }
+
+        /* ─── SECTION TITLES ─── */
+        .section-title {
+            font-size: 7.5pt;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: bold;
+            color: #6b7280;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 4px;
+            margin-bottom: 10px;
+            margin-top: 14px;
+        }
+
+        /* ─── DIAGNOSIS BLOCK ─── */
+        .diagnosis-block {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 9px 11px;
+            margin-bottom: 12px;
+        }
+
+        .diagnosis-label {
+            font-size: 7pt;
+            text-transform: uppercase;
+            color: #92400e;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .diagnosis-text {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #78350f;
+            line-height: 1.4;
+        }
+
+        /* ─── VITALS ─── */
+        .vitals-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+        }
+
+        .vitals-table td {
+            text-align: center;
+            padding: 7px 4px;
+            width: 50%;
+            border: 1px solid #e5e7eb;
+        }
+
+        .vital-value {
+            font-size: 13pt;
+            font-weight: bold;
+            color: #059669;
+            line-height: 1;
+        }
+
+        .vital-unit {
+            font-size: 7pt;
+            color: #9ca3af;
+        }
+
+        .vital-label {
+            font-size: 7pt;
+            text-transform: uppercase;
+            color: #6b7280;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        /* ─── COMPLAINT BOX ─── */
+        .complaint-box {
+            border-left: 3px solid #6366f1;
+            padding: 8px 10px;
+            font-size: 9pt;
+            color: #374151;
+            margin-bottom: 12px;
+            line-height: 1.5;
+            background: #f5f3ff;
+        }
+
+        /* ─── Rx SYMBOL (text-based for xhtml2pdf compatibility) ─── */
+        .rx-symbol-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+        }
+
+        .rx-symbol-cell {
+            vertical-align: middle;
+        }
+
+        .rx-text {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 28pt;
+            font-style: italic;
+            font-weight: bold;
+            color: #dc2626;
+            line-height: 1;
+        }
+
+        .rx-label {
+            font-size: 7.5pt;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6b7280;
+            font-weight: bold;
+            padding-left: 10px;
+        }
+
+        /* ─── MEDICINE TABLE ─── */
+        .med-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+        }
+
+        .med-table thead th {
+            background-color: #059669;
+            color: white;
+            padding: 6px 8px;
+            font-size: 8pt;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .med-table tbody tr:nth-child(odd) td {
+            background-color: #ffffff;
+        }
+
+        .med-table tbody tr:nth-child(even) td {
+            background-color: #f9fafb;
+        }
+
+        .med-table tbody td {
+            padding: 7px 8px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 9pt;
+            vertical-align: middle;
+        }
+
+        .med-num-badge {
+            background-color: #dc2626;
+            color: white;
+            padding: 2px 6px;
+            font-size: 8pt;
+            font-weight: bold;
+        }
+
+        .med-name {
+            font-weight: bold;
+            font-size: 10pt;
+        }
+
+        .dosage-badge {
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 2px 7px;
+            font-size: 7.5pt;
+            font-weight: bold;
+        }
+
+        .freq-badge {
+            background: #dcfce7;
+            color: #166534;
+            padding: 2px 7px;
+            font-size: 7.5pt;
+            font-weight: bold;
+        }
+
+        .dur-badge {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 2px 7px;
+            font-size: 7.5pt;
+            font-weight: bold;
+        }
+
+        .med-note-row td {
+            padding: 3px 8px 8px 30px;
+            font-size: 8pt;
+            color: #6b7280;
+            border-bottom: 1px solid #e5e7eb;
+            font-style: italic;
+        }
+
+        /* ─── TESTS ─── */
+        .test-item {
+            background: #faf5ff;
+            border-left: 3px solid #7c3aed;
+            padding: 7px 10px;
+            margin-bottom: 5px;
+            font-size: 9pt;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        .test-note {
+            font-size: 7.5pt;
+            color: #7c3aed;
+            font-weight: normal;
+            margin-top: 2px;
+        }
+
+        /* ─── ADVICE BOX ─── */
+        .advice-box {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 11px 13px;
+            font-size: 9pt;
+            color: #1e3a8a;
+            line-height: 1.8;
+            margin-bottom: 14px;
+        }
+
+        /* ─── FOLLOW-UP ─── */
+        .followup-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+        }
+
+        .followup-date-box {
+            background: #059669;
+            color: white;
+            text-align: center;
+            padding: 7px 10px;
+            width: 65px;
+        }
+
+        .fu-month {
+            font-size: 7pt;
+            text-transform: uppercase;
+            opacity: 0.85;
+        }
+
+        .fu-day {
+            font-size: 18pt;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .fu-year {
+            font-size: 7pt;
+            opacity: 0.75;
+        }
+
+        .followup-info {
+            padding-left: 12px;
+            font-size: 9pt;
+            vertical-align: middle;
+        }
+
+        .followup-info strong {
+            color: #065f46;
+        }
+
+        /* ─── SIGNATURE ─── */
+        .signature-block {
+            text-align: right;
+            margin-top: 24px;
+            padding-top: 14px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .sig-line {
+            width: 160px;
+            border-bottom: 1px solid #374151;
+            margin: 0 0 5px auto;
+        }
+
+        .sig-name {
+            font-weight: bold;
+            font-size: 10pt;
+        }
+
+        .sig-label {
+            font-size: 7.5pt;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+
+<body>
+
+    {% set doctor_full_name = prescription.appointment.doctor.user.name %}
+    {% set doctor_display = ('Dr. ' + doctor_full_name) if not doctor_full_name.startswith('Dr.') and not
+    doctor_full_name.startswith('dr.') else doctor_full_name %}
+
+    <!-- LETTERHEAD -->
+    <table class="letterhead-table">
+        <tr>
+            <td>
+                <div class="clinic-name">Quick Care</div>
+                <div class="clinic-tagline">Digital Healthcare Platform</div>
+            </td>
+            <td>
+                <div class="doctor-name">{{ doctor_display }}</div>
+                <div class="doctor-spec">{{ prescription.appointment.doctor.specialization or 'General Physician' }}
+                </div>
+                <div class="doctor-contact">
+                    {{ prescription.appointment.doctor.user.email }}<br>
+                    {% if prescription.appointment.doctor.user.phone %}{{ prescription.appointment.doctor.user.phone |
+                    format_phone }}{% endif %}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- PATIENT STRIP -->
+    <table class="patient-strip-table">
+        <tr>
+            <td style="width:28%;">
+                <div class="ps-label">Patient Name</div>
+                <div class="ps-value">{{ prescription.appointment.patient.user.name }}</div>
+            </td>
+            <td style="width:20%;">
+                <div class="ps-label">Age / Gender</div>
+                <div class="ps-value">
+                    {% if prescription.appointment.patient.user.date_of_birth %}
+                    {% set dob = prescription.appointment.patient.user.date_of_birth %}
+                    {% set age = ((prescription.created_at.date() - dob).days / 365.25) | int %}{{ age }} Y
+                    {% else %}—{% endif %}
+                    / {{ prescription.appointment.patient.user.gender | title if
+                    prescription.appointment.patient.user.gender else 'N/A' }}
+                </div>
+            </td>
+            <td style="width:24%;">
+                <div class="ps-label">Date Issued</div>
+                <div class="ps-value">{{ prescription.created_at.strftime('%d %b %Y') }}</div>
+            </td>
+            <td style="width:28%;">
+                <div class="ps-label">Prescription ID</div>
+                <div class="ps-value-green">#{{ '%05d'|format(prescription.id) }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- MAIN BODY (single flow for stable PDF pagination) -->
+
+    <!-- Vitals -->
+    {% if prescription.vitals_weight or prescription.vitals_bp or prescription.vitals_temp or prescription.vitals_pulse %}
+    <div class="section-title">Vital Signs</div>
+    <table class="vitals-table">
+        {% if prescription.vitals_bp or prescription.vitals_temp %}
+        <tr>
+            {% if prescription.vitals_bp %}<td>
+                <div class="vital-value">{{ prescription.vitals_bp }}</div>
+                <div class="vital-unit">mmHg</div>
+                <div class="vital-label">BP</div>
+            </td>{% endif %}
+            {% if prescription.vitals_temp %}<td>
+                <div class="vital-value">{{ prescription.vitals_temp }}</div>
+                <div class="vital-unit">°F</div>
+                <div class="vital-label">Temp</div>
+            </td>{% endif %}
+        </tr>
+        {% endif %}
+        {% if prescription.vitals_weight or prescription.vitals_pulse %}
+        <tr>
+            {% if prescription.vitals_weight %}<td>
+                <div class="vital-value">{{ prescription.vitals_weight }}</div>
+                <div class="vital-unit">kg</div>
+                <div class="vital-label">Weight</div>
+            </td>{% endif %}
+            {% if prescription.vitals_pulse %}<td>
+                <div class="vital-value">{{ prescription.vitals_pulse }}</div>
+                <div class="vital-unit">bpm</div>
+                <div class="vital-label">Pulse</div>
+            </td>{% endif %}
+        </tr>
+        {% endif %}
+    </table>
+    {% endif %}
+
+    <!-- Chief Complaints -->
+    {% if prescription.chief_complaints %}
+    <div class="section-title">Chief Complaints</div>
+    <div class="complaint-box">{{ prescription.chief_complaints }}</div>
+    {% endif %}
+
+    <!-- Diagnosis -->
+    {% if prescription.diagnosis %}
+    <div class="section-title">Primary Diagnosis</div>
+    <div class="diagnosis-block">
+        <div class="diagnosis-label">Diagnosed Condition</div>
+        <div class="diagnosis-text">{{ prescription.diagnosis }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Follow-Up -->
+    {% if prescription.follow_up_date %}
+    <div class="section-title">Follow-Up</div>
+    <table class="followup-table">
+        <tr>
+            <td style="width:65px;">
+                <div class="followup-date-box">
+                    <div class="fu-month">{{ prescription.follow_up_date.strftime('%b') }}</div>
+                    <div class="fu-day">{{ prescription.follow_up_date.strftime('%d') }}</div>
+                    <div class="fu-year">{{ prescription.follow_up_date.strftime('%Y') }}</div>
+                </div>
+            </td>
+            <td class="followup-info">
+                <strong>Return Visit</strong><br>
+                {% if prescription.follow_up_notes %}{{ prescription.follow_up_notes }}{% endif %}
+            </td>
+        </tr>
+    </table>
+    {% endif %}
+
+    <!-- Rx label -->
+    <table class="rx-symbol-table">
+        <tr>
+            <td class="rx-symbol-cell" style="width:50px;">
+                <span class="rx-text">Rx</span>
+            </td>
+            <td class="rx-symbol-cell">
+                <span class="rx-label">Prescribed Medicines</span>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Medicines Table -->
+    {% if prescription.medicines %}
+    <table class="med-table">
+        <thead>
+            <tr>
+                <th style="width:5%;">#</th>
+                <th style="width:35%;">Medicine</th>
+                <th style="width:20%;">Dosage</th>
+                <th style="width:25%;">Frequency</th>
+                <th style="width:15%;">Duration</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for medicine in prescription.medicines | sort(attribute='order') %}
+            <tr>
+                <td><span class="med-num-badge">{{ loop.index }}</span></td>
+                <td><span class="med-name">{{ medicine.medicine_name }}</span></td>
+                <td>{% if medicine.dosage %}<span class="dosage-badge">{{ medicine.dosage }}</span>{% else %}—{% endif %}</td>
+                <td>{% if medicine.frequency %}<span class="freq-badge">{{ medicine.frequency }}</span>{% else %}—{% endif %}</td>
+                <td>{% if medicine.duration %}<span class="dur-badge">{{ medicine.duration }}</span>{% else %}—{% endif %}</td>
+            </tr>
+            {% if medicine.instructions %}
+            <tr class="med-note-row">
+                <td></td>
+                <td colspan="4"><strong style="color:#059669;">Note:</strong> {{ medicine.instructions }}</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <!-- Lab Tests -->
+    {% if prescription.tests %}
+    <div class="section-title">Recommended Lab Tests</div>
+    {% for test in prescription.tests | sort(attribute='order') %}
+    <div class="test-item">
+        {{ loop.index }}. {{ test.test_name }}
+        {% if test.instructions %}<div class="test-note">{{ test.instructions }}</div>{% endif %}
+    </div>
+    {% endfor %}
+    <br>
+    {% endif %}
+
+    <!-- Doctor's Advice — with newline to <br> conversion -->
+    {% if prescription.advice %}
+    <div class="section-title">Doctor's Advice &amp; Instructions</div>
+    <div class="advice-box">
+        {{ prescription.advice | replace('\n', '<br>') | safe }}
+    </div>
+    {% endif %}
+
+    <!-- Signature -->
+    <div class="signature-block">
+        <div class="sig-line"></div>
+        <div class="sig-name">{{ doctor_display }}</div>
+        <div class="sig-label">Digital Signature</div>
+    </div>
+
+    <!-- FOOTER (xhtml2pdf named frame) -->
+    <div id="footer_content">
+        <table style="width:100%; border-collapse:collapse; border-top: 1px solid #e5e7eb; padding-top:4px;">
+            <tr>
+                <td style="font-size:7pt; color:#6b7280; width:80%;">
+                    <strong style="color:#059669;">Quick Care</strong> &nbsp;·&nbsp; Digitally Verified &nbsp;·&nbsp;
+                    Valid 14 Days &nbsp;·&nbsp; Rx #{{ '%05d'|format(prescription.id) }} &nbsp;·&nbsp; {{
+                    prescription.created_at.strftime('%d %b %Y, %I:%M %p') }}
+                </td>
+                <td style="font-size:7pt; color:#9ca3af; text-align:right; width:20%; white-space:nowrap;">
+                    Page <pdf:pagenumber> of <pdf:pagecount>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,76 @@
+<div class="list-group list-group-flush">
+    {% set accounts_endpoints = ['admin.accounts', 'admin.accounts_payment_flow', 'admin.accounts_refunds', 'admin.accounts_payouts'] %}
+    {% if admin_can('dashboard') %}
+    <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+    </a>
+    {% endif %}
+    {% if admin_can('doctors') %}
+    <a href="{{ url_for('admin.doctors') }}" class="list-group-item list-group-item-action {% if request.endpoint in ['admin.doctors', 'admin.view_doctor_details', 'admin.appeals', 'admin.rejected_doctors', 'admin.suspended_doctors'] %}active{% endif %}">
+        <i class="fas fa-user-md me-2"></i>Doctors
+    </a>
+    {% endif %}
+    {% if admin_can('patients') %}
+    <a href="{{ url_for('admin.patients') }}" class="list-group-item list-group-item-action {% if request.endpoint in ['admin.patients', 'admin.view_patient', 'admin.view_patient_appointments', 'admin.view_patient_medical_history'] %}active{% endif %}">
+        <i class="fas fa-users me-2"></i>Patients
+    </a>
+    {% endif %}
+    {% if admin_can('appointments') %}
+    <a href="{{ url_for('admin.appointments') }}" class="list-group-item list-group-item-action {% if request.endpoint in ['admin.appointments', 'admin.appointment_recordings', 'admin.recording_watch'] %}active{% endif %}">
+        <i class="fas fa-calendar-check me-2"></i>Appointments
+    </a>
+    {% endif %}
+    {% if admin_can('accounts') %}
+    <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {% if request.endpoint in accounts_endpoints %}active{% endif %}"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#accountsSubmenu"
+        aria-expanded="{% if request.endpoint in accounts_endpoints %}true{% else %}false{% endif %}"
+        aria-controls="accountsSubmenu">
+        <span><i class="fas fa-chart-line me-2"></i>Accounts</span>
+        <i class="fas fa-chevron-down small"></i>
+    </button>
+    <div class="collapse {% if request.endpoint in accounts_endpoints %}show{% endif %}" id="accountsSubmenu">
+        <a href="{{ url_for('admin.accounts') }}" class="list-group-item list-group-item-action ps-5 {% if request.endpoint in ['admin.accounts', 'admin.accounts_payment_flow'] %}active{% endif %}">
+            <i class="fas fa-chart-pie me-2 small"></i>Overview
+        </a>
+        <a href="{{ url_for('admin.accounts_refunds') }}" class="list-group-item list-group-item-action ps-5 {% if request.endpoint == 'admin.accounts_refunds' %}active{% endif %}">
+            <i class="fas fa-level-up-alt fa-rotate-90 me-2 small"></i>Refunds
+        </a>
+        <a href="{{ url_for('admin.accounts_payouts') }}" class="list-group-item list-group-item-action ps-5 {% if request.endpoint == 'admin.accounts_payouts' %}active{% endif %}">
+            <i class="fas fa-level-up-alt fa-rotate-90 me-2 small"></i>Payouts
+        </a>
+    </div>
+    {% endif %}
+    {% if admin_can('payments') %}
+    <a href="{{ url_for('admin.payments') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.payments' %}active{% endif %}">
+        <i class="fas fa-money-bill-wave me-2"></i>Payment Approvals
+    </a>
+    {% endif %}
+    {% if admin_can('diseases') %}
+    <a href="{{ url_for('admin.diseases') }}" class="list-group-item list-group-item-action {% if request.endpoint in ['admin.diseases', 'admin.add_disease', 'admin.edit_disease'] %}active{% endif %}">
+        <i class="fas fa-info-circle me-2"></i>Diseases Info
+    </a>
+    {% endif %}
+    {% if admin_can('blogs') %}
+    <a href="{{ url_for('admin.blogs') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.blogs' %}active{% endif %}">
+        <i class="fas fa-newspaper me-2"></i>Blogs
+    </a>
+    {% endif %}
+    {% if admin_can('qa') %}
+    <a href="{{ url_for('admin.qa') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.qa' %}active{% endif %}">
+        <i class="fas fa-question-circle me-2"></i>Q&A
+    </a>
+    {% endif %}
+    {% if admin_can('reviews') %}
+    <a href="{{ url_for('admin.reviews') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.reviews' %}active{% endif %}">
+        <i class="fas fa-star me-2"></i>Reviews
+    </a>
+    {% endif %}
+    {% if admin_is_super() %}
+    <div class="border-top my-1"></div>
+    <a href="{{ url_for('admin.staff_list') }}" class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.staff_') %}active{% endif %}">
+        <i class="fas fa-users-cog me-2"></i>Staff Management
+    </a>
+    {% endif %}
+</div>

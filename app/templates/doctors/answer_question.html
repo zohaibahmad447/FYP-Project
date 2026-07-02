@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Answer Question - Quick Care Connect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="mb-4">
+                <h2 class="mb-2">
+                    <i class="fas fa-reply me-2" style="color: #10b981;"></i>Answer Question
+                </h2>
+                <p class="text-muted mb-0">Provide a professional answer to help the patient</p>
+            </div>
+
+            <!-- Question Display -->
+            <div class="card mb-4" style="border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px;">
+                <div class="card-header"
+                    style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border-bottom: 2px solid #10b981;">
+                    <h5 class="mb-0">
+                        <i class="fas fa-question-circle me-2" style="color: #10b981;"></i>Question
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h4 class="mb-3">{{ question.title }}</h4>
+                    <div class="mb-3">
+                        <span class="badge badge-primary me-2">{{ question.category }}</span>
+                        <span class="badge badge-{{ 'success' if question.is_answered else 'warning' }}">
+                            {{ 'Answered' if question.is_answered else 'Unanswered' }}
+                        </span>
+                    </div>
+                    <div class="question-content mb-3">
+                        <p style="white-space: pre-wrap; line-height: 1.8;">{{ question.content }}</p>
+                    </div>
+                    <div class="question-meta pt-3 border-top">
+                        <small class="text-muted">
+                            <i class="fas fa-user me-1"></i>Asked by {{ question.patient.user.name }} on
+                            <i class="fas fa-calendar me-1 ms-2"></i>{{ question.created_at.strftime('%B %d, %Y at %I:%M
+                            %p') }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Existing Answers -->
+            {% if answers %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-comments me-2"></i>Previous Answers ({{ answers|length }})
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for answer in answers %}
+                    <div class="mb-3 pb-3 {% if not loop.last %}border-bottom{% endif %}">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <strong>{{ answer.doctor.user.name }}</strong>
+                                <small class="text-muted d-block">{{ answer.doctor.category }}</small>
+                            </div>
+                            <small class="text-muted">{{ answer.created_at.strftime('%b %d, %Y') }}</small>
+                        </div>
+                        <p style="white-space: pre-wrap;" class="mb-0">{{ answer.content }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Answer Form -->
+            <div class="card" style="border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px;">
+                <div class="card-header"
+                    style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border-bottom: 2px solid #10b981;">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2" style="color: #10b981;"></i>Your Answer
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Answer Details</label>
+                            <small class="text-muted d-block mb-2">Provide a clear, professional, and helpful answer
+                                based on your medical expertise.</small>
+                            <textarea name="content" class="form-control" rows="10"
+                                placeholder="Write your answer here. Be specific, professional, and helpful..."
+                                required></textarea>
+                        </div>
+
+                        <!-- Guidelines -->
+                        <div class="alert alert-info mb-4"
+                            style="background-color: rgba(13, 202, 240, 0.1); border-color: #0dcaf0;">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-lightbulb me-2"></i>Answer Guidelines:
+                            </h6>
+                            <ul class="mb-0 small">
+                                <li>Provide evidence-based medical advice</li>
+                                <li>Be clear, concise, and professional</li>
+                                <li>Include relevant information about diagnosis, treatment, or prevention</li>
+                                <li>If unsure, recommend consulting in person or seeking immediate medical attention
+                                </li>
+                                <li>Respect patient privacy and confidentiality</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('doctors.qa') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success"
+                                style="background: rgba(16, 185, 129, 0.8); border: 1px solid rgba(16, 185, 129, 0.5); padding: 0.75rem 2rem; font-weight: 600;">
+                                <i class="fas fa-paper-plane me-2"></i>Post Answer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

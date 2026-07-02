@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Refunds - Quick Care Connect{% endblock %}
+{% block content %}
+<div class="container-fluid px-2 px-md-3 py-4">
+    <style>
+        .refund-reason-badge {
+            font-weight: 600;
+            border: 1px solid transparent;
+        }
+        .reason-mutual {
+            background: #fde68a;
+            color: #7c2d12;
+            border-color: #f59e0b;
+        }
+        .reason-doctor {
+            background: #fecaca;
+            color: #7f1d1d;
+            border-color: #ef4444;
+        }
+        .reason-cancellation {
+            background: #bfdbfe;
+            color: #1e3a8a;
+            border-color: #3b82f6;
+        }
+        .reason-other {
+            background: #e5e7eb;
+            color: #111827;
+            border-color: #9ca3af;
+        }
+        .payout-waiting-badge {
+            background: #fff7ed;
+            color: #9a3412;
+            border: 1px solid #fdba74;
+            font-weight: 600;
+        }
+    </style>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0"><i class="fas fa-undo me-2" style="color: #10b981;"></i>Refunds</h2>
+        <a href="{{ url_for('admin.accounts') }}" class="btn btn-outline-secondary btn-sm">Accounts</a>
+    </div>
+    <div class="mb-3">
+        <a href="{{ url_for('admin.accounts_refunds') }}" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">All</a>
+        <a href="{{ url_for('admin.accounts_refunds') }}?status=pending" class="btn btn-sm {% if status_filter == 'pending' %}btn-warning{% else %}btn-outline-warning{% endif %}">Pending</a>
+        <a href="{{ url_for('admin.accounts_refunds') }}?status=completed" class="btn btn-sm {% if status_filter in ['completed', 'processed'] %}btn-success{% else %}btn-outline-success{% endif %}">Completed</a>
+    </div>
+    <div class="card qc-admin-card border-0 shadow-sm rounded-4">
+        <div class="card-body p-0">
+            {% if refunds %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Appointment</th>
+                            <th>Patient</th>
+                            <th>Reason</th>
+                            <th>Amount (PKR)</th>
+                            <th>Payout Details</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Proof</th>
+                            {% if status_filter not in ['completed', 'processed'] %}<th>Action</th>{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in refunds %}
+                        <tr>
+                            <td>{{ r.id }}</td>
+                            <td><a href="{{ url_for('admin.appointments') }}">#{{ r.appointment_id }}</a></td>
+                            <td>{{ r.patient.user.name if r.patient and r.patient.user else '-' }}</td>
+                            <td>
+                                {% set reason_key = (r.reason or '')|lower %}
+                                {% if reason_key == 'mutual_no_show' %}
+                                <span class="badge rounded-pill refund-reason-badge reason-mutual">Mutual No Show</span>
+                                {% elif reason_key == 'doctor_no_show' %}
+                                <span class="badge rounded-pill refund-reason-badge reason-doctor">Doctor No Show</span>
+                                {% elif reason_key.startswith('cancellation_') %}
+                                <span class="badge rounded-pill refund-reason-badge reason-cancellation">{{ (r.reason or 'cancellation')|replace('_', ' ')|title }}</span>
+                                {% else %}
+                                <span class="badge rounded-pill refund-reason-badge reason-other">{{ (r.reason or 'other')|replace('_', ' ')|title }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ "%.2f"|format(r.amount) }}</td>
+                            <td>
+                                {% if r.payout_detail %}
+                                <div class="small">
+                                    <div><strong>{{ r.payout_detail.payment_method|replace('_', ' ')|title }}</strong></div>
+                                    <div>{{ r.payout_detail.account_title }}</div>
+                                    {% if r.payout_detail.iban %}<div>IBAN: {{ r.payout_detail.iban }}</div>{% endif %}
+                                    {% if r.payout_detail.account_number %}<div>Acct: {{ r.payout_detail.account_number }}</div>{% endif %}
+                                    {% if r.payout_detail.wallet_number %}<div>Wallet: {{ r.payout_detail.wallet_number }}</div>{% endif %}
+                                </div>
+                                {% else %}
+                                <span class="badge rounded-pill payout-waiting-badge">Waiting for patient details</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="badge {% if r.status == 'pending' %}bg-warning text-dark{% elif r.status in ['completed','processed'] %}bg-success{% else %}bg-secondary{% endif %}">{{ r.status }}</span></td>
+                            <td>{{ r.created_at.strftime('%d %b %Y %H:%M') if r.created_at else '-' }}</td>
+                            <td>
+                                {% if r.payout_detail and r.payout_detail.admin_proof_path %}
+                                <a href="{{ url_for('static', filename='uploads/' + r.payout_detail.admin_proof_path) }}" target="_blank" class="btn btn-sm btn-outline-info">View</a>
+                                {% else %}
+                                <span class="text-muted small">-</span>
+                                {% endif %}
+                            </td>
+                            {% if status_filter not in ['completed', 'processed'] and r.status == 'pending' %}
+                            <td>
+                                <form method="post" action="{{ url_for('admin.refund_mark_processed', refund_id=r.id) }}" class="d-inline" enctype="multipart/form-data">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                                    <input type="file" name="refund_proof" class="form-control form-control-sm d-inline-block w-auto me-1" accept=".png,.jpg,.jpeg,.pdf,.webp" required>
+                                    <input type="text" name="admin_notes" placeholder="Notes" class="form-control form-control-sm d-inline-block w-auto me-1">
+                                    <button type="submit" class="btn btn-sm btn-success" {% if not r.payout_detail %}disabled title="Waiting for patient details"{% endif %}>Mark completed</button>
+                                </form>
+                            </td>
+                            {% elif status_filter not in ['completed', 'processed'] %}<td></td>{% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">No refunds found.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

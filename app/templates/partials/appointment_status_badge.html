@@ -1,0 +1,19 @@
+{# Unified appointment status badge — use: {% include 'partials/appointment_status_badge.html' %} #}
+{% if appointment.status in ['rejected', 'cancelled', 'no_show'] %}
+<span class="badge badge-danger text-white" style="font-size: 0.85rem; padding: 0.4rem 0.8rem; background-color: #dc3545;">
+    {{ appointment|appt_status_label }}
+</span>
+{% elif 'expired' in appointment.status %}
+<span class="badge badge-secondary" style="font-size: 0.85rem; padding: 0.4rem 0.8rem; background-color: #6c757d;">
+    {{ appointment|appt_status_label }}
+</span>
+{% elif appointment.status == 'pending' %}
+<span class="badge" style="font-size: 0.85rem; padding: 0.4rem 0.8rem; background-color: #e2e8f0; color: #475569;">
+    {{ appointment|appt_status_label }}
+</span>
+{% else %}
+<span class="badge badge-{{ appointment|appt_status_badge }} text-{% if appointment|appt_status_badge == 'warning' %}dark{% else %}white{% endif %}"
+    style="font-size: 0.85rem; padding: 0.4rem 0.8rem;{% if appointment|appt_status_badge == 'info' %} background-color: #0dcaf0; color: #000;{% endif %}">
+    {{ appointment|appt_status_label }}
+</span>
+{% endif %}

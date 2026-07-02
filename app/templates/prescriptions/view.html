@@ -1,0 +1,917 @@
+{% extends "base.html" %}
+
+{% block title %}Prescription #{{ prescription.id }} — Quick Care{% endblock %}
+
+{% set doctor_full_name = prescription.appointment.doctor.user.name %}
+{% set doctor_display = ('Dr. ' + doctor_full_name) if not doctor_full_name.startswith('Dr.') and not
+doctor_full_name.startswith('dr.') else doctor_full_name %}
+
+{% block content %}
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,700&display=swap');
+
+    .rx-page-wrapper {
+        background-color: #f0f4f8;
+        min-height: 100vh;
+        padding: 2.5rem 1rem;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Action Bar */
+    .rx-action-bar {
+        max-width: 960px;
+        margin: 0 auto 1.5rem auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .rx-breadcrumb {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .rx-breadcrumb a {
+        color: #059669;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .rx-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .btn-rx-download {
+        background-color: #059669;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.55rem 1.2rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: background-color 0.2s;
+    }
+
+    .btn-rx-download:hover {
+        background-color: #047857;
+        color: white;
+    }
+
+    .btn-rx-print {
+        background-color: white;
+        color: #374151;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 0.55rem 1.2rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .btn-rx-print:hover {
+        background-color: #f3f4f6;
+        border-color: #059669;
+        color: #059669;
+    }
+
+    /* Document Card */
+    .rx-document {
+        background: white;
+        max-width: 960px;
+        margin: 0 auto;
+        border-radius: 12px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+        border-top: 5px solid #059669;
+    }
+
+    /* Letterhead */
+    .rx-letterhead {
+        padding: 2rem 2.5rem 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .rx-clinic-name {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #059669;
+        letter-spacing: -0.5px;
+        line-height: 1;
+        margin-bottom: 0.3rem;
+    }
+
+    .rx-clinic-tagline {
+        color: #9ca3af;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .rx-doctor-name {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #111827;
+        text-align: right;
+        margin-bottom: 0.2rem;
+    }
+
+    .rx-doctor-spec {
+        color: #059669;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-align: right;
+        margin-bottom: 0.2rem;
+    }
+
+    .rx-doctor-contact {
+        color: #6b7280;
+        font-size: 0.82rem;
+        text-align: right;
+    }
+
+    /* Patient Strip */
+    .rx-patient-strip {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+        border-bottom: 2px solid #e5e7eb;
+        background: #fafafa;
+    }
+
+    .rx-patient-strip-item {
+        padding: 1rem 1.5rem;
+        border-right: 1px solid #e5e7eb;
+    }
+
+    .rx-patient-strip-item:last-child {
+        border-right: none;
+    }
+
+    .rx-patient-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #9ca3af;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+    }
+
+    .rx-patient-value {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    /* Body */
+    .rx-body {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        min-height: 500px;
+    }
+
+    .rx-left-col {
+        padding: 2rem 1.75rem;
+        border-right: 1px solid #f0f4f8;
+        background: #fafafa;
+    }
+
+    .rx-right-col {
+        padding: 2rem 2rem 2rem 2.5rem;
+    }
+
+    /* Section headings */
+    .rx-section {
+        margin-bottom: 1.75rem;
+    }
+
+    .rx-section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+        color: #6b7280;
+        margin-bottom: 0.85rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .section-icon {
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        flex-shrink: 0;
+    }
+
+    /* Diagnosis block */
+    .rx-diagnosis-block {
+        background: linear-gradient(135deg, #fffbeb, #fef3c7);
+        border: 1px solid #fde68a;
+        border-left: 4px solid #f59e0b;
+        border-radius: 10px;
+        padding: 0.9rem 1rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .rx-diagnosis-icon {
+        width: 32px;
+        height: 32px;
+        background: #f59e0b;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+
+    .rx-diagnosis-label {
+        font-size: 0.62rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #92400e;
+        font-weight: 700;
+        margin-bottom: 3px;
+    }
+
+    .rx-diagnosis-text {
+        font-weight: 700;
+        color: #78350f;
+        font-size: 0.92rem;
+    }
+
+    /* Vitals */
+    .rx-vitals-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.6rem;
+    }
+
+    .rx-vital-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 0.75rem;
+        text-align: center;
+    }
+
+    .rx-vital-value {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: #059669;
+    }
+
+    .rx-vital-unit {
+        font-size: 0.6rem;
+        color: #9ca3af;
+        font-weight: 500;
+    }
+
+    .rx-vital-label {
+        font-size: 0.65rem;
+        color: #6b7280;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-top: 3px;
+    }
+
+    /* Chief Complaint */
+    .rx-complaint-box {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-left: 3px solid #6366f1;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 0.88rem;
+        color: #374151;
+        white-space: pre-line;
+        line-height: 1.6;
+    }
+
+    /* ℞ Symbol */
+    .rx-symbol {
+        font-family: 'Playfair Display', serif;
+        font-size: 3rem;
+        color: #dc2626;
+        font-style: italic;
+        line-height: 1;
+        margin-bottom: 1.25rem;
+        display: block;
+    }
+
+    /* Medicine item */
+    .rx-medicine-item {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.85rem;
+        background: white;
+        transition: border-color 0.2s;
+    }
+
+    .rx-medicine-item:hover {
+        border-color: #a7f3d0;
+    }
+
+    .rx-med-number-name {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .rx-med-num {
+        width: 24px;
+        height: 24px;
+        background: #dc2626;
+        color: white;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .rx-med-name {
+        font-weight: 700;
+        color: #111827;
+        font-size: 1rem;
+    }
+
+    .rx-med-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .rx-badge {
+        border-radius: 20px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .rx-badge.dosage {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .rx-badge.frequency {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .rx-badge.duration {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .rx-med-instructions {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 0.4rem;
+        margin-left: 1.75rem;
+        padding-left: 0.75rem;
+        border-left: 2px solid #d1fae5;
+    }
+
+    /* Lab tests */
+    .rx-test-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: #faf5ff;
+        border: 1px solid #e9d5ff;
+        border-radius: 8px;
+        padding: 0.6rem 0.9rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .rx-test-icon {
+        width: 28px;
+        height: 28px;
+        background: #7c3aed;
+        border-radius: 7px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        flex-shrink: 0;
+    }
+
+    /* Advice box */
+    .rx-advice-box {
+        background: linear-gradient(135deg, #eff6ff, #dbeafe);
+        border: 1px solid #bfdbfe;
+        border-radius: 12px;
+        padding: 1.25rem 1.25rem 1.25rem 1.5rem;
+        position: relative;
+        white-space: pre-line;
+        font-size: 0.9rem;
+        color: #1e3a8a;
+        line-height: 1.8;
+        border-left: 4px solid #3b82f6;
+    }
+
+    /* Follow-up block */
+    .rx-followup-box {
+        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+        border: 1px solid #bbf7d0;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .rx-followup-date {
+        background: #059669;
+        color: white;
+        border-radius: 10px;
+        padding: 0.6rem 0.9rem;
+        text-align: center;
+        min-width: 70px;
+        flex-shrink: 0;
+    }
+
+    .rx-fu-month {
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.8;
+    }
+
+    .rx-fu-day {
+        font-size: 1.8rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .rx-fu-year {
+        font-size: 0.65rem;
+        opacity: 0.75;
+    }
+
+    /* Footer */
+    .rx-footer {
+        background: #fafafa;
+        border-top: 1px solid #e5e7eb;
+        padding: 1.25rem 2.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .rx-seal {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+    }
+
+    .rx-seal-badge {
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, #059669, #047857);
+        border-radius: 50%;
+        color: white;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .rx-seal-text {
+        font-size: 0.75rem;
+        color: #374151;
+        line-height: 1.5;
+    }
+
+    .rx-seal-text strong {
+        color: #059669;
+    }
+
+    .rx-valid-badge {
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        color: #059669;
+        font-weight: 600;
+        font-size: 0.75rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .rx-valid-dot {
+        width: 7px;
+        height: 7px;
+        background: #059669;
+        border-radius: 50%;
+        animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+
+        0%,
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: 0.5;
+            transform: scale(0.75);
+        }
+    }
+
+    .rx-signature {
+        text-align: right;
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid #f0f4f8;
+    }
+
+    .rx-sig-line {
+        width: 180px;
+        border-bottom: 1px solid #374151;
+        margin: 0 0 0.4rem auto;
+    }
+
+    .rx-sig-name {
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+
+    .rx-sig-label {
+        font-size: 0.75rem;
+        color: #9ca3af;
+    }
+
+    @media (max-width: 768px) {
+        .rx-body {
+            grid-template-columns: 1fr;
+        }
+
+        .rx-left-col {
+            border-right: none;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .rx-patient-strip {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .rx-letterhead {
+            flex-direction: column;
+        }
+
+        .rx-doctor-name,
+        .rx-doctor-spec,
+        .rx-doctor-contact {
+            text-align: left;
+        }
+    }
+
+    @media print {
+
+        .rx-action-bar,
+        .navbar,
+        footer {
+            display: none !important;
+        }
+
+        .rx-page-wrapper {
+            background: white;
+            padding: 0;
+        }
+
+        .rx-document {
+            box-shadow: none;
+        }
+    }
+</style>
+
+<div class="rx-page-wrapper">
+
+    <!-- Action Bar -->
+    <div class="rx-action-bar">
+        <div class="rx-breadcrumb">
+            <i class="fas fa-arrow-left me-1"></i>
+            {% if get_current_user().role == 'doctor' %}
+            <a href="{{ url_for('doctors.appointments') }}">Back to Appointments</a>
+            {% else %}
+            <a href="{{ url_for('patients.appointments') }}">Back to Appointments</a>
+            {% endif %}
+        </div>
+        <div class="rx-actions">
+            <button onclick="window.print()" class="btn-rx-print"><i class="fas fa-print"></i> Print</button>
+            <a href="{{ url_for('prescriptions.download_prescription', prescription_id=prescription.id) }}"
+                class="btn-rx-download">
+                <i class="fas fa-download"></i> Download PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- Document -->
+    <div class="rx-document">
+
+        <!-- Letterhead -->
+        <div class="rx-letterhead">
+            <div>
+                <div class="rx-clinic-name">Quick Care</div>
+                <div class="rx-clinic-tagline">Digital Healthcare Platform</div>
+            </div>
+            <div>
+                <div class="rx-doctor-name">{{ doctor_display }}</div>
+                <div class="rx-doctor-spec">{{ prescription.appointment.doctor.specialization or 'General Physician' }}
+                </div>
+                <div class="rx-doctor-contact">
+                    {{ prescription.appointment.doctor.user.email }}<br>
+                    {% if prescription.appointment.doctor.user.phone %}{{ prescription.appointment.doctor.user.phone |
+                    format_phone }}{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Patient Strip -->
+        <div class="rx-patient-strip">
+            <div class="rx-patient-strip-item">
+                <div class="rx-patient-label">Patient Name</div>
+                <div class="rx-patient-value">{{ prescription.appointment.patient.user.name }}</div>
+            </div>
+            <div class="rx-patient-strip-item">
+                <div class="rx-patient-label">Age / Gender</div>
+                <div class="rx-patient-value">
+                    {% if prescription.appointment.patient.user.date_of_birth %}
+                    {% set dob = prescription.appointment.patient.user.date_of_birth %}
+                    {% set age = ((prescription.created_at.date() - dob).days / 365.25) | int %}{{ age }} Y
+                    {% else %}—{% endif %}
+                    / {{ prescription.appointment.patient.user.gender | title if
+                    prescription.appointment.patient.user.gender else 'N/A' }}
+                </div>
+            </div>
+            <div class="rx-patient-strip-item">
+                <div class="rx-patient-label">Date Issued</div>
+                <div class="rx-patient-value">{{ prescription.created_at.strftime('%d %b %Y') }}</div>
+            </div>
+            <div class="rx-patient-strip-item" style="border-right:none;">
+                <div class="rx-patient-label">Rx ID</div>
+                <div class="rx-patient-value" style="color:#059669; font-family:monospace;">#{{
+                    '%05d'|format(prescription.id) }}</div>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="rx-body">
+
+            <!-- Left Column -->
+            <div class="rx-left-col">
+
+                <!-- Vitals -->
+                {% if prescription.vitals_weight or prescription.vitals_bp or prescription.vitals_temp or
+                prescription.vitals_pulse %}
+                <div class="rx-section">
+                    <div class="rx-section-title">
+                        <span class="section-icon" style="background:#fee2e2; color:#dc2626;"><i
+                                class="fas fa-heartbeat"></i></span>
+                        Vital Signs
+                    </div>
+                    <div class="rx-vitals-grid">
+                        {% if prescription.vitals_bp %}
+                        <div class="rx-vital-card">
+                            <div class="rx-vital-value">{{ prescription.vitals_bp }}</div>
+                            <div class="rx-vital-unit">mmHg</div>
+                            <div class="rx-vital-label">Blood Pressure</div>
+                        </div>
+                        {% endif %}
+                        {% if prescription.vitals_temp %}
+                        <div class="rx-vital-card">
+                            <div class="rx-vital-value">{{ prescription.vitals_temp }}</div>
+                            <div class="rx-vital-unit">°F</div>
+                            <div class="rx-vital-label">Temperature</div>
+                        </div>
+                        {% endif %}
+                        {% if prescription.vitals_weight %}
+                        <div class="rx-vital-card">
+                            <div class="rx-vital-value">{{ prescription.vitals_weight }}</div>
+                            <div class="rx-vital-unit">kg</div>
+                            <div class="rx-vital-label">Weight</div>
+                        </div>
+                        {% endif %}
+                        {% if prescription.vitals_pulse %}
+                        <div class="rx-vital-card">
+                            <div class="rx-vital-value">{{ prescription.vitals_pulse }}</div>
+                            <div class="rx-vital-unit">bpm</div>
+                            <div class="rx-vital-label">Pulse</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Chief Complaints -->
+                {% if prescription.chief_complaints %}
+                <div class="rx-section">
+                    <div class="rx-section-title">
+                        <span class="section-icon" style="background:#ede9fe; color:#6d28d9;"><i
+                                class="fas fa-clipboard-list"></i></span>
+                        Chief Complaints
+                    </div>
+                    <div class="rx-complaint-box">{{ prescription.chief_complaints }}</div>
+                </div>
+                {% endif %}
+
+                <!-- Diagnosis -->
+                {% if prescription.diagnosis %}
+                <div class="rx-section">
+                    <div class="rx-section-title">
+                        <span class="section-icon" style="background:#fef3c7; color:#d97706;"><i
+                                class="fas fa-stethoscope"></i></span>
+                        Primary Diagnosis
+                    </div>
+                    <div class="rx-diagnosis-block">
+                        <div class="rx-diagnosis-icon"><i class="fas fa-stethoscope"></i></div>
+                        <div>
+                            <div class="rx-diagnosis-label">Diagnosed Condition</div>
+                            <div class="rx-diagnosis-text">{{ prescription.diagnosis }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Follow-Up -->
+                {% if prescription.follow_up_date %}
+                <div class="rx-section">
+                    <div class="rx-section-title">
+                        <span class="section-icon" style="background:#d1fae5; color:#065f46;"><i
+                                class="fas fa-calendar-check"></i></span>
+                        Follow-Up Visit
+                    </div>
+                    <div class="rx-followup-box">
+                        <div class="rx-followup-date">
+                            <div class="rx-fu-month">{{ prescription.follow_up_date.strftime('%b') }}</div>
+                            <div class="rx-fu-day">{{ prescription.follow_up_date.strftime('%d') }}</div>
+                            <div class="rx-fu-year">{{ prescription.follow_up_date.strftime('%Y') }}</div>
+                        </div>
+                        <div>
+                            <div style="font-weight:600; color:#065f46; font-size:0.85rem;">Scheduled Return Visit</div>
+                            {% if prescription.follow_up_notes %}
+                            <div style="font-size:0.8rem; color:#374151; margin-top:3px;">{{
+                                prescription.follow_up_notes }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div><!-- /rx-left-col -->
+
+            <!-- Right Column -->
+            <div class="rx-right-col">
+
+                <!-- ℞ Medicines -->
+                <span class="rx-symbol">℞</span>
+
+                {% if prescription.medicines %}
+                <div class="rx-section">
+                    <div class="rx-section-title">
+                        <span class="section-icon" style="background:#fee2e2; color:#dc2626;"><i
+                                class="fas fa-pills"></i></span>
+                        Prescribed Medicines
+                    </div>
+                    {% for medicine in prescription.medicines | sort(attribute='order') %}
+                    <div class="rx-medicine-item">
+                        <div class="rx-med-number-name">
+                            <div class="rx-med-num">{{ loop.index }}</div>
+                            <div class="rx-med-name">{{ medicine.medicine_name }}</div>
+                        </div>
+                        <div class="rx-med-badges">
+                            {% if medicine.dosage %}<span class="rx-badge dosage"><i class="fas fa-capsules me-1"></i>{{
+                                medicine.dosage }}</span>{% endif %}
+                            {% if medicine.frequency %}<span class="rx-badge frequency"><i
+                                    class="fas fa-clock me-1"></i>{{ medicine.frequency }}</span>{% endif %}
+                            {% if medicine.duration %}<span class="rx-badge duration"><i
+                                    class="fas fa-calendar-alt me-1"></i>{{ medicine.duration }}</span>{% endif %}
+                        </div>
+                        {% if medicine.instructions %}
+                        <div class="rx-med-instructions"><i class="fas fa-info-circle me-1"
+                                style="color:#059669;"></i>{{ medicine.instructions }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Lab Tests -->
+                {% if prescription.tests %}
+                <div class="rx-section">
+                    <div class="rx-section-title">
+                        <span class="section-icon" style="background:#ede9fe; color:#7c3aed;"><i
+                                class="fas fa-vials"></i></span>
+                        Recommended Lab Tests
+                    </div>
+                    {% for test in prescription.tests | sort(attribute='order') %}
+                    <div class="rx-test-item">
+                        <div class="rx-test-icon"><i class="fas fa-flask"></i></div>
+                        <div>
+                            <div style="font-weight:600; color:#1f2937;">{{ test.test_name }}</div>
+                            {% if test.instructions %}<div style="font-size:0.78rem; color:#7c3aed; margin-top:2px;">{{
+                                test.instructions }}</div>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Doctor's Advice -->
+                {% if prescription.advice %}
+                <div class="rx-section">
+                    <div class="rx-section-title">
+                        <span class="section-icon" style="background:#dbeafe; color:#1d4ed8;"><i
+                                class="fas fa-comment-medical"></i></span>
+                        Doctor's Advice & Instructions
+                    </div>
+                    <div class="rx-advice-box">{{ prescription.advice }}</div>
+                </div>
+                {% endif %}
+
+                {% if not prescription.medicines and not prescription.tests and not prescription.advice %}
+                <div style="text-align:center; padding:4rem 2rem; color:#9ca3af;">
+                    <i class="fas fa-clipboard" style="font-size:2.5rem; margin-bottom:1rem; display:block;"></i>
+                    <p>No medications have been added to this prescription yet.</p>
+                </div>
+                {% endif %}
+
+                <!-- Signature -->
+                <div class="rx-signature">
+                    <div class="rx-sig-line"></div>
+                    <div class="rx-sig-name">{{ doctor_display }}</div>
+                    <div class="rx-sig-label">Digital Signature</div>
+                </div>
+
+            </div><!-- /rx-right-col -->
+
+        </div><!-- /rx-body -->
+
+        <!-- Footer Seal -->
+        <div class="rx-footer">
+            <div class="rx-seal">
+                <div class="rx-seal-badge"><i class="fas fa-shield-alt"></i></div>
+                <div class="rx-seal-text">
+                    <strong>Digitally Verified Prescription</strong><br>
+                    Generated by Quick Care · Rx #{{ '%05d'|format(prescription.id) }}<br>
+                    This document is confidential and intended for the named patient.
+                </div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.4rem;">
+                <div class="rx-valid-badge">
+                    <div class="rx-valid-dot"></div>
+                    Valid for 14 Days
+                </div>
+                <div style="font-size:0.72rem; color:#9ca3af;">Issued: {{ prescription.created_at.strftime('%d %b %Y at
+                    %I:%M %p') }}</div>
+            </div>
+        </div>
+
+    </div><!-- /rx-document -->
+
+</div><!-- /rx-page-wrapper -->
+
+{% endblock %}

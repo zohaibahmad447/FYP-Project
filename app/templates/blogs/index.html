@@ -1,0 +1,463 @@
+{% extends "base.html" %}
+
+{% block title %}Health Articles - Quick Care Connect{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ============================================
+       BLOG INDEX - COMPACT DESIGN (InstaCare Style)
+    ============================================ */
+
+    .blog-page-wrapper {
+        background: #f8fafc;
+        min-height: 100vh;
+        padding: 10px 0 80px;
+    }
+
+    /* --- Page Header Banner --- */
+    .blog-hero-banner {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-radius: 12px;
+        padding: 24px 32px;
+        min-height: 220px;
+        display: flex;
+        align-items: center;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+    .blog-hero-banner::before {
+        content: ''; position: absolute; top: -50px; right: -60px;
+        width: 200px; height: 200px; background: rgba(255,255,255,0.07); border-radius: 50%;
+    }
+    .blog-hero-banner h1 {
+        font-size: 26px; font-weight: 800; color: white; margin: 0 0 4px; position: relative; z-index: 1;
+    }
+    .blog-hero-banner p {
+        color: rgba(255,255,255,0.85); font-size: 14px; margin: 0; position: relative; z-index: 1;
+    }
+    .blog-hero-search {
+        position: relative; z-index: 1; margin-top: 16px; max-width: 400px;
+    }
+    .blog-hero-search input {
+        border-radius: 50px; border: none; padding: 12px 20px; font-size: 14px; width: 100%;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1); outline: none;
+    }
+    .blog-hero-search button {
+        position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+        background: #10b981; color: white; border: none; border-radius: 50px; padding: 8px 18px;
+        font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.3s;
+    }
+    .blog-hero-search button:hover { background: #059669; }
+
+    /* --- InstaCare Style Grid Cards --- */
+    .article-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+    .instacare-card {
+        display: flex;
+        flex-direction: column;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #eaeaea;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.2sease, box-shadow 0.2sease;
+        height: 100%;
+    }
+    .instacare-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+        color: inherit;
+    }
+    .instacare-card-img {
+        position: relative;
+        height: 200px;
+        background: #f1f5f9;
+        overflow: hidden;
+    }
+    .instacare-card-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    .instacare-card:hover .instacare-card-img img {
+        transform: scale(1.05);
+    }
+    .instacare-date-badge {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        background: #fcd34d;
+        color: #1f2937;
+        font-size: 11px;
+        font-weight: 800;
+        padding: 5px 12px;
+        border-top-right-radius: 4px;
+        z-index: 2;
+    }
+    .instacare-card-body {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+    .instacare-card-title {
+        font-size: 17px;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 12px;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .instacare-card:hover .instacare-card-title {
+        color: #10b981;
+    }
+    .instacare-card-excerpt {
+        font-size: 13px;
+        color: #64748b;
+        line-height: 1.5;
+        margin-bottom: 16px;
+        flex-grow: 1;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .instacare-card-footer {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 12px;
+    }
+    .instacare-read-more {
+        font-size: 12px;
+        color: #94a3b8;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+    .instacare-card:hover .instacare-read-more {
+        color: #10b981;
+    }
+
+    
+    /* Category Colors - More subtle for InstaCare style */
+    .cat-cardiology    { background: linear-gradient(135deg, #fca5a5, #ef4444); }
+    .cat-neurology     { background: linear-gradient(135deg, #c4b5fd, #8b5cf6); }
+    .cat-nutrition     { background: linear-gradient(135deg, #6ee7b7, #10b981); }
+    .cat-dermatology   { background: linear-gradient(135deg, #fcd34d, #f59e0b); }
+    .cat-pediatrics    { background: linear-gradient(135deg, #93c5fd, #3b82f6); }
+    .cat-psychiatry    { background: linear-gradient(135deg, #f9a8d4, #ec4899); }
+    .cat-orthopedics   { background: linear-gradient(135deg, #5eead4, #14b8a6); }
+    .cat-general       { background: linear-gradient(135deg, #cbd5e1, #64748b); }
+    .cat-default       { background: linear-gradient(135deg, #6ee7b7, #10b981); }
+
+    /* --- Sidebar --- */
+    .sidebar-card {
+        background: white;
+        border-radius: 10px;
+        border: 1px solid #f0f0f0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+    .sidebar-card-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 14px;
+        font-weight: 700;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #f8fafc;
+    }
+    .sidebar-card-header i { color: #10b981; }
+    .sidebar-card-body { padding: 12px 16px; }
+
+    .cat-link {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 7px 0;
+        border-bottom: 1px solid #f1f5f9;
+        color: #475569;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+    .cat-link:last-child { border-bottom: none; }
+    .cat-link:hover { color: #10b981; }
+    .cat-count {
+        background: #f0fdf4; color: #10b981; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 20px;
+    }
+
+    .author-block {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .author-block:last-child { border-bottom: none; padding-bottom: 0; }
+    .author-avatar {
+        width: 32px; height: 32px; border-radius: 50%; background: #10b981; 
+        color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
+    }
+    .author-block h6 { font-size: 13px; font-weight: 700; margin: 0 0 2px; color: #1e293b; }
+    .author-block small { font-size: 11px; color: #94a3b8; }
+
+    /* CTA Block */
+    /*
+     * Sticky sidebar: needs the parent .row to use default align-items: stretch so .col-lg-3
+     * is as tall as the article column; otherwise the sidebar column is only content-height
+     * and sticky cannot stay pinned while the main grid scrolls.
+     */
+    .blog-sidebar-sticky {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 72px; /* ~fixed navbar (body padding-top 62px) + small gap */
+        z-index: 30;
+    }
+    .blog-sidebar-sticky > * + * {
+        margin-top: 1rem;
+    }
+    @media (max-width: 991.98px) {
+        .blog-sidebar-sticky {
+            position: relative;
+            top: auto;
+        }
+    }
+
+    .cta-block {
+        background: #f0fdf4;
+        border: 1px solid #dcfce7;
+        border-radius: 10px;
+        padding: 16px;
+        text-align: center;
+        margin-bottom: 0;
+    }
+    .cta-block h5 { font-size: 15px; font-weight: 700; color: #166534; margin-bottom: 6px; }
+    .cta-block p { font-size: 12px; color: #15803d; margin-bottom: 12px; }
+    .cta-block a {
+        display: inline-block; background: #10b981; color: white; border-radius: 20px;
+        padding: 6px 16px; font-size: 12px; font-weight: 700; text-decoration: none; transition: background 0.2s;
+    }
+    .cta-block a:hover { background: #059669; }
+
+    .pagination .page-link { font-size: 13px; padding: 6px 12px; }
+    
+    /* Responsive adjustments for mobile */
+    @media (max-width: 576px) {
+        .article-row { height: auto; flex-direction: column; }
+        .article-thumb { width: 100%; height: 120px; }
+        .article-body h3 { white-space: normal; }
+    }
+</style>
+{% endblock %}
+
+{% block page_breadcrumb %}
+<div class="container" style="padding-top: 15px;">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0" style="font-size: 12px; font-weight: 500;">
+            <li class="breadcrumb-item"><a href="{{ url_for('home.index') }}" style="color: #10b981; text-decoration: none;">Home</a></li>
+            <li class="breadcrumb-item active" style="color: #64748b;">Blog</li>
+        </ol>
+    </nav>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="blog-page-wrapper">
+<div class="container">
+
+    {# ---- COMPACT HERO ---- #}
+    <div class="blog-hero-banner">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1>Health Articles & Tips</h1>
+                <p>Trusted medical advice written by verified doctors.</p>
+                <div class="blog-hero-search">
+                    <form method="GET">
+                        <input type="text" name="search" placeholder="Search topics, diseases..." value="{{ search or '' }}">
+                        <button type="submit">Search</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-4 d-none d-md-flex justify-content-end align-items-center" style="position: relative; z-index: 1;">
+                <div style="text-align: right; color: white; margin-right: 15px;">
+                    <i class="fas fa-stethoscope fa-3x" style="opacity: 0.8;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {# ---- MAIN COLUMN (Grid) ---- #}
+        <div class="col-lg-9">
+
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h5 class="mb-0" style="font-size: 16px; font-weight: 700; color: #1e293b;">
+                    {% if search %}Results for "{{ search }}"{% else %}Latest Articles{% endif %}
+                    <span style="font-size: 12px; color: #94a3b8; font-weight: 500; margin-left: 6px;">({{ blogs.total }})</span>
+                    {% if blogs.total and blogs.pages > 1 %}
+                    <span class="d-block d-sm-inline text-muted small fw-normal ms-sm-2 mt-1 mt-sm-0">Page {{ blogs.page }} of {{ blogs.pages }} · 6 per page</span>
+                    {% endif %}
+                </h5>
+                {% if session.user_role == 'doctor' %}
+                <a href="{{ url_for('doctors.new_blog') }}" class="btn btn-sm text-white" style="background: #10b981; border-radius: 20px; padding: 4px 14px; font-size: 12px; font-weight: 600;">
+                    <i class="fas fa-plus me-1"></i> Write
+                </a>
+                {% endif %}
+            </div>
+
+            {% if blogs.items %}
+                {% macro cat_class(blog) %}
+                    {% set cat = blog.category.lower() if blog.category else 'general' %}
+                    {% if 'cardio' in cat %}cat-cardiology
+                    {% elif 'neuro' in cat %}cat-neurology
+                    {% elif 'nutri' in cat or 'diet' in cat %}cat-nutrition
+                    {% elif 'derm' in cat or 'skin' in cat %}cat-dermatology
+                    {% elif 'pedia' in cat or 'child' in cat %}cat-pediatrics
+                    {% elif 'psych' in cat or 'mental' in cat %}cat-psychiatry
+                    {% elif 'ortho' in cat or 'bone' in cat %}cat-orthopedics
+                    {% else %}cat-default
+                    {% endif %}
+                {% endmacro %}
+
+                {% macro cat_icon(blog) %}
+                    {% set cat = blog.category.lower() if blog.category else 'general' %}
+                    {% if 'cardio' in cat %}fa-heartbeat
+                    {% elif 'neuro' in cat %}fa-brain
+                    {% elif 'nutri' in cat or 'diet' in cat %}fa-apple-alt
+                    {% elif 'derm' in cat or 'skin' in cat %}fa-allergies
+                    {% elif 'pedia' in cat or 'child' in cat %}fa-baby
+                    {% elif 'psych' in cat or 'mental' in cat %}fa-smile-beam
+                    {% elif 'ortho' in cat or 'bone' in cat %}fa-bone
+                    {% else %}fa-file-medical
+                    {% endif %}
+                {% endmacro %}
+
+                <div class="article-grid">
+                    {% for blog in blogs.items %}
+                    <a href="{{ url_for('blogs.view_blog', blog_id=blog.id) }}" class="instacare-card">
+                        {% set hero_path = blog_static_image_path(blog) %}
+                        <div class="instacare-card-img {% if not hero_path %}{{ cat_class(blog) }}{% endif %}">
+                            <div class="instacare-date-badge">{{ blog.published_at.strftime('%b %d %Y') }}</div>
+                            {% if hero_path %}
+                                <img src="{{ url_for('static', filename=hero_path) }}" alt="{{ blog.title }}">
+                            {% else %}
+                                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas {{ cat_icon(blog) }}" style="font-size: 3rem; color: rgba(255,255,255,0.7);"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="instacare-card-body">
+                            <div class="instacare-card-title">{{ blog.title }}</div>
+                            <div class="instacare-card-excerpt">
+                                {% if blog.excerpt %}{{ blog.excerpt }}{% else %}{{ blog.content|striptags|truncate(150) }}{% endif %}
+                            </div>
+                            <div class="instacare-card-footer">
+                                <span class="instacare-read-more">Read More <i class="fas fa-chevron-right ms-1" style="font-size: 10px;"></i></span>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+
+                {# Pagination #}
+                {% if blogs.pages > 1 %}
+                <nav aria-label="Pagination" class="mt-4">
+                    <ul class="pagination pagination-sm justify-content-center">
+                        {% if blogs.has_prev %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('blogs.index', page=blogs.prev_num, search=search) }}">&laquo;</a></li>
+                        {% endif %}
+                        {% for page_num in blogs.iter_pages() %}
+                            {% if page_num %}
+                                <li class="page-item {% if page_num == blogs.page %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('blogs.index', page=page_num, search=search) }}">{{ page_num }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">…</span></li>
+                            {% endif %}
+                        {% endfor %}
+                        {% if blogs.has_next %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('blogs.index', page=blogs.next_num, search=search) }}">&raquo;</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            {% else %}
+                <div class="text-center py-5" style="background: white; border-radius: 10px; border: 1px dashed #e2e8f0;">
+                    <i class="fas fa-search fa-3x mb-3" style="color: #cbd5e1;"></i>
+                    <h6 class="text-muted">No articles found.</h6>
+                </div>
+            {% endif %}
+        </div>
+
+        {# ---- SIDEBAR (sticky stack: categories → contributors → CTA) ---- #}
+        <div class="col-lg-3">
+            <div class="blog-sidebar-sticky">
+
+            <div class="sidebar-card mb-0">
+                <div class="sidebar-card-header"><i class="fas fa-folder"></i> Categories</div>
+                <div class="sidebar-card-body">
+                    <a href="{{ url_for('blogs.index', search='cardiology') }}" class="cat-link">Cardiology <span class="cat-count">+</span></a>
+                    <a href="{{ url_for('blogs.index', search='neurology') }}" class="cat-link">Neurology <span class="cat-count">+</span></a>
+                    <a href="{{ url_for('blogs.index', search='nutrition') }}" class="cat-link">Nutrition & Diet <span class="cat-count">+</span></a>
+                    <a href="{{ url_for('blogs.index', search='dermatology') }}" class="cat-link">Dermatology <span class="cat-count">+</span></a>
+                    <a href="{{ url_for('blogs.index', search='mental health') }}" class="cat-link">Mental Health <span class="cat-count">+</span></a>
+                    <a href="{{ url_for('blogs.index', search='pediatrics') }}" class="cat-link">Pediatrics <span class="cat-count">+</span></a>
+                </div>
+            </div>
+
+            {% if top_contributors %}
+            <div class="sidebar-card mb-0">
+                <div class="sidebar-card-header"><i class="fas fa-pencil-alt"></i> Top Contributors</div>
+                <div class="sidebar-card-body">
+                    {% for doctor in top_contributors %}
+                    {% if doctor.user %}
+                    <div class="author-block">
+                        <div class="author-avatar" style="overflow: hidden;">
+                            {% if doctor.user.profile_picture %}
+                                <img src="{{ url_for('static', filename='uploads/' + doctor.user.profile_picture) }}" alt="{{ doctor.user.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            {% else %}
+                                {{ doctor.user.name[0].upper() }}
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6>{{ doctor.user.name }}</h6>
+                            <small>{{ doctor.specialization|truncate(30) }}</small>
+                        </div>
+                        <a href="{{ url_for('patients.doctor_profile', doctor_id=doctor.id) }}" style="font-size: 11px; color:#10b981; font-weight:bold; text-decoration:none;">View</a>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="cta-block">
+                <h5>Need medical advice?</h5>
+                <p>Consult with our verified doctors online or book a clinic visit.</p>
+                <a href="{{ url_for('patients.find_doctors') if session.user_role == 'patient' else url_for('auth.login') }}">Find a Doctor</a>
+            </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,552 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Blogs - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Editorial stat filters — aligned with Admin Q&A: neutral tiles; active = green glass + one border; icon glows */
+    .blog-filter-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        height: 100%;
+        border-radius: 20px;
+    }
+
+    .blog-filter-link:focus-visible {
+        outline: 2px solid rgba(16, 185, 129, 0.65);
+        outline-offset: 3px;
+    }
+
+    .qc-admin-stat-tile.blog-filter-card {
+        transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease, transform 0.22s ease;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        overflow: visible;
+    }
+
+    .qc-admin-stat-tile.blog-filter-card:not(.active):hover {
+        transform: translateY(-3px);
+        border-color: rgba(203, 213, 225, 0.95) !important;
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08) !important;
+    }
+
+    .qc-admin-stat-tile.blog-filter-card.active {
+        border: 2px solid rgba(16, 185, 129, 0.5) !important;
+        background:
+            linear-gradient(165deg, rgba(255, 255, 255, 0.93), rgba(232, 251, 243, 0.86)),
+            rgba(236, 253, 245, 0.48) !important;
+        backdrop-filter: blur(10px) saturate(142%);
+        -webkit-backdrop-filter: blur(10px) saturate(142%);
+        box-shadow:
+            0 10px 28px rgba(15, 23, 42, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+    }
+
+    .qc-admin-stat-tile.blog-filter-card.active:hover {
+        border-color: rgba(16, 185, 129, 0.55) !important;
+        box-shadow:
+            0 12px 30px rgba(15, 23, 42, 0.09),
+            inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+    }
+
+    @keyframes blog-icon-glow-slate {
+        0%, 100% {
+            box-shadow:
+                0 0 0 1px rgba(148, 163, 184, 0.42),
+                0 3px 12px rgba(100, 116, 139, 0.2),
+                0 0 18px rgba(148, 163, 184, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+        50% {
+            box-shadow:
+                0 0 0 1px rgba(203, 213, 225, 0.65),
+                0 5px 16px rgba(100, 116, 139, 0.26),
+                0 0 26px rgba(148, 163, 184, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.68);
+        }
+    }
+
+    @keyframes blog-icon-glow-amber {
+        0%, 100% {
+            box-shadow:
+                0 0 0 1px rgba(251, 191, 36, 0.42),
+                0 3px 12px rgba(245, 158, 11, 0.22),
+                0 0 18px rgba(251, 191, 36, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        }
+        50% {
+            box-shadow:
+                0 0 0 1px rgba(253, 224, 71, 0.58),
+                0 5px 16px rgba(245, 158, 11, 0.3),
+                0 0 26px rgba(251, 191, 36, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+    }
+
+    @keyframes blog-icon-glow-emerald {
+        0%, 100% {
+            box-shadow:
+                0 0 0 1px rgba(52, 211, 153, 0.4),
+                0 3px 12px rgba(16, 185, 129, 0.22),
+                0 0 18px rgba(52, 211, 153, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        50% {
+            box-shadow:
+                0 0 0 1px rgba(167, 243, 208, 0.65),
+                0 5px 16px rgba(16, 185, 129, 0.3),
+                0 0 26px rgba(52, 211, 153, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.62);
+        }
+    }
+
+    @keyframes blog-icon-glow-rose {
+        0%, 100% {
+            box-shadow:
+                0 0 0 1px rgba(251, 113, 133, 0.42),
+                0 3px 12px rgba(244, 63, 94, 0.2),
+                0 0 18px rgba(251, 113, 133, 0.13),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        50% {
+            box-shadow:
+                0 0 0 1px rgba(253, 164, 175, 0.62),
+                0 5px 16px rgba(244, 63, 94, 0.28),
+                0 0 26px rgba(251, 113, 133, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.62);
+        }
+    }
+
+    .blog-filter-card .qc-admin-stat-tile__icon {
+        position: relative;
+    }
+
+    .blog-filter-card .qc-admin-stat-tile__icon--slate {
+        border: 1px solid rgba(100, 116, 139, 0.28);
+        animation: blog-icon-glow-slate 3.2s ease-in-out infinite;
+    }
+
+    .blog-filter-card .qc-admin-stat-tile__icon--amber {
+        border: 1px solid rgba(217, 119, 6, 0.28);
+        animation: blog-icon-glow-amber 3.2s ease-in-out infinite 0.28s;
+    }
+
+    .blog-filter-card .qc-admin-stat-tile__icon--emerald {
+        border: 1px solid rgba(16, 185, 129, 0.28);
+        animation: blog-icon-glow-emerald 3.2s ease-in-out infinite 0.56s;
+    }
+
+    .blog-filter-card .qc-admin-stat-tile__icon--rose {
+        border: 1px solid rgba(225, 29, 72, 0.26);
+        animation: blog-icon-glow-rose 3.2s ease-in-out infinite 0.84s;
+    }
+
+    .blog-filter-link:hover .blog-filter-card .qc-admin-stat-tile__icon--slate,
+    .blog-filter-link:hover .blog-filter-card .qc-admin-stat-tile__icon--amber,
+    .blog-filter-link:hover .blog-filter-card .qc-admin-stat-tile__icon--emerald,
+    .blog-filter-link:hover .blog-filter-card .qc-admin-stat-tile__icon--rose {
+        animation-duration: 2.5s;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .blog-filter-card .qc-admin-stat-tile__icon--slate,
+        .blog-filter-card .qc-admin-stat-tile__icon--amber,
+        .blog-filter-card .qc-admin-stat-tile__icon--emerald,
+        .blog-filter-card .qc-admin-stat-tile__icon--rose {
+            animation: none;
+        }
+
+        .blog-filter-card .qc-admin-stat-tile__icon--slate {
+            box-shadow:
+                0 0 0 1px rgba(148, 163, 184, 0.48),
+                0 3px 14px rgba(100, 116, 139, 0.22),
+                0 0 20px rgba(148, 163, 184, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+
+        .blog-filter-card .qc-admin-stat-tile__icon--amber {
+            box-shadow:
+                0 0 0 1px rgba(251, 191, 36, 0.48),
+                0 3px 14px rgba(245, 158, 11, 0.24),
+                0 0 20px rgba(251, 191, 36, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        }
+
+        .blog-filter-card .qc-admin-stat-tile__icon--emerald {
+            box-shadow:
+                0 0 0 1px rgba(52, 211, 153, 0.48),
+                0 3px 14px rgba(16, 185, 129, 0.24),
+                0 0 20px rgba(52, 211, 153, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        .blog-filter-card .qc-admin-stat-tile__icon--rose {
+            box-shadow:
+                0 0 0 1px rgba(251, 113, 133, 0.48),
+                0 3px 14px rgba(244, 63, 94, 0.22),
+                0 0 20px rgba(251, 113, 133, 0.13),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+    }
+    .blogs-table-head th {
+        background: #f8fafc;
+    }
+    .nav-tabs-premium {
+        border-bottom: 2px solid #f1f5f9;
+        gap: 1rem;
+    }
+    .nav-tabs-premium .nav-link {
+        border: none;
+        color: #64748b;
+        font-weight: 600;
+        padding: 1rem 1.5rem;
+        border-radius: 12px 12px 0 0;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+    .nav-tabs-premium .nav-link:hover {
+        color: var(--primary-color);
+        background: #f8fafc;
+    }
+    .nav-tabs-premium .nav-link.active {
+        color: var(--primary-color);
+        background: transparent;
+    }
+    .nav-tabs-premium .nav-link.active::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: var(--primary-color);
+        border-radius: 3px;
+    }
+    .doctor-avatar-small {
+        width: 32px; height: 32px;
+        border-radius: 8px;
+        background: #eef2ff;
+        color: #4f46e5;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.8rem;
+    }
+
+    /* Aligned action toolbar — same 3 slots on every row (pending vs published) */
+    th.blog-actions-col,
+    td.blog-actions-col {
+        width: 1%;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    /* Match button cluster width so “Actions” centers over the grid (aligned with Publish / middle) */
+    .blog-actions-head {
+        display: block;
+        width: min(100%, 22rem);
+        max-width: 22rem;
+        margin-left: auto;
+        text-align: center;
+        font-weight: 700;
+    }
+
+    .blog-actions-grid {
+        display: grid;
+        grid-template-columns: minmax(5.75rem, 1fr) minmax(5.75rem, 1fr) minmax(5.75rem, 1fr);
+        gap: 0.4rem;
+        align-items: stretch;
+        justify-content: end;
+        max-width: 22rem;
+        margin-left: auto;
+    }
+
+    .blog-actions-grid .blog-action-btn {
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 0.35rem 0.65rem;
+        line-height: 1.25;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.3rem;
+        width: 100%;
+        white-space: nowrap;
+    }
+
+    .blog-actions-grid form {
+        margin: 0;
+        display: block;
+        width: 100%;
+    }
+
+    .blog-actions-grid form .blog-action-btn {
+        width: 100%;
+    }
+
+    .blog-actions-slot--empty {
+        min-height: 31px;
+        border-radius: 10px;
+        border: 1px dashed transparent;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    @media (max-width: 1199.98px) {
+        .blog-actions-grid {
+            grid-template-columns: 1fr;
+            max-width: 11rem;
+            margin-left: auto;
+        }
+
+        .blog-actions-slot--empty {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-3 py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-xl-2 col-lg-3 col-md-4 mb-4 admin-sidebar-col">
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center p-4">
+                    <div class="admin-avatar mb-3 mx-auto" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 2.2rem;">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h5 class="card-title fw-bold mb-1">Admin Panel</h5>
+                    <p class="text-muted small mb-0">{{ get_current_user().name }}</p>
+                </div>
+            </div>
+            <div class="card qc-admin-card border-0 shadow-sm mt-3 rounded-4 overflow-hidden">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h6 class="mb-0 text-uppercase text-muted fw-bold small" style="letter-spacing:1px;"><i class="fas fa-cogs me-2"></i>Management</h6>
+                </div>
+                <div class="card-body p-0">
+                    {% include 'admin/_management_sidebar.html' %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-xl-10 col-lg-9 col-md-8 admin-main-col">
+            <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-4 rounded-4 shadow-sm">
+                <div>
+                    <h3 class="mb-0 fw-bold"><i class="fas fa-newspaper me-2 text-primary"></i>Editorial Management</h3>
+                    <p class="text-muted mb-0 small">Review and moderate medical articles submitted by doctors</p>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            {% set total = blogs|length %}
+            {% set pending_blogs = blogs|selectattr('status', 'equalto', 'pending')|list %}
+            {% set published_blogs = blogs|selectattr('status', 'equalto', 'published')|list %}
+            {% set rejected_blogs = blogs|selectattr('status', 'equalto', 'rejected')|list %}
+            {% set current_view = request.args.get('view', 'all') %}
+            {% if current_view == 'pending' %}
+                {% set filtered_blogs = pending_blogs %}
+            {% elif current_view == 'published' %}
+                {% set filtered_blogs = published_blogs %}
+            {% elif current_view == 'rejected' %}
+                {% set filtered_blogs = rejected_blogs %}
+            {% else %}
+                {% set filtered_blogs = blogs %}
+            {% endif %}
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <a href="{{ url_for('admin.blogs', view='all') }}" class="blog-filter-link">
+                        <div class="qc-admin-stat-tile blog-filter-card {% if current_view == 'all' %}active{% endif %} shadow-sm p-4 h-100">
+                            <div class="d-flex justify-content-between mb-3">
+                                <div class="qc-admin-stat-tile__icon qc-admin-stat-tile__icon--slate"><i class="fas fa-layer-group"></i></div>
+                            </div>
+                            <div class="qc-admin-stat-tile__value mb-0">{{ total }}</div>
+                            <div class="qc-admin-stat-tile__kicker">Total articles</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ url_for('admin.blogs', view='pending') }}" class="blog-filter-link">
+                        <div class="qc-admin-stat-tile blog-filter-card {% if current_view == 'pending' %}active{% endif %} shadow-sm p-4 h-100">
+                            <div class="d-flex justify-content-between mb-3">
+                                <div class="qc-admin-stat-tile__icon qc-admin-stat-tile__icon--amber"><i class="fas fa-hourglass-half"></i></div>
+                            </div>
+                            <div class="qc-admin-stat-tile__value mb-0">{{ pending_blogs|length }}</div>
+                            <div class="qc-admin-stat-tile__kicker">Pending review</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ url_for('admin.blogs', view='published') }}" class="blog-filter-link">
+                        <div class="qc-admin-stat-tile blog-filter-card {% if current_view == 'published' %}active{% endif %} shadow-sm p-4 h-100">
+                            <div class="d-flex justify-content-between mb-3">
+                                <div class="qc-admin-stat-tile__icon qc-admin-stat-tile__icon--emerald"><i class="fas fa-check-double"></i></div>
+                            </div>
+                            <div class="qc-admin-stat-tile__value mb-0">{{ published_blogs|length }}</div>
+                            <div class="qc-admin-stat-tile__kicker">Published</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ url_for('admin.blogs', view='rejected') }}" class="blog-filter-link">
+                        <div class="qc-admin-stat-tile blog-filter-card {% if current_view == 'rejected' %}active{% endif %} shadow-sm p-4 h-100">
+                            <div class="d-flex justify-content-between mb-3">
+                                <div class="qc-admin-stat-tile__icon qc-admin-stat-tile__icon--rose"><i class="fas fa-times-circle"></i></div>
+                            </div>
+                            <div class="qc-admin-stat-tile__value mb-0">{{ rejected_blogs|length }}</div>
+                            <div class="qc-admin-stat-tile__kicker">Rejected</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="mb-0 fw-bold">
+                        {% if current_view == 'pending' %}
+                            <i class="fas fa-hourglass-half me-2 text-warning"></i>Requested for Publication
+                        {% elif current_view == 'published' %}
+                            <i class="fas fa-check-circle me-2 text-success"></i>Published Articles
+                        {% elif current_view == 'rejected' %}
+                            <i class="fas fa-ban me-2 text-danger"></i>Rejected Articles
+                        {% else %}
+                            <i class="fas fa-newspaper me-2 text-primary"></i>All Articles
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if filtered_blogs %}
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="blogs-table-head">
+                                        <tr>
+                                            <th class="ps-4">#</th>
+                                            <th>Article Details</th>
+                                            <th>Author</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                            <th class="pe-4 blog-actions-col" scope="col"><span class="blog-actions-head">Actions</span></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for blog in filtered_blogs|sort(attribute='created_at', reverse=True) %}
+                                        <tr>
+                                            <td class="ps-4 fw-bold text-muted">{{ loop.index }}</td>
+                                            <td>
+                                                <h6 class="mb-1 fw-bold">{{ blog.title }}</h6>
+                                                <span class="badge bg-info-subtle text-info rounded-pill px-3">{{ blog.category }}</span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="doctor-avatar-small"><i class="fas fa-user-md"></i></div>
+                                                    <span class="small fw-semibold">{{ blog.doctor.user.name }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="small text-muted">{{ blog.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+                                            <td>
+                                                {% if blog.status == 'pending' %}
+                                                    <span class="badge bg-warning-subtle text-warning rounded-pill px-3">Pending</span>
+                                                {% elif blog.status == 'published' %}
+                                                    <span class="badge bg-success-subtle text-success rounded-pill px-3">Published</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger-subtle text-danger rounded-pill px-3">Rejected</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-end pe-4 blog-actions-col">
+                                                <div class="blog-actions-grid" role="group" aria-label="Article actions">
+                                                    {# Slot 1: open article #}
+                                                    <a href="{{ url_for('blogs.view_blog', blog_id=blog.id) }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success blog-action-btn">
+                                                        <i class="fas fa-eye"></i>{% if blog.status == 'pending' %}Review{% else %}View{% endif %}
+                                                    </a>
+                                                    {# Slot 2: publish (pending) or delete (else) #}
+                                                    {% if blog.status == 'pending' %}
+                                                        <form method="POST" action="{{ url_for('admin.approve_blog', blog_id=blog.id) }}">
+                                                            <button type="submit" class="btn btn-sm btn-success blog-action-btn text-white" onclick="return confirm('Publish this article?')">
+                                                                <i class="fas fa-check"></i>Publish
+                                                            </button>
+                                                        </form>
+                                                    {% else %}
+                                                        <button type="button" class="btn btn-sm btn-outline-danger blog-action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal{{ blog.id }}">
+                                                            <i class="fas fa-trash-alt"></i>Delete
+                                                        </button>
+                                                    {% endif %}
+                                                    {# Slot 3: reject (pending only) or spacer for column lock-up #}
+                                                    {% if blog.status == 'pending' %}
+                                                        <button type="button" class="btn btn-sm btn-outline-danger blog-action-btn" data-bs-toggle="modal" data-bs-target="#rejectModal{{ blog.id }}">
+                                                            <i class="fas fa-ban"></i>Reject
+                                                        </button>
+                                                    {% else %}
+                                                        <span class="blog-actions-slot--empty" aria-hidden="true">&nbsp;</span>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-newspaper fa-4x text-muted opacity-25 mb-3"></i>
+                            <h5 class="text-muted">No articles found for this filter</h5>
+                            <p class="text-muted small mb-0">Try another card above to view a different set of posts.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+{% for blog in blogs %}
+    <!-- Rejection Modal -->
+    <div class="modal fade" id="rejectModal{{ blog.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-danger">Reject Publication</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="{{ url_for('admin.reject_blog', blog_id=blog.id) }}">
+                    <div class="modal-body">
+                        <p class="small text-muted">Please provide feedback for Dr. {{ blog.doctor.user.name }}. They will see this and can revise the article.</p>
+                        <textarea name="feedback" class="form-control rounded-3" rows="4" required placeholder="Article needs more medical citations, formatting issues, etc..."></textarea>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger rounded-pill px-4">Confirm Rejection</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal{{ blog.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Permanent Deletion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="{{ url_for('admin.delete_blog', blog_id=blog.id) }}">
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete <strong>{{ blog.title }}</strong>? This action cannot be undone.</p>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Reason for internal records</label>
+                            <input type="text" name="reason" class="form-control" required placeholder="Policy violation, spam, etc.">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger rounded-pill px-4">Delete Permanently</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+
+{% endblock %}

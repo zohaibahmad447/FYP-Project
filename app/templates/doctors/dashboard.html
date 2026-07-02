@@ -1,0 +1,436 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Dashboard - Quick Care Connect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="doctor-avatar mb-3">
+                        {% if doctor.user.profile_picture %}
+                        <img src="{{ url_for('static', filename='uploads/' + doctor.user.profile_picture) }}"
+                            alt="{{ doctor.user.name }}"
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div style="display: none;">{{ doctor.user.name[0].upper() }}</div>
+                        {% else %}
+                        <div>{{ doctor.user.name[0].upper() }}</div>
+                        {% endif %}
+                    </div>
+                    <h5 class="card-title">{{ doctor.user.name }}</h5>
+                    <p class="text-muted">{{ doctor.specialization }}</p>
+                    <div class="doctor-status mb-3">
+                        {% if doctor.is_approved %}
+                        <span class="badge badge-success">Approved</span>
+                        {% else %}
+                        <span class="badge badge-warning">Pending Approval</span>
+                        {% endif %}
+                    </div>
+                    <a href="{{ url_for('doctors.edit_profile') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-edit me-1"></i>Edit Profile
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('doctors.appointments') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-calendar-alt me-2"></i>Appointments
+                        </a>
+                        <a href="{{ url_for('doctors.earnings') }}" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-wallet me-2"></i>Earnings
+                        </a>
+                        <a href="{{ url_for('doctors.new_blog') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-pen me-2"></i>Write Article
+                        </a>
+                        <a href="{{ url_for('doctors.blogs') }}" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-newspaper me-2"></i>My Articles
+                        </a>
+                        <a href="{{ url_for('doctors.qa') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-question-circle me-2"></i>Answer Questions
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Completion -->
+            {% if not doctor.profile_completed %}
+            <div class="card mt-3 border-warning">
+                <div class="card-body">
+                    <h6 class="text-warning mb-2">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Complete Profile
+                    </h6>
+                    <p class="small text-muted mb-3">
+                        Complete your profile to start receiving appointments.
+                    </p>
+                    <a href="{{ url_for('doctors.edit_profile') }}" class="btn btn-warning btn-sm w-100">
+                        Complete Now
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9 col-md-8">
+            <!-- Welcome Message -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </h4>
+                    <p class="card-text text-muted">
+                        Welcome back, {{ doctor.user.name }}! Here's your practice overview.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="row mb-4">
+                <div class="col-lg col-md-6 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.total }}</div>
+                        <div class="stat-label">Total Appointments</div>
+                    </div>
+                </div>
+                <div class="col-lg col-md-6 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.pending }}</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                </div>
+                <div class="col-lg col-md-6 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.approved }}</div>
+                        <div class="stat-label">Approved</div>
+                    </div>
+                </div>
+                <div class="col-lg col-md-6 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.completed }}</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                </div>
+                <div class="col-lg col-md-6 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.no_show }}</div>
+                        <div class="stat-label">No-show</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cancellation Requests -->
+            {% if cancellation_requests %}
+            <div class="card mb-4 border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Cancellation Requests
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for appointment in cancellation_requests %}
+                    <div class="cancellation-item border-bottom pb-3 mb-3">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h6 class="mb-1">{{ appointment.patient.user.name }}</h6>
+                                <p class="text-muted mb-1">{{ appointment.appointment_date.strftime('%B %d, %Y') }} at
+                                    {{ appointment.appointment_time.strftime('%I:%M %p') }}</p>
+                                <small class="text-muted">
+                                    <strong>Reason:</strong> {{ appointment.cancellation_reason }}
+                                </small>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <div class="btn-group" role="group">
+                                    <form method="POST"
+                                        action="{{ url_for('doctors.approve_cancellation', appointment_id=appointment.id) }}"
+                                        class="d-inline">
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="fas fa-check me-1"></i>Approve
+                                        </button>
+                                    </form>
+                                    <form method="POST"
+                                        action="{{ url_for('doctors.reject_cancellation', appointment_id=appointment.id) }}"
+                                        class="d-inline">
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fas fa-times me-1"></i>Reject
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent Appointments -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>Recent Appointments
+                    </h5>
+                    <a href="{{ url_for('doctors.appointments') }}" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_appointments %}
+                    {% for appointment in recent_appointments %}
+                    <div class="appointment-item border-bottom pb-3 mb-3">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h6 class="mb-1">{{ appointment.patient.user.name }}</h6>
+                                <p class="text-muted mb-1">{{ appointment.disease_category }}</p>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>{{ appointment.appointment_date.strftime('%B %d,
+                                    %Y') }}
+                                    <i class="fas fa-clock me-1 ms-3"></i>{{
+                                    appointment.appointment_time.strftime('%I:%M %p') }}
+                                </small>
+                            </div>
+                            <div class="col-md-3">
+                                <span class="badge badge-{{ appointment|appt_status_badge }}">
+                                    {{ appointment|appt_status_label }}
+                                </span>
+                            </div>
+                            <div class="col-md-3 text-md-end">
+                                <div class="d-flex gap-1 align-items-center justify-content-md-end flex-wrap">
+                                    <a href="{{ url_for('appointments.view_appointment', appointment_id=appointment.id) }}"
+                                        class="btn btn-sm btn-outline-primary" title="View Details">
+                                        <i class="fas fa-eye me-1"></i>View
+                                    </a>
+                                    {% if appointment.status == 'pending' and appointment.payment_status == 'approved' %}
+                                    <form method="POST"
+                                        action="{{ url_for('doctors.approve_appointment', appointment_id=appointment.id) }}"
+                                        class="d-inline m-0">
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="fas fa-check me-1"></i>Approve
+                                        </button>
+                                    </form>
+                                    <form method="POST"
+                                        action="{{ url_for('doctors.reject_appointment', appointment_id=appointment.id) }}"
+                                        class="d-inline m-0">
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </form>
+                                    {% elif appointment.status == 'pending' %}
+                                    {% if appointment.payment_status == 'submitted' %}
+                                    <span class="badge badge-info text-dark" title="Waiting for admin to verify payment">
+                                        <i class="fas fa-user-shield me-1"></i>Admin Review
+                                    </span>
+                                    {% else %}
+                                    <span class="badge badge-warning text-dark" title="Patient has not paid yet">
+                                        <i class="fas fa-hourglass-half me-1"></i>Awaiting Payment
+                                    </span>
+                                    {% endif %}
+                                    {% elif appointment.status in ['approved', 'completed', 'completed_pending_review', 'disputed'] %}
+                                    {% if appointment.payment_status == 'approved' and appointment.status in ['approved', 'completed'] %}
+                                    <a href="{{ url_for('appointments.chat', appointment_id=appointment.id) }}"
+                                        class="btn btn-sm {% if appointment.status == 'completed' %}btn-outline-secondary{% else %}btn-success{% endif %}"
+                                        title="{% if appointment.status == 'completed' %}View Chat History (Read-Only){% else %}Start Chat{% endif %}">
+                                        <i class="fas fa-comments me-1"></i>{% if appointment.status == 'completed'
+                                        %}View Chat{% else %}Chat{% endif %}
+                                    </a>
+                                    {% endif %}
+                                    {% if appointment.prescription %}
+                                    <a href="{{ url_for('prescriptions.view_prescription', prescription_id=appointment.prescription.id) }}"
+                                        class="btn btn-sm btn-outline-success" title="View Prescription">
+                                        <i class="fas fa-file-prescription me-1"></i>View Rx
+                                    </a>
+                                    {% endif %}
+                                    {% if appointment.patient_completed and appointment.status != 'completed' %}
+                                    <a href="{{ url_for('appointments.view_appointment', appointment_id=appointment.id) }}"
+                                        class="btn btn-success btn-sm d-inline m-0"
+                                        title="Write Prescription & Complete">
+                                        <i class="fas fa-file-medical me-1"></i>Write Rx & Complete
+                                    </a>
+                                    {% elif not appointment.patient_completed and appointment.status != 'completed' %}
+                                    <span class="badge badge-warning btn-sm"
+                                        title="Waiting for patient to mark as complete">
+                                        <i class="fas fa-clock me-1"></i>Waiting
+                                    </span>
+                                    {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-times text-muted mb-3" style="font-size: 3rem;"></i>
+                        <h6 class="text-muted mb-3">No appointments yet</h6>
+                        <p class="text-muted">Complete your profile to start receiving appointment requests.</p>
+                        <a href="{{ url_for('doctors.edit_profile') }}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Complete Profile
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Recent Articles -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-newspaper me-2"></i>Recent Articles
+                    </h5>
+                    <a href="{{ url_for('doctors.blogs') }}" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_blogs %}
+                        {% for blog in recent_blogs %}
+                        <div class="appointment-item border-bottom pb-3 mb-3">
+                            <div class="row align-items-center">
+                                <div class="col-md-7">
+                                    <h6 class="mb-1 text-truncate" title="{{ blog.title }}">{{ blog.title }}</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-folder me-1"></i>{{ blog.category }}
+                                        <i class="fas fa-calendar ms-3 me-1"></i>{{ blog.created_at.strftime('%b %d, %Y') }}
+                                    </small>
+                                </div>
+                                <div class="col-md-3">
+                                    <span class="badge {% if blog.status == 'published' %}bg-success{% elif blog.status == 'draft' %}bg-warning text-dark{% elif blog.status == 'pending' %}bg-info text-dark{% elif blog.status == 'rejected' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                        {{ 'Under Review' if blog.status == 'pending' else blog.status|title }}
+                                    </span>
+                                </div>
+                                <div class="col-md-2 text-md-end mt-2 mt-md-0">
+                                    <a href="{{ url_for('doctors.edit_blog', blog_id=blog.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-edit text-muted mb-3" style="font-size: 2.5rem;"></i>
+                            <h6 class="text-muted mb-3">No articles drafted yet</h6>
+                            <p class="text-muted small">Establish your reputation by writing insightful health articles.</p>
+                            <a href="{{ url_for('doctors.new_blog') }}" class="btn btn-outline-primary btn-sm mt-2">
+                                <i class="fas fa-pen me-2"></i>Start Writing
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-chart-line me-2"></i>This Month
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <h4 class="text-primary mb-1">{{ stats.this_month }}</h4>
+                                    <small class="text-muted">Appointments</small>
+                                </div>
+                                <div class="col-6">
+                                    <h4 class="text-success mb-1">{{ stats.this_month_completed }}</h4>
+                                    <small class="text-muted">Completed</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-users me-2"></i>Patient Feedback
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center">
+                                <h4 class="text-warning mb-1">{{ stats.avg_rating }}</h4>
+                                <small class="text-muted">Average Rating</small>
+                                <div class="mt-2">
+                                    {% set rating_int = stats.avg_rating | int %}
+                                    {% set rating_frac = stats.avg_rating - rating_int %}
+                                    {% for i in range(5) %}
+                                    {% if i < rating_int %} <i class="fas fa-star text-warning"></i>
+                                        {% elif i == rating_int and rating_frac > 0 %}
+                                        <i class="fas fa-star-half-alt text-warning"></i>
+                                        {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                        {% endif %}
+                                        {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .doctor-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #10b981;
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 auto;
+        overflow: hidden;
+        border: 3px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .doctor-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .doctor-avatar div {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .appointment-item:last-child {
+        border-bottom: none !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .cancellation-item:last-child {
+        border-bottom: none !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .btn-group .btn {
+        margin-right: 0.25rem;
+    }
+
+    .btn-group .btn:last-child {
+        margin-right: 0;
+    }
+</style>
+{% endblock %}

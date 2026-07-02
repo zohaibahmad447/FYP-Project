@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}About Us - Quick Care Connect{% endblock %}
+
+{% block page_breadcrumb %}
+<div class="container">
+    <div class="page-breadcrumb">
+        <a href="{{ url_for('home.index') }}">Home</a>
+        <span class="separator"><i class="fas fa-chevron-right"></i></span>
+        <span class="current">About Us</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/info-pages.css') }}">
+<div class="container py-4">
+    <!-- Section Header -->
+    <div class="section-header">
+        <h1>About Quick Care Connect</h1>
+        <p>Your trusted partner in healthcare, connecting patients with qualified doctors for better health outcomes.</p>
+    </div>
+    
+    <!-- Mission Section -->
+    <div class="row align-items-center mb-5">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+            <h2 class="mb-3" style="font-size: 1.8rem; font-weight: 700;">Stay Healthy With 100% Treatment</h2>
+            <p class="mb-3" style="font-size: 1.05rem; line-height: 1.8; color: var(--gray-600);">
+                At Quick Care Connect, our unwavering commitment to health excellence drives our mission. 
+                With a dedicated team of medical experts, cutting-edge technology, and a passion for compassionate care, 
+                we revolutionize healthcare accessibility.
+            </p>
+            <p style="font-size: 1.05rem; line-height: 1.8; color: var(--gray-600);">
+                We believe that healthcare should be convenient, accessible, and personalized to meet the unique 
+                needs of each patient while maintaining the highest standards of medical excellence.
+            </p>
+            <a href="{{ url_for('patients.find_doctors') }}" class="btn btn-primary mt-3">
+                <i class="fas fa-search me-2"></i>Find a Doctor
+            </a>
+        </div>
+        <div class="col-lg-6 text-center">
+            <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(52, 211, 153, 0.08)); border-radius: 20px; padding: 4rem 2rem;">
+                <i class="fas fa-heartbeat" style="font-size: 6rem; color: var(--primary-color); opacity: 0.7;"></i>
+                <div class="mt-3">
+                    <span style="font-size: 1.1rem; font-weight: 600; color: var(--primary-color);">Caring for your health</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Our Mission -->
+    <div class="card mb-5" style="border: none;">
+        <div class="card-body p-4 p-lg-5">
+            <div class="row align-items-center">
+                <div class="col-lg-5 mb-4 mb-lg-0 text-center">
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(52, 211, 153, 0.05)); border-radius: 20px; padding: 3rem;">
+                        <i class="fas fa-bullseye" style="font-size: 4rem; color: var(--primary-color);"></i>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <h2 class="mb-3" style="font-size: 1.6rem; font-weight: 700;">Our Mission</h2>
+                    <p style="color: var(--gray-600); line-height: 1.8; margin-bottom: 1.5rem;">
+                        Our mission is to promote health literacy, facilitate access to quality care, and raise awareness 
+                        for healthier living through Quick Care Connect.
+                    </p>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="padding: 0.5rem 0; color: var(--gray-700); font-weight: 500;">
+                            <i class="fas fa-check-circle me-2" style="color: var(--primary-color);"></i>
+                            Empower informed decision-making
+                        </li>
+                        <li style="padding: 0.5rem 0; color: var(--gray-700); font-weight: 500;">
+                            <i class="fas fa-check-circle me-2" style="color: var(--primary-color);"></i>
+                            Promote health literacy
+                        </li>
+                        <li style="padding: 0.5rem 0; color: var(--gray-700); font-weight: 500;">
+                            <i class="fas fa-check-circle me-2" style="color: var(--primary-color);"></i>
+                            Foster a supportive community
+                        </li>
+                        <li style="padding: 0.5rem 0; color: var(--gray-700); font-weight: 500;">
+                            <i class="fas fa-check-circle me-2" style="color: var(--primary-color);"></i>
+                            Facilitate access to quality care
+                        </li>
+                        <li style="padding: 0.5rem 0; color: var(--gray-700); font-weight: 500;">
+                            <i class="fas fa-check-circle me-2" style="color: var(--primary-color);"></i>
+                            Promote ethical medical practices
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Values Section -->
+    <div class="section-header">
+        <h2>What Sets Us Apart</h2>
+        <p>We bring trust, technology, and compassion together to redefine your healthcare experience.</p>
+    </div>
+    <div class="row mb-5">
+        <div class="col-md-4 mb-4">
+            <div class="value-card">
+                <div class="value-icon-circle">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h4>Trustworthiness</h4>
+                <p>
+                    All our doctors are verified, licensed professionals with proven track records. 
+                    We maintain the highest standards of medical ethics and patient safety.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="value-card">
+                <div class="value-icon-circle">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h4>Comprehensive Resources</h4>
+                <p>
+                    Healthcare should be accessible to everyone. Our platform breaks down barriers 
+                    and makes quality medical care available 24/7 through digital innovation.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="value-card">
+                <div class="value-icon-circle">
+                    <i class="fas fa-hand-holding-heart"></i>
+                </div>
+                <h4>Community & Support</h4>
+                <p>
+                    We leverage cutting-edge technology to enhance the healthcare experience, 
+                    from AI-powered assistance to real-time communication tools.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FYP Development Team -->
+    <div class="section-header">
+        <h2>Meet Our Team</h2>
+        <p>The minds behind Quick Care Connect — building secure telehealth for patients and doctors across Pakistan.</p>
+    </div>
+    <div class="row justify-content-center mb-5 g-4">
+        <div class="col-md-6 col-lg-5">
+            <div class="team-member-card">
+                <div class="team-photo-wrap">
+                    <img src="{{ url_for('static', filename='images/team/fazeel-nadeem.png') }}" alt="Fazeel Nadeem" class="team-photo">
+                </div>
+                <div class="team-member-body">
+                    <h3 class="team-name">Fazeel Nadeem</h3>
+                    <p class="team-role">Frontend Developer &amp; Patient Relations</p>
+                    <p class="team-bio">Designs the patient and doctor experience — interfaces, dashboards, and smooth user journeys. Also handles patient communication and consumer support on the platform.</p>
+                    <div class="team-tags">
+                        <span>UI / UX</span>
+                        <span>Web Frontend</span>
+                        <span>Patient Support</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-5">
+            <div class="team-member-card">
+                <div class="team-photo-wrap">
+                    <img src="{{ url_for('static', filename='images/team/zohaib-ahmad.png') }}" alt="Zohaib Ahmad" class="team-photo">
+                </div>
+                <div class="team-member-body">
+                    <h3 class="team-name">Zohaib Ahmad</h3>
+                    <p class="team-role">Backend Lead &amp; Platform Operations</p>
+                    <p class="team-bio">Owns server infrastructure, APIs, database, video calls, recordings, and payments. Resolves technical platform issues and keeps Quick Care running in production.</p>
+                    <div class="team-tags">
+                        <span>Backend / APIs</span>
+                        <span>DevOps</span>
+                        <span>Technical Support</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mb-5">
+        <p class="text-muted mb-2">Reach the team</p>
+        <a href="tel:+923420820447" class="btn btn-outline-success me-2"><i class="fas fa-phone me-2"></i>+92 342 0820447</a>
+        <a href="mailto:support@quickcares.me" class="btn btn-outline-success"><i class="fas fa-envelope me-2"></i>support@quickcares.me</a>
+    </div>
+
+    <!-- Platform pillars -->
+    <div class="section-header">
+        <h2>What We Stand For</h2>
+        <p>Trust, technology, and compassionate care — the pillars of our platform.</p>
+    </div>
+    <div class="row mb-5">
+        <div class="col-md-4 mb-4">
+            <div class="value-card">
+                <div class="value-icon-circle">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h4>Verified doctors</h4>
+                <p>Licensed professionals reviewed before they accept patients on the platform.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="value-card">
+                <div class="value-icon-circle">
+                    <i class="fas fa-video"></i>
+                </div>
+                <h4>Secure telehealth</h4>
+                <p>Video consultations, digital prescriptions, and recorded visits when enabled.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="value-card">
+                <div class="value-icon-circle">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <h4>Human support</h4>
+                <p>Real people behind the platform — contact us for help with appointments or technical issues.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistics -->
+    <div class="row mb-5">
+        <div class="col-md-3 col-sm-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-number">500+</div>
+                <div class="stat-label">Qualified Doctors</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-number">10,000+</div>
+                <div class="stat-label">Happy Patients</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-number">50,000+</div>
+                <div class="stat-label">Consultations</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-number">15+</div>
+                <div class="stat-label">Cities Covered</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Banner -->
+    <div class="cta-banner">
+        <h3>Need a Consultation?</h3>
+        <p>Get in touch with our qualified doctors and start your healthcare journey today.</p>
+        <a href="{{ url_for('home.contact') }}" class="btn">
+            <i class="fas fa-envelope me-2"></i>Contact Us
+        </a>
+    </div>
+</div>
+{% endblock %}

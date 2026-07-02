@@ -1,0 +1,1211 @@
+{% extends "home/landing_base.html" %}
+
+{% block title %}Quick Care Connect – Home{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- General Layout --- */
+    section {
+        padding: 80px 0;
+    }
+
+    .section-title {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+
+    .section-title h5 {
+        color: var(--primary);
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+        background: var(--primary-light);
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 20px;
+    }
+
+    .section-title h2 {
+        font-size: 36px;
+        font-weight: 700;
+        margin: 0 auto;
+        max-width: 600px;
+        color: var(--text-dark);
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .d-flex {
+        display: flex;
+    }
+
+    .justify-between {
+        justify-content: space-between;
+    }
+
+    .align-center {
+        align-items: center;
+    }
+
+    /* --- Hero Section --- */
+    .hero {
+        padding-top: 100px;
+        padding-bottom: 40px;
+        display: flex;
+        align-items: stretch;
+        background: var(--white);
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero .container {
+        display: flex;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* The curved green shape perfectly matching the drawn red line */
+    .hero-green-bg {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 45%;
+        height: 100%;
+        background-color: var(--primary);
+        z-index: 0;
+        /* Custom bezier curve:
+           Starts near top (20% from left of its container),
+           Dips deeply inward near the middle (0%),
+           Swoops wide outward at the bottom (40%). */
+        clip-path: path('M 250,0 C 260,200 0,450 150,700 C 250,900 600,850 800,900 L 800,0 Z');
+        /* For responsive behavior, using a polygon that mimics the curve */
+        clip-path: polygon(100% 0%,
+                30% 0%,
+                32% 15%,
+                33% 25%,
+                30% 35%,
+                15% 55%,
+                0% 70%,
+                10% 85%,
+                40% 95%,
+                100% 100%);
+        /* Overriding with a responsive SVG clipPath defined in HTML */
+        clip-path: url(#hero-curve);
+    }
+
+    .hero-content {
+        flex: 1;
+        position: relative;
+        z-index: 3;
+        padding-right: 40px;
+    }
+
+    .hero-right {
+        flex: 0 0 55%;
+        position: relative;
+        z-index: 3;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        align-self: flex-end;
+        margin-top: 200px;
+        /* Push image down */
+    }
+
+    .hero-doctor-img {
+        max-height: 500px;
+        /* Constrained to fit hero section neatly */
+        max-width: 100%;
+        width: auto;
+        object-fit: contain;
+        object-position: bottom;
+        position: relative;
+        z-index: 5;
+    }
+
+    /* Decorative circle rings */
+    .hero-circle-ring {
+        position: absolute;
+        border: 2px solid rgba(43, 193, 123, 0.2);
+        border-radius: 50%;
+        z-index: 2;
+    }
+
+    .hero-circle-ring.ring-1 {
+        width: 180px;
+        height: 180px;
+        bottom: 30%;
+        left: -10%;
+    }
+
+    .hero-circle-ring.ring-2 {
+        width: 100px;
+        height: 100px;
+        top: 25%;
+        left: 20%;
+        border-color: rgba(43, 193, 123, 0.12);
+    }
+
+    .hero h1 {
+        font-size: 58px;
+        font-weight: 800;
+        line-height: 1.15;
+        margin-bottom: 24px;
+        color: var(--text-dark);
+        letter-spacing: -1px;
+    }
+
+    .hero h1 span {
+        color: var(--primary);
+    }
+
+    .hero-subtitle {
+        font-size: 16px;
+        color: var(--text-gray);
+        margin-bottom: 40px;
+        max-width: 420px;
+        line-height: 1.7;
+    }
+
+    .hero .btn-primary {
+        padding: 16px 36px;
+        font-size: 16px;
+        border-radius: 30px;
+    }
+
+    /* Floating 200+ badge */
+    .hero-badge {
+        position: absolute;
+        top: 30%;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--white);
+        padding: 10px 22px 10px 10px;
+        border-radius: 40px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+        white-space: nowrap;
+    }
+
+    .hero-badge img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid var(--primary-light);
+    }
+
+    .hero-badge-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .hero-badge-text strong {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-dark);
+        line-height: 1.2;
+    }
+
+    .hero-badge-text span {
+        font-size: 13px;
+        color: var(--text-gray);
+    }
+
+    /* --- Hero Section Load Animations (Replaces AOS) --- */
+    @keyframes heroFadeRight {
+        from {
+            opacity: 0;
+            transform: translateX(-40px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes heroFadeLeft {
+        from {
+            opacity: 0;
+            transform: translateX(40px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes heroZoomIn {
+        from {
+            opacity: 0;
+            transform: translateX(-50%) scale(0.8);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+    }
+
+    .hero-animate-fade-right {
+        animation: heroFadeRight 1s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+    }
+
+    .hero-animate-fade-left {
+        animation: heroFadeLeft 1s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+        opacity: 0;
+        /* Starts hidden until animation */
+        animation-delay: 0.2s;
+        /* matches old aos-delay */
+    }
+
+    .hero-animate-zoom-in {
+        animation: heroZoomIn 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+        opacity: 0;
+        animation-delay: 0.6s;
+        /* matches old aos-delay */
+    }
+
+    /* --- Moving Specialties Marquee --- */
+    .specialty-marquee {
+        width: 100%;
+        overflow: hidden;
+        background: var(--white);
+        padding: 40px 0;
+        border-bottom: 1px solid var(--border);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    }
+
+    .marquee-track {
+        display: flex;
+        width: max-content;
+        animation: scrollMarquee 25s linear infinite;
+        align-items: center;
+    }
+
+    .marquee-track:hover {
+        animation-play-state: paused;
+    }
+
+    @keyframes scrollMarquee {
+        0% {
+            transform: translateX(0);
+        }
+
+        100% {
+            transform: translateX(-50%);
+        }
+    }
+
+    .specialty-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0 40px;
+        color: var(--text-dark);
+        font-weight: 500;
+        font-size: 15px;
+        transition: transform 0.3s;
+        cursor: pointer;
+    }
+
+    .specialty-item:hover {
+        transform: translateY(-5px);
+        color: var(--primary);
+    }
+    
+    .specialty-item:hover .specialty-icon-wrapper {
+        transform: scale(1.1);
+    }
+
+    .specialty-icon-wrapper {
+        width: 70px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        transition: transform 0.3s ease;
+    }
+
+    .specialty-icon-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        mix-blend-mode: multiply; /* Removes white background from icon images */
+    }
+
+    /* --- Services Section --- */
+    .services-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+    }
+
+    .service-card {
+        background: var(--white);
+        padding: 40px 30px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--border);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .service-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    .service-icon {
+        width: 70px;
+        height: 70px;
+        background: var(--primary-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+    }
+
+    .service-icon i {
+        font-size: 30px;
+        color: var(--primary);
+    }
+
+    .service-card h3 {
+        font-size: 20px;
+        margin-bottom: 16px;
+    }
+
+    .service-card p {
+        color: var(--text-gray);
+        font-size: 15px;
+        margin-bottom: 24px;
+        line-height: 1.6;
+    }
+
+    .service-card a {
+        color: var(--primary);
+        font-weight: 600;
+        font-size: 15px;
+    }
+
+    /* --- Stay Healthy Section --- */
+    .stay-healthy {
+        display: flex;
+        align-items: center;
+        gap: 60px;
+    }
+
+    .stay-healthy-content {
+        flex: 1;
+    }
+
+    .stay-healthy-image {
+        flex: 1;
+        position: relative;
+    }
+
+    .stay-healthy-image img {
+        width: 100%;
+        border-radius: 30px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        z-index: 2;
+        position: relative;
+    }
+
+    .stay-healthy-image::before {
+        content: '';
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: var(--primary);
+        border-radius: 0 40px 0 100px;
+        top: -30px;
+        right: -30px;
+        z-index: 1;
+    }
+
+    .stay-healthy h2 {
+        font-size: 36px;
+        margin-bottom: 20px;
+    }
+
+    .stay-healthy p {
+        color: var(--text-gray);
+        margin-bottom: 40px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .stat-box {
+        background: var(--white);
+        padding: 24px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--primary);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    }
+
+    .stat-number {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .stat-label {
+        color: var(--text-gray);
+        font-size: 14px;
+    }
+
+    /* --- Doctors Section --- */
+    .doctors-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 40px;
+    }
+
+    .doctors-header .section-title {
+        text-align: left;
+        margin: 0;
+    }
+
+    .doctors-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+    }
+
+    .doctor-card {
+        background: var(--white);
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    }
+
+    .doctor-img {
+        height: 240px;
+        background: var(--bg-light);
+        position: relative;
+    }
+
+    .doctor-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .doctor-info {
+        padding: 20px;
+        text-align: center;
+    }
+
+    .doctor-info h4 {
+        margin: 0 0 8px 0;
+        font-size: 18px;
+    }
+
+    .doctor-specialty {
+        color: var(--primary);
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 12px;
+    }
+
+    .doctor-rating {
+        color: #f59e0b;
+        font-size: 14px;
+        margin-bottom: 16px;
+    }
+
+    .doctor-rating span {
+        color: var(--text-gray);
+        font-size: 13px;
+    }
+
+    .book-btn {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        background: var(--bg-light);
+        color: var(--text-dark);
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+
+    .book-btn:hover {
+        background: var(--primary);
+        color: var(--white);
+    }
+
+    /* --- Testimonials --- */
+    .testimonials-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+    }
+
+    .review-card {
+        background: var(--white);
+        padding: 40px 30px;
+        border-radius: 20px;
+        text-align: center;
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+        position: relative;
+    }
+
+    .review-card::before {
+        content: '\201C';
+        position: absolute;
+        top: 10px;
+        left: 20px;
+        font-size: 80px;
+        color: var(--primary-light);
+        font-family: serif;
+        line-height: 1;
+    }
+
+    .reviewer-img {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        margin: 0 auto 16px;
+        object-fit: cover;
+    }
+
+    .review-card h4 {
+        margin: 0 0 4px 0;
+        font-size: 18px;
+    }
+
+    .review-card .patient-type {
+        color: var(--text-gray);
+        font-size: 13px;
+        margin-bottom: 20px;
+        display: block;
+    }
+
+    .review-card p {
+        color: var(--text-gray);
+        font-size: 15px;
+        line-height: 1.6;
+        margin-bottom: 24px;
+    }
+
+    .review-card .rating {
+        color: #f59e0b;
+    }
+
+    /* --- Blogs --- */
+    .blogs-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+    }
+
+    .blog-card {
+        background: var(--white);
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.02);
+    }
+
+    a.blog-card {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.2s ease;
+    }
+
+    a.blog-card:hover {
+        box-shadow: 0 16px 36px rgba(15, 23, 42, 0.1);
+        transform: translateY(-3px);
+        border-color: rgba(43, 193, 123, 0.35);
+    }
+
+    a.blog-card:focus-visible {
+        outline: 3px solid rgba(43, 193, 123, 0.45);
+        outline-offset: 2px;
+    }
+
+    .blog-img {
+        height: 200px;
+        background: var(--bg-light);
+        overflow: hidden;
+    }
+
+    .blog-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s;
+    }
+
+    .blog-card:hover .blog-img img {
+        transform: scale(1.05);
+    }
+
+    .blog-info {
+        padding: 24px;
+    }
+
+    .blog-meta {
+        display: flex;
+        gap: 16px;
+        color: var(--text-gray);
+        font-size: 13px;
+        margin-bottom: 12px;
+    }
+
+    .blog-meta i {
+        color: var(--primary);
+        margin-right: 6px;
+    }
+
+    .blog-info h4 {
+        font-size: 18px;
+        line-height: 1.4;
+        margin-bottom: 16px;
+        color: var(--text-dark);
+    }
+
+    .blog-read-more {
+        color: var(--primary);
+        font-weight: 600;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    a.blog-card:hover .blog-read-more {
+        text-decoration: underline;
+    }
+
+    /* --- CTA Banner --- */
+    .cta-banner {
+        background: var(--primary);
+        border-radius: 30px;
+        padding: 0 60px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 60px;
+        color: var(--white);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-banner::before {
+        content: '+';
+        position: absolute;
+        right: 40px;
+        bottom: -20px;
+        font-size: 200px;
+        font-weight: 800;
+        color: rgba(255, 255, 255, 0.1);
+        line-height: 1;
+    }
+
+    .cta-content {
+        flex: 1;
+        padding: 60px 0;
+        z-index: 2;
+    }
+
+    .cta-content h2 {
+        font-size: 32px;
+        margin-bottom: 30px;
+        color: var(--white);
+    }
+
+    .cta-btn {
+        background: var(--white);
+        color: var(--primary);
+        padding: 14px 32px;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 16px;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+
+    .cta-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .cta-image {
+        flex: 1;
+        display: flex;
+        justify-content: flex-end;
+        align-items: flex-end;
+        align-self: flex-end;
+        position: relative;
+        z-index: 2;
+    }
+
+    .cta-image img {
+        max-height: 350px;
+        margin-bottom: -5px;
+        /* sit on bottom edge */
+    }
+
+    @media (max-width: 992px) {
+        .hero {
+            padding-top: 120px;
+        }
+
+        .hero .container {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .hero-green-bg {
+            display: none;
+        }
+
+        .hero-content {
+            padding-right: 0;
+        }
+
+        .hero-right {
+            margin-top: 50px;
+            justify-content: center;
+        }
+
+        .hero-badge {
+            top: 0%;
+            left: 75%;
+        }
+
+        .hero h1 {
+            font-size: 44px;
+        }
+
+        .hero-subtitle {
+            margin: 0 auto 40px;
+        }
+
+        .hero-doctor-img {
+            max-height: 400px;
+        }
+
+        .services-grid,
+        .doctors-grid,
+        .testimonials-grid,
+        .blogs-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .stay-healthy {
+            flex-direction: column;
+        }
+
+        .stay-healthy-image {
+            margin-top: 40px;
+        }
+
+        .cta-banner {
+            flex-direction: column;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .cta-image {
+            justify-content: center;
+            margin-top: 30px;
+        }
+    }
+
+    @media (max-width: 768px) {
+
+        .services-grid,
+        .doctors-grid,
+        .testimonials-grid,
+        .blogs-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .hero-badge {
+            position: relative;
+            top: auto;
+            left: auto;
+            transform: none;
+            margin-bottom: 20px;
+            justify-content: center;
+            max-width: 200px;
+            margin: 0 auto 20px auto;
+        }
+
+        .hero h1 {
+            font-size: 36px;
+        }
+
+        .hero-right {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hero-doctor-img {
+            max-height: 300px;
+            margin-right: 0 !important;
+        }
+
+        .hero-circle-ring {
+            display: none;
+        }
+
+        .stay-healthy-image::before {
+            display: none;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hidden SVG for custom curve clip path -->
+<svg style="position: absolute; width: 0; height: 0; overflow: hidden;" aria-hidden="true">
+    <defs>
+        <clipPath id="hero-curve" clipPathUnits="objectBoundingBox">
+            <!-- Curve matching the left half of a 'U':
+                 Start Top-middle (0.5, 0),
+                 Smooth Quadratic arc bulging leftward towards (-0.1, 0.5),
+                 Ending Bottom-middle (0.4, 1) -->
+            <path d="M 1,0 L 0.5,0 Q -0.15,0.5 0.4,1 L 1,1 Z"></path>
+        </clipPath>
+    </defs>
+</svg>
+
+<!-- Hero Section -->
+<section class="hero">
+    <!-- Green background shape -->
+    <div class="hero-green-bg"></div>
+
+    <div class="container">
+        <!-- Left: Text Content -->
+        <div class="hero-content hero-animate-fade-right">
+            <h1>Best Health<br>Care <span>Services</span><br>Available</h1>
+
+            <p class="hero-subtitle">Experience top-tier healthcare and tailored treatment for your well-being. Trust in
+                our expertise to keep you healthy and vibrant.</p>
+
+            <a href="{{ url_for('patients.find_doctors') }}" class="btn btn-primary">Book Appointment <i
+                    class="fas fa-chevron-right" style="margin-left: 8px;"></i></a>
+        </div>
+
+        <!-- Right: Doctor Image -->
+        <div class="hero-right hero-animate-fade-left">
+
+
+            <!-- Decorative circle rings -->
+            <div class="hero-circle-ring ring-1" style="bottom: 20%; left: -20%;"></div>
+            <div class="hero-circle-ring ring-2" style="top: 15%; left: 0%;"></div>
+
+            <img class="hero-doctor-img"
+                style="margin-right: -10%; transform: scale(1.35); transform-origin: bottom center;"
+                src="{{ url_for('static', filename='images/hero_doctor.png') }}" alt="Professional Male Doctor">
+        </div>
+    </div>
+</section>
+
+<!-- Specialty Marquee Section -->
+<section class="specialty-marquee">
+    <div class="marquee-track">
+        <!-- FIRST SET (dynamic from featured_specialties) -->
+        {% for spec in featured_specialties %}
+        <a href="{{ url_for('patients.find_doctors', specialty=spec.slug) }}" class="specialty-item">
+            <div class="specialty-icon-wrapper">
+                {% if spec.png %}
+                    <img src="{{ url_for('static', filename='images/icons/' + spec.png) }}" alt="{{ spec.name }}">
+                {% else %}
+                    <i class="{{ spec.fa }}" style="font-size: 36px; color: #10b981;"></i>
+                {% endif %}
+            </div>
+            <span>{{ spec.name }}</span>
+        </a>
+        {% endfor %}
+
+        <!-- DUPLICATED SECOND SET for seamless scroll -->
+        {% for spec in featured_specialties %}
+        <a href="{{ url_for('patients.find_doctors', specialty=spec.slug) }}" class="specialty-item">
+            <div class="specialty-icon-wrapper">
+                {% if spec.png %}
+                    <img src="{{ url_for('static', filename='images/icons/' + spec.png) }}" alt="{{ spec.name }}">
+                {% else %}
+                    <i class="{{ spec.fa }}" style="font-size: 36px; color: #10b981;"></i>
+                {% endif %}
+            </div>
+            <span>{{ spec.name }}</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Services Section -->
+<section class="services">
+    <div class="container">
+        <div class="section-title" data-aos="fade-up">
+            <h5>Services</h5>
+            <h2>The Best Quality Service You Can Get</h2>
+        </div>
+
+        <div class="services-grid">
+            <div class="service-card" data-aos="fade-up" data-aos-delay="100">
+                <div class="service-icon"><i class="fas fa-heartbeat"></i></div>
+                <h3>Cardiology</h3>
+                <p>Connect with trusted heart specialists for chest pain, blood pressure issues, and routine cardiac care.</p>
+                <a href="{{ url_for('patients.find_doctors', specialty='cardiology') }}">Learn More <i
+                        class="fas fa-chevron-right ms-1"></i></a>
+            </div>
+
+            <div class="service-card" data-aos="fade-up" data-aos-delay="200">
+                <div class="service-icon"><i class="fas fa-comment-medical"></i></div>
+                <h3>Psychology</h3>
+                <p>Talk to qualified mental health professionals for stress, anxiety, emotional wellbeing, and counseling support.</p>
+                <a href="{{ url_for('patients.find_doctors', specialty='psychology') }}">Learn More <i
+                        class="fas fa-chevron-right ms-1"></i></a>
+            </div>
+
+            <div class="service-card" data-aos="fade-up" data-aos-delay="300">
+                <div class="service-icon"><i class="fas fa-person-pregnant"></i></div>
+                <h3>Gynecology</h3>
+                <p>Consult verified gynecologists for women's health, pregnancy follow-up, PCOS, period concerns, and preventive check-ups.</p>
+                <a href="{{ url_for('patients.find_doctors', specialty='gynecology') }}">Learn More <i
+                        class="fas fa-chevron-right ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stay Healthy Section -->
+<section>
+    <div class="container stay-healthy">
+        <div class="stay-healthy-content" data-aos="fade-right">
+            <div class="section-title" style="text-align: left;">
+                <h5>About Us</h5>
+                <h2 style="margin: 0;">Stay Healthy With 100% Treatment</h2>
+            </div>
+            <p>At Quick Care we combine world class tech with top quality doctors for the best patient care. We provide
+                advanced clinical treatments to our valuable customers.</p>
+
+            <div class="stats-grid">
+                <div class="stat-box" data-aos="zoom-in" data-aos-delay="100">
+                    <div class="stat-number">1700+</div>
+                    <div class="stat-label">Active Patients</div>
+                </div>
+                <div class="stat-box" data-aos="zoom-in" data-aos-delay="200">
+                    <div class="stat-number">85+</div>
+                    <div class="stat-label">Quality Doctors</div>
+                </div>
+                <div class="stat-box" data-aos="zoom-in" data-aos-delay="300">
+                    <div class="stat-number">1000+</div>
+                    <div class="stat-label">Positive Reviews</div>
+                </div>
+                <div class="stat-box" data-aos="zoom-in" data-aos-delay="400">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Online Support</div>
+                </div>
+            </div>
+
+            <a href="{{ url_for('home.about') }}" class="btn btn-outline" data-aos="fade-up" data-aos-delay="500">Learn
+                More</a>
+        </div>
+        <div class="stay-healthy-image" data-aos="fade-left">
+            <img src="{{ url_for('static', filename='images/consultation.png') }}" alt="Doctors Consulting">
+        </div>
+    </div>
+</section>
+
+<!-- Doctors Section -->
+<section class="doctors text-center">
+    <div class="container">
+        <div class="doctors-header" data-aos="fade-up">
+            <div class="section-title">
+                <h5>Our Doctors</h5>
+                <h2 style="margin: 0;">Get Service From Our Quality Doctors</h2>
+            </div>
+            <a href="{{ url_for('patients.find_doctors') }}" class="btn btn-outline"
+                style="border-radius: 40px; padding: 10px 24px;">View All Doctors</a>
+        </div>
+
+        <div class="doctors-grid">
+            {% for doctor in doctors %}
+            <div class="doctor-card" data-aos="fade-up" data-aos-delay="{{ loop.index * 100 }}">
+                <div class="doctor-img">
+                    {% if doctor.user.profile_picture %}
+                        <img src="{{ url_for('static', filename='uploads/' + doctor.user.profile_picture) }}" 
+                             alt="{{ doctor.user.name }}"
+                             onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ doctor.user.name|urlencode }}&background=10b981&color=fff&size=400';">
+                    {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ doctor.user.name|urlencode }}&background=10b981&color=fff&size=400" 
+                             alt="{{ doctor.user.name }}">
+                    {% endif %}
+                </div>
+                <div class="doctor-info">
+                    <span class="section-title" style="margin:0;">
+                        <h5 style="margin:0 0 10px 0; font-size:12px;">{{ doctor.category|title }}</h5>
+                    </span>
+                    <h4>{{ doctor.user.name }}</h4>
+                    <div class="doctor-rating">
+                        <i class="fas fa-star"></i> {{ doctor.average_rating if doctor.average_rating else '0.0' }} 
+                        <span>({{ doctor.review_count }} Reviews)</span>
+                    </div>
+                    <a href="{{ url_for('home.doctor_profile', doctor_id=doctor.id) }}" class="book-btn">Book Appointment <i class="fas fa-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+            {% endfor %}
+            {% if not doctors %}
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">New healthcare professionals are joining soon. Stay tuned!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section style="background: var(--bg-light);">
+    <div class="container">
+        <div class="section-title" data-aos="fade-up">
+            <h5>Testimonials</h5>
+            <h2>What Our Patient Say About Us</h2>
+        </div>
+
+        <div class="testimonials-grid">
+            <div class="review-card" data-aos="fade-up" data-aos-delay="100">
+                <img src="https://ui-avatars.com/api/?name=Ayesha+Khan&background=f3f4f6" alt="Ayesha Khan"
+                    class="reviewer-img">
+                <h4>Ayesha Khan</h4>
+                <span class="patient-type">Patient</span>
+                <p>QuickCare made booking a verified specialist simple from my phone. Clear profiles, appointment
+                    reminders, and responsive support—exactly what I needed for follow-ups without long clinic waits.</p>
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                        class="fas fa-star"></i><i class="fas fa-star"></i>
+                </div>
+            </div>
+
+            <div class="review-card" data-aos="fade-up" data-aos-delay="200">
+                <img src="https://ui-avatars.com/api/?name=Omar+Farooq&background=f3f4f6" alt="Omar Farooq"
+                    class="reviewer-img">
+                <h4>Omar Farooq</h4>
+                <span class="patient-type">Patient</span>
+                <p>I use QuickCare for my parents’ care. The platform is straightforward: search by specialty and
+                    city, compare doctors, and pay securely. It has taken a lot of stress out of arranging consultations.</p>
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                        class="fas fa-star"></i><i class="fas fa-star"></i>
+                </div>
+            </div>
+
+            <div class="review-card" data-aos="fade-up" data-aos-delay="300">
+                <img src="https://ui-avatars.com/api/?name=Hassan+Malik&background=f3f4f6" alt="Hassan Malik"
+                    class="reviewer-img">
+                <h4>Hassan Malik</h4>
+                <span class="patient-type">Patient</span>
+                <p>Video consultations on QuickCare have been reliable and on time. The interface is clean, joining a
+                    call is one click, and I still get proper notes and next steps from the doctor—great experience overall.</p>
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                        class="fas fa-star"></i><i class="fas fa-star"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Blogs Section -->
+<section>
+    <div class="container">
+        <div class="section-title" data-aos="fade-up">
+            <h5>Blog</h5>
+            <h2>Why Should You Choose Us? Read Our Health Tips</h2>
+        </div>
+
+        <div class="blogs-grid">
+            {% set fallback_imgs = [
+                'https://images.unsplash.com/photo-1505751172107-573225a91200?auto=format&fit=crop&q=80&w=600&h=400',
+                'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=600&h=400',
+                'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=600&h=400'
+            ] %}
+            {% for blog in latest_blogs %}
+            <a href="{{ url_for('blogs.view_blog', blog_id=blog.id) }}" class="blog-card" data-aos="fade-up" data-aos-delay="{{ loop.index * 100 }}">
+                <div class="blog-img">
+                    {% set hero_path = blog_static_image_path(blog) %}
+                    {% if hero_path %}
+                        <img src="{{ url_for('static', filename=hero_path) }}" alt="{{ blog.title }}"
+                             onerror="this.src='{{ fallback_imgs[loop.index0 % 3] }}'">
+                    {% else %}
+                        <img src="{{ fallback_imgs[loop.index0 % 3] }}" alt="{{ blog.title }}">
+                    {% endif %}
+                </div>
+                <div class="blog-info">
+                    <div class="blog-meta">
+                        <span><i class="far fa-calendar-alt"></i> {{ blog.created_at.strftime('%b %d, %Y') }}</span>
+                    </div>
+                    <span class="badge mb-2" style="background: #d1fae5; color: #065f46; font-size: 0.75rem; border-radius: 20px; padding: 4px 10px;">{{ blog.category.title() }}</span>
+                    <h4>{{ blog.title }}</h4>
+                    <span class="blog-read-more">Read Article <i class="fas fa-chevron-right ms-1"></i></span>
+                </div>
+            </a>
+            {% else %}
+            <!-- Fallback if no published blogs exist -->
+            <a href="{{ url_for('blogs.index') }}" class="blog-card" data-aos="fade-up" data-aos-delay="100">
+                <div class="blog-img"><img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=600&h=400" alt="Health tips"></div>
+                <div class="blog-info">
+                    <div class="blog-meta"><span><i class="far fa-calendar-alt"></i> Quick Care</span></div>
+                    <h4>Expert Advice on Chronic Conditions</h4>
+                    <span class="blog-read-more">View all articles <i class="fas fa-chevron-right ms-1"></i></span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+
+        <div class="text-center" style="margin-top: 40px;" data-aos="fade-up">
+            <a href="{{ url_for('blogs.index') }}" class="btn btn-outline"
+                style="border-radius: 40px; padding: 10px 24px;">View All Blogs</a>
+        </div>
+
+        <!-- CTA Banner -->
+        <div class="cta-banner" data-aos="zoom-in" data-aos-offset="50">
+            <div class="cta-image">
+                <img src="{{ url_for('static', filename='images/cta_doctor.png') }}" alt="Doctor CTA">
+            </div>
+            <div class="cta-content">
+                <h2>Get Appointment For Your Medical Service</h2>
+                <a href="{{ url_for('patients.find_doctors') }}" class="cta-btn">Book Appointment</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,781 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - Quick Care Connect{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern Patient Profile - InstaCare/Marham Style */
+    body {
+        background-color: #f5f7fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Hero Section - Clean White Background */
+    .patient-profile-header {
+        background: #ffffff;
+        color: #1a1a1a;
+        padding: 2.5rem 0;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border-bottom: 3px solid rgba(16, 185, 129, 0.8);
+    }
+
+    .patient-profile-header .row {
+        align-items: flex-start;
+        min-height: 180px;
+        padding: 1.5rem 0;
+    }
+
+    .patient-profile-header .col-md-3 {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 0;
+    }
+
+    .header-content-wrapper {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding-left: 1rem;
+        padding-top: 0.5rem;
+        align-items: flex-start;
+    }
+
+    @media (max-width: 768px) {
+        .patient-profile-header .row {
+            min-height: auto;
+        }
+
+        .header-content-wrapper {
+            padding-left: 0;
+            padding-top: 1.5rem;
+            text-align: center;
+        }
+
+        .patient-profile-header .col-md-3 {
+            padding-top: 0;
+        }
+    }
+
+    .patient-avatar {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.9) 0%, rgba(5, 150, 105, 0.85) 100%);
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        font-weight: 700;
+        margin: 0 auto;
+        border: 5px solid #ffffff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .patient-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .patient-avatar .avatar-initial {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+    }
+
+    .patient-name {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        margin-top: 0;
+        color: #1a1a1a;
+        line-height: 1.3;
+    }
+
+    .patient-email {
+        font-size: 1.1rem;
+        color: #666;
+        margin-bottom: 0.75rem;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.5rem 1.2rem;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        border: 1px solid transparent;
+    }
+
+    .status-badge-inline {
+        display: inline-block;
+        margin-left: 0.5rem;
+        font-size: 1.3rem;
+        vertical-align: middle;
+        position: relative;
+        top: -2px;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+
+    .status-badge-inline.status-complete {
+        color: #10b981;
+    }
+
+    .status-badge-inline.status-incomplete {
+        color: #f59e0b;
+    }
+
+    .status-badge-inline i {
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+    }
+
+    .status-complete {
+        background: #d4edda;
+        color: #155724;
+        border-color: #c3e6cb;
+    }
+
+    .status-incomplete {
+        background: #fff3cd;
+        color: #856404;
+        border-color: #ffeaa7;
+    }
+
+    .patient-stats {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .stat-item {
+        text-align: center;
+        flex: 1;
+        min-width: 100px;
+    }
+
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        display: block;
+        color: #10b981;
+        line-height: 1.2;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Content Sections - Modern Card Style */
+    .content-section {
+        background: #ffffff;
+        border-radius: 8px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e0e0e0;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid rgba(16, 185, 129, 0.8);
+        color: #1a1a1a;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .section-title .btn {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+
+    /* Info Table - Marham Style */
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 0;
+    }
+
+    .info-table thead {
+        background: #f8f9fa;
+    }
+
+    .info-table th {
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #333;
+        border-bottom: 2px solid #dee2e6;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        width: 40%;
+    }
+
+    .info-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #e9ecef;
+        color: #555;
+    }
+
+    .info-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .info-table tr:hover {
+        background: #f8f9fa;
+    }
+
+    .info-table .text-muted {
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    /* Sidebar - Modern Style */
+    .sidebar-card {
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 1.5rem;
+        border: 1px solid #e0e0e0;
+        overflow: hidden;
+    }
+
+    .sidebar-card-header {
+        background: rgba(16, 185, 129, 0.7);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        color: white;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .sidebar-card-body {
+        padding: 1.5rem;
+    }
+
+    .info-item {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label-modern {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #666;
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+    }
+
+    .info-value-modern {
+        color: #1a1a1a;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .info-value-modern .text-muted {
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    /* Appointment Cards */
+    .appointment-card {
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .appointment-card:hover {
+        border-color: rgba(16, 185, 129, 0.6);
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+    }
+
+    .appointment-doctor-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+    }
+
+    .appointment-details {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 0.5rem;
+    }
+
+    .appointment-details i {
+        color: #10b981;
+        margin-right: 0.5rem;
+        width: 16px;
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .quick-action-btn {
+        padding: 1rem;
+        background: #f8f9fa;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        text-align: center;
+        text-decoration: none;
+        color: #1a1a1a;
+        transition: all 0.3s ease;
+        display: block;
+    }
+
+    .quick-action-btn:hover {
+        border-color: rgba(16, 185, 129, 0.6);
+        background: #e7f3ff;
+        color: #10b981;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(16, 185, 129, 0.15);
+    }
+
+    .quick-action-btn i {
+        font-size: 1.5rem;
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #10b981;
+    }
+
+    /* Alert for incomplete profile */
+    .alert-profile-incomplete {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    .alert-profile-incomplete h6 {
+        color: #856404;
+        margin-bottom: 0.75rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .alert-profile-incomplete ul {
+        margin-bottom: 0.5rem;
+        padding-left: 1.5rem;
+    }
+
+    .alert-profile-incomplete li {
+        color: #856404;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .patient-avatar {
+            width: 120px;
+            height: 120px;
+            font-size: 3rem;
+        }
+
+        .patient-name {
+            font-size: 1.6rem;
+        }
+
+        .patient-stats {
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .stat-item {
+            min-width: 80px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+        }
+
+        .content-section {
+            padding: 1.5rem;
+        }
+
+        .quick-actions {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Patient Profile Header - InstaCare Style -->
+<div class="patient-profile-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 text-center mb-3 mb-md-0">
+                <div class="patient-avatar" onclick="viewProfilePicture()" style="cursor: pointer;"
+                    title="Click to view full image">
+                    {% if patient.user.profile_picture %}
+                    <img src="{{ url_for('static', filename='uploads/' + patient.user.profile_picture) }}"
+                        alt="{{ patient.user.name }}" id="profilePictureImg"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="avatar-initial" style="display: none;">{{ patient.user.name[0].upper() }}</div>
+                    {% else %}
+                    <div class="avatar-initial">{{ patient.user.name[0].upper() }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="text-center text-md-start header-content-wrapper">
+                    <div class="patient-name">
+                        {{ patient.user.name }}
+                        <!-- Status Badge Inline -->
+                        {% if profile_incomplete %}
+                        <span class="status-badge-inline status-incomplete">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </span>
+                        {% else %}
+                        <span class="status-badge-inline status-complete">
+                            <i class="fas fa-check-circle"></i>
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="patient-email">{{ patient.user.email }}</div>
+
+                    <!-- Patient Stats -->
+                    {% if stats %}
+                    <div class="patient-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">{{ stats.total_appointments }}</span>
+                            <span class="stat-label">Appointments</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ stats.completed }}</span>
+                            <span class="stat-label">Completed</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ stats.questions }}</span>
+                            <span class="stat-label">Questions</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ stats.medical_history }}</span>
+                            <span class="stat-label">Records</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    {% if profile_incomplete %}
+    <div class="alert-profile-incomplete">
+        <h6>
+            <i class="fas fa-exclamation-triangle me-2"></i>Complete Your Profile
+        </h6>
+        <p class="mb-2">To access all features like booking appointments and posting questions, please complete the
+            following required fields:</p>
+        <ul class="mb-2">
+            <li>Date of Birth</li>
+            <li>Gender</li>
+            <li>Emergency Contact Number</li>
+            <li>Blood Group</li>
+        </ul>
+        <a href="{{ url_for('patients.edit_profile') }}" class="btn btn-warning btn-sm">
+            <i class="fas fa-edit me-1"></i>Complete Profile Now
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show"
+        role="alert">
+        <i
+            class="fas fa-{{ 'exclamation-circle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} me-2"></i>
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Personal Information Section -->
+            <section class="content-section">
+                <h2 class="section-title">
+                    <span>Personal Information</span>
+                    <a href="{{ url_for('patients.edit_profile') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-edit me-1"></i>Edit Profile
+                    </a>
+                </h2>
+
+                <table class="info-table">
+                    <tbody>
+                        <tr>
+                            <th>Full Name</th>
+                            <td>{{ patient.user.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email</th>
+                            <td>{{ patient.user.email }}</td>
+                        </tr>
+                        <tr>
+                            <th>Phone Number</th>
+                            <td>{% if patient.user.phone %}{{ patient.user.phone|format_phone }}{% else %}<span
+                                    class="text-muted">Not provided</span>{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <th>CNIC</th>
+                            <td>{{ patient.user.cnic or '<span class="text-muted">Not provided</span>'|safe }}</td>
+                        </tr>
+                        <tr>
+                            <th>Date of Birth</th>
+                            <td>
+                                {% if patient.user.date_of_birth %}
+                                {{ patient.user.date_of_birth.strftime('%B %d, %Y') }}
+                                {% else %}
+                                <span class="text-muted">Not provided</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Gender</th>
+                            <td>
+                                {% if patient.user.gender %}
+                                {{ patient.user.gender|title }}
+                                {% else %}
+                                <span class="text-muted">Not provided</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Emergency Contact</th>
+                            <td>
+                                {% if patient.emergency_contact %}
+                                {{ patient.emergency_contact|format_phone }}
+                                {% if patient.emergency_relation %}
+                                <span class="text-muted"> ({{ patient.emergency_relation|title }})</span>
+                                {% endif %}
+                                {% else %}
+                                <span class="text-muted">Not provided</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Blood Group</th>
+                            <td>
+                                {% if patient.blood_group %}
+                                {{ patient.blood_group }}
+                                {% else %}
+                                <span class="text-muted">Not provided</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Medical Information Section -->
+            {% if patient.allergies or patient.medical_history %}
+            <section class="content-section">
+                <h2 class="section-title">Medical Information</h2>
+
+                {% if patient.allergies %}
+                <div class="mb-4">
+                    <h5 style="font-weight: 600; color: #333; margin-bottom: 0.75rem;">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>Allergies
+                    </h5>
+                    <p style="color: #555; line-height: 1.8; margin-bottom: 0;">{{ patient.allergies }}</p>
+                </div>
+                {% endif %}
+
+                {% if patient.medical_history %}
+                <div>
+                    <h5 style="font-weight: 600; color: #333; margin-bottom: 0.75rem;">
+                        <i class="fas fa-file-medical text-primary me-2"></i>Medical History
+                    </h5>
+                    <p style="color: #555; line-height: 1.8; margin-bottom: 0;">{{ patient.medical_history }}</p>
+                </div>
+                {% endif %}
+            </section>
+            {% endif %}
+
+            <!-- Upcoming Appointments Section -->
+            {% if upcoming_appointments %}
+            <section class="content-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="section-title mb-0" style="border: none; padding: 0;">
+                        <span><i class="fas fa-calendar-check me-2"></i>Upcoming Appointments</span>
+                    </h2>
+                    <a href="{{ url_for('patients.appointments') }}" class="btn btn-outline-primary btn-sm">
+                        View All <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                {% for appointment in upcoming_appointments[:3] %}
+                <div class="appointment-card">
+                    <div class="appointment-doctor-name">{{ appointment.doctor.user.name }}</div>
+                    <div class="appointment-details">
+                        <i class="fas fa-calendar"></i>{{ appointment.appointment_date.strftime('%B %d, %Y') }}
+                    </div>
+                    <div class="appointment-details">
+                        <i class="fas fa-clock"></i>{{ appointment.appointment_time.strftime('%I:%M %p') }}
+                    </div>
+                    <div class="appointment-details">
+                        <span
+                            class="badge bg-{{ 'primary' if appointment.appointment_type == 'physical' else 'success' }}">
+                            {{ appointment.appointment_type|title }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </section>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Actions Card -->
+            <div class="sidebar-card">
+                <div class="sidebar-card-header">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </div>
+                <div class="sidebar-card-body">
+                    <div class="quick-actions">
+                        <a href="{{ url_for('patients.find_doctors') }}" class="quick-action-btn">
+                            <i class="fas fa-search"></i>
+                            <span>Find Doctors</span>
+                        </a>
+                        <a href="{{ url_for('patients.appointments') }}" class="quick-action-btn">
+                            <i class="fas fa-calendar"></i>
+                            <span>Appointments</span>
+                        </a>
+                        <a href="{{ url_for('patients.medical_history') }}" class="quick-action-btn">
+                            <i class="fas fa-file-medical"></i>
+                            <span>Medical History</span>
+                        </a>
+                        <a href="{{ url_for('patients.dashboard') }}" class="quick-action-btn">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information Card -->
+            <div class="sidebar-card">
+                <div class="sidebar-card-header">
+                    <i class="fas fa-info-circle me-2"></i>Contact Information
+                </div>
+                <div class="sidebar-card-body">
+                    <div class="info-item">
+                        <div class="info-label-modern">Phone</div>
+                        <div class="info-value-modern">{% if patient.user.phone %}{{ patient.user.phone|format_phone
+                            }}{% else %}<span class="text-muted">Not provided</span>{% endif %}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label-modern">Email</div>
+                        <div class="info-value-modern">{{ patient.user.email }}</div>
+                    </div>
+                    {% if patient.emergency_contact %}
+                    <div class="info-item">
+                        <div class="info-label-modern">Emergency Contact</div>
+                        <div class="info-value-modern">
+                            {{ patient.emergency_contact|format_phone }}
+                            {% if patient.emergency_relation %}
+                            <br><small class="text-muted">({{ patient.emergency_relation|title }})</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Picture Modal -->
+<div class="modal fade" id="profilePictureModal" tabindex="-1" aria-labelledby="profilePictureModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background: transparent; border: none;">
+            <div class="modal-body text-center p-0" style="position: relative;">
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"
+                    style="position: absolute; top: 10px; right: 10px; z-index: 1000; background-color: rgba(0,0,0,0.5); border-radius: 50%; padding: 10px;"></button>
+                <img src="" id="modalProfileImage" class="img-fluid"
+                    style="max-height: 80vh; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);"
+                    alt="Profile Picture">
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-hide flash messages after 5 seconds
+    setTimeout(function () {
+        var alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function (alert) {
+            var bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
+
+    // View profile picture in modal
+    function viewProfilePicture() {
+        // Get the profile picture image element
+        const profileImg = document.getElementById('profilePictureImg');
+
+        // Only proceed if there's an actual image (not the initials)
+        if (profileImg && profileImg.src) {
+            // Set the modal image source
+            document.getElementById('modalProfileImage').src = profileImg.src;
+
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('profilePictureModal'));
+            modal.show();
+        }
+    }
+</script>
+{% endblock %}

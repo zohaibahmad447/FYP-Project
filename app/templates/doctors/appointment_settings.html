@@ -1,0 +1,627 @@
+{% extends "base.html" %}
+
+{% block title %}Appointment Settings - Quick Care Connect{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-edit-container {
+        background: #f8f9fa;
+        padding: 2rem 0;
+    }
+
+    .edit-profile-header {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.9) 0%, rgba(5, 150, 105, 0.85) 100%);
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 15px 15px;
+    }
+
+    .form-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Additional spacing between physical and video widgets */
+    #physical-appointments-section {
+        margin-top: 2rem;
+        margin-bottom: 4rem;
+    }
+
+    #video-consultations-section {
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    /* Ensure buttons are properly contained within their widgets */
+    #physical-practices-container {
+        margin-bottom: 1.5rem;
+    }
+
+    #video-practices-container {
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 3px solid rgba(16, 185, 129, 0.8);
+        color: #333;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-edit-container" data-physical-count="{{ physical_practices|length if physical_practices else 0 }}"
+    data-video-count="{{ video_practices|length if video_practices else 0 }}">
+    <div class="edit-profile-header">
+        <div class="container">
+            <h2 class="mb-0">
+                <i class="fas fa-calendar-alt me-2"></i>Appointment Settings
+            </h2>
+            <p class="mb-0 mt-2">Manage your practice locations and consultation schedules</p>
+        </div>
+    </div>
+
+    <!-- First Widget: Appointment Type Selection -->
+    <div class="container">
+        <div class="form-section">
+            <h3 class="section-title">Appointment Type Selection</h3>
+            <p class="text-muted mb-4">Select which types of appointments you want to offer. You can enable or disable
+                each type independently.</p>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="p-3 border rounded" style="position: relative;">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="offers_physical" {% if
+                                physical_practices %}checked{% endif %} onchange="togglePhysicalSection()"
+                                style="position: static; margin-top: 0.25rem;">
+                            <label class="form-check-label d-flex align-items-center" for="offers_physical"
+                                style="font-size: 1.1rem; font-weight: 500; cursor: pointer; margin-left: 1.5rem;">
+                                <i class="fas fa-hospital me-2"></i>Offer Physical Appointments
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="p-3 border rounded" style="position: relative;">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="offers_video" {% if video_practices
+                                %}checked{% endif %} onchange="toggleVideoSection()"
+                                style="position: static; margin-top: 0.25rem;">
+                            <label class="form-check-label d-flex align-items-center" for="offers_video"
+                                style="font-size: 1.1rem; font-weight: 500; cursor: pointer; margin-left: 1.5rem;">
+                                <i class="fas fa-video me-2"></i>Offer Video Consultations
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Widget 1: Physical Appointments - Separate Container -->
+    <div class="container" id="physical-appointments-section" {% if not physical_practices %}style="display: none;" {%
+        endif %}>
+        <div class="form-section">
+            <h3 class="section-title">Physical Appointments</h3>
+            <p class="text-muted mb-4">Add your physical practice locations/hospitals/clinics. For each location, set
+                available days and timings. The system will automatically create appointment slots.</p>
+
+            <div id="physical-practices-container">
+                {% if physical_practices %}
+                {% for practice_name, practice_data in physical_practices.items() %}
+                {% set practice_index = 'physical_' + loop.index0|string %}
+                {% set appointment_type = 'physical' %}
+                {% include 'doctors/_practice_card_standalone.html' %}
+                {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="mt-4 pt-3 border-top">
+                <button type="button" class="btn btn-outline-primary" onclick="addPractice('physical')">
+                    <i class="fas fa-plus me-2"></i>Add Physical Practice/Hospital
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Widget 2: Video Consultations - Separate Container -->
+    <div class="container" id="video-consultations-section" {% if not video_practices %}style="display: none;" {% endif
+        %}>
+        <div class="form-section">
+            <h3 class="section-title">Video Consultations</h3>
+            <p class="text-muted mb-4">Set your video consultation availability. Video consultations are online and
+                don't require a physical location.</p>
+
+            <div id="video-practices-container">
+                {% if video_practices %}
+                {% for practice_name, practice_data in video_practices.items() %}
+                {% if loop.first %}
+                {% set practice_index = 'video_0' %}
+                {% set appointment_type = 'video' %}
+                {% include 'doctors/_practice_card_standalone.html' %}
+                {% endif %}
+                {% endfor %}
+                {% else %}
+                <!-- Default video consultation card if none exists -->
+                {% set practice_index = 'video_0' %}
+                {% set appointment_type = 'video' %}
+                {% set practice_name = 'Video Consultation' %}
+                {% set practice_data = {} %}
+                {% include 'doctors/_practice_card_standalone.html' %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize practice counters from data attributes
+    const container = document.querySelector('.profile-edit-container');
+    let physicalPracticeCounter = parseInt(container.getAttribute('data-physical-count')) || 0;
+    let videoPracticeCounter = parseInt(container.getAttribute('data-video-count')) || 0;
+
+    // Toggle sections based on checkbox state
+    function togglePhysicalSection() {
+        const checkbox = document.getElementById('offers_physical');
+        const section = document.getElementById('physical-appointments-section');
+        if (checkbox.checked) {
+            section.style.display = 'block';
+        } else {
+            section.style.display = 'none';
+        }
+    }
+
+    function toggleVideoSection() {
+        const checkbox = document.getElementById('offers_video');
+        const section = document.getElementById('video-consultations-section');
+        if (checkbox.checked) {
+            section.style.display = 'block';
+        } else {
+            section.style.display = 'none';
+        }
+    }
+
+    function generateSlotsFromRange(startTime, endTime, duration) {
+        if (!startTime || !endTime || !duration) {
+            return [];
+        }
+
+        const slots = [];
+        const [startHour, startMin] = startTime.split(':').map(Number);
+        const [endHour, endMin] = endTime.split(':').map(Number);
+
+        let currentMin = startHour * 60 + startMin;
+        const endMinTotal = endHour * 60 + endMin;
+
+        while (currentMin + duration <= endMinTotal) {
+            const hour = Math.floor(currentMin / 60);
+            const min = currentMin % 60;
+            slots.push(`${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`);
+            currentMin += duration;
+        }
+
+        return slots;
+    }
+
+    function formatTime(timeStr) {
+        if (!timeStr) return '';
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        const period = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+    }
+
+    function toggleDayInPractice(practiceIndex, day, appointmentType) {
+        const checkbox = document.getElementById(`practice_${practiceIndex}_${day}_enabled`);
+        const settings = document.getElementById(`practice_${practiceIndex}_${day}_settings`);
+        if (checkbox.checked) {
+            settings.style.display = 'block';
+            updatePracticeDayPreview(practiceIndex, day, appointmentType);
+        } else {
+            settings.style.display = 'none';
+        }
+    }
+
+    function updatePracticeDayPreview(practiceIndex, day, appointmentType) {
+        const startInput = document.querySelector(`input[name="practice_${practiceIndex}_${day}_start_time"]`);
+        const endInput = document.querySelector(`input[name="practice_${practiceIndex}_${day}_end_time"]`);
+        const durationInput = document.querySelector(`input[name="practice_${practiceIndex}_${day}_duration"]`);
+        const preview = document.getElementById(`practice_${practiceIndex}_${day}_preview`);
+
+        // For video consultations, no preview is shown
+        if (appointmentType === 'video' || !preview) return;
+
+        if (!startInput || !endInput) return;
+
+        const startTime = startInput.value;
+        const endTime = endInput.value;
+
+        // Video and physical appointments use 30-minute slot intervals
+        const duration = (appointmentType === 'video') ? 30 : (durationInput ? parseInt(durationInput.value) || 30 : 30);
+
+        if (startTime && endTime && duration) {
+            const slots = generateSlotsFromRange(startTime, endTime, duration);
+            if (slots.length > 0) {
+                const startFormatted = formatTime(startTime);
+                const endFormatted = formatTime(endTime);
+
+                if (appointmentType === 'video') {
+                    // For video, don't show preview
+                    preview.innerHTML = '';
+                } else {
+                    // For physical, show time range and slot count
+                    preview.innerHTML = `<strong>Available Time Range:</strong> ${startFormatted} - ${endFormatted} <strong>(${slots.length} appointment slots)</strong>`;
+                }
+                preview.style.color = '#198754';
+                preview.classList.remove('text-danger');
+                preview.classList.add('text-success');
+            } else {
+                preview.innerHTML = '<strong>Error:</strong> Invalid time range. Please check your settings.';
+                preview.style.color = '#dc3545';
+                preview.classList.remove('text-success');
+                preview.classList.add('text-danger');
+            }
+        } else {
+            preview.innerHTML = '';
+        }
+    }
+
+    function addPractice(type) {
+        const container = type === 'video'
+            ? document.getElementById('video-practices-container')
+            : document.getElementById('physical-practices-container');
+
+        const checkbox = type === 'video'
+            ? document.getElementById('offers_video')
+            : document.getElementById('offers_physical');
+
+        const section = type === 'video'
+            ? document.getElementById('video-consultations-section')
+            : document.getElementById('physical-appointments-section');
+
+        if (!container || !checkbox || !section) {
+            console.error('Required elements not found for type:', type);
+            return;
+        }
+
+        if (!checkbox.checked) {
+            checkbox.checked = true;
+            section.style.display = 'block';
+        }
+
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        let practiceIndex;
+        if (type === 'video') {
+            practiceIndex = 'video_' + videoPracticeCounter++;
+        } else {
+            practiceIndex = 'physical_' + physicalPracticeCounter++;
+        }
+
+        let daysHtml = '';
+        days.forEach(day => {
+            daysHtml += `
+            <div class="col-md-12 mb-2">
+                <div class="border rounded p-2">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" 
+                               name="practice_${practiceIndex}_${day}_enabled" 
+                               id="practice_${practiceIndex}_${day}_enabled"
+                               onchange="toggleDayInPractice('${practiceIndex}', '${day}', '${type}')">
+                        <label class="form-check-label fw-bold" for="practice_${practiceIndex}_${day}_enabled" style="cursor: pointer;">
+                            ${day.charAt(0).toUpperCase() + day.slice(1)}
+                        </label>
+                    </div>
+                    <div id="practice_${practiceIndex}_${day}_settings" style="display: none;">
+                        <div class="mb-2">
+                            <label class="form-label small fw-bold">Start Time</label>
+                            <input type="time" class="form-control" 
+                                   name="practice_${practiceIndex}_${day}_start_time" 
+                                   onchange="updatePracticeDayPreview('${practiceIndex}', '${day}', '${type}')">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small fw-bold">End Time</label>
+                            <input type="time" class="form-control" 
+                                   name="practice_${practiceIndex}_${day}_end_time" 
+                                   onchange="updatePracticeDayPreview('${practiceIndex}', '${day}', '${type}')">
+                        </div>
+                        ${type === 'physical' ? `
+                        <div class="mb-2">
+                            <label class="form-label small fw-bold">Appointment Duration (minutes)</label>
+                            <input type="number" class="form-control" 
+                                   name="practice_${practiceIndex}_${day}_duration" 
+                                   value="30" 
+                                   min="15" max="120" step="15" 
+                                   placeholder="e.g., 30"
+                                   onchange="updatePracticeDayPreview('${practiceIndex}', '${day}', '${type}')">
+                        </div>
+                        ` : `
+                        <input type="hidden" name="practice_${practiceIndex}_${day}_duration" value="30">
+                        `}
+                        ${type === 'physical' ? `
+                        <div class="mt-2">
+                            <div id="practice_${practiceIndex}_${day}_preview" class="small text-muted"></div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+        });
+
+        const practiceCard = document.createElement('div');
+        practiceCard.className = 'practice-card card mb-4 border';
+        practiceCard.setAttribute('data-practice-index', practiceIndex);
+        practiceCard.setAttribute('data-appointment-type', type);
+
+        const locationField = type === 'video'
+            ? `            <div class="col-md-12">
+                <label class="form-label">Video Consultation Fee (PKR)</label>
+                <input type="number" class="form-control" 
+                       name="practice_video_price" 
+                       step="0.01" min="0" placeholder="e.g., 1200">
+                <input type="hidden" name="practice_physical_price" value="">
+                <input type="hidden" name="practice_location" value="Online">
+            </div>`
+            : `<div class="col-md-12">
+                <label class="form-label">Hospital/Institute Name</label>
+                <input type="text" class="form-control" 
+                       name="practice_name" 
+                       placeholder="e.g., Al-Shifa Pain Control Centre">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Location/Area</label>
+                <input type="text" class="form-control" 
+                       name="practice_location" 
+                       placeholder="e.g., Cantt, Gujranwala">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Physical Appointment Fee (PKR)</label>
+                <input type="number" class="form-control" 
+                       name="practice_physical_price" 
+                       step="0.01" min="0" placeholder="e.g., 1500">
+                <input type="hidden" name="practice_video_price" value="">
+            </div>
+            </div>`;
+
+        const headerTitle = type === 'video' ? 'Video Consultation' : 'Physical Practice';
+
+        practiceCard.innerHTML = `
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <div class="flex-grow-1">
+                <strong style="font-size: 1.25rem;">${headerTitle}</strong>
+            </div>
+            <button type="button" class="btn btn-light btn-sm ms-2" onclick="removePractice(this)">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="card-body practice-view-mode" style="display: none;">
+            <div class="text-center text-muted py-4">
+                No data saved yet. Click Edit to add information.
+            </div>
+            <div class="d-flex justify-content-end">
+                <button type="button" class="btn btn-primary" onclick="editPractice('${practiceIndex}')">
+                    <i class="fas fa-edit me-2"></i>Edit
+                </button>
+            </div>
+        </div>
+        <div class="card-body practice-edit-mode">
+            <div class="row g-3 mb-3">
+                ${locationField}
+            </div>
+            <hr>
+            <h6 class="mb-3">Available Timings</h6>
+            <div class="row g-2">
+                ${daysHtml}
+            </div>
+            <hr class="my-3">
+            <div class="d-flex justify-content-end">
+                <button type="button" class="btn btn-primary" onclick="savePractice('${practiceIndex}', '${type}')">
+                    <i class="fas fa-save me-2"></i>Save Changes
+                </button>
+            </div>
+        </div>
+    `;
+
+        container.appendChild(practiceCard);
+    }
+
+    function removePractice(button) {
+        const practiceCard = button.closest('.practice-card');
+        const practiceIndex = practiceCard.getAttribute('data-practice-index');
+
+        if (confirm('Are you sure you want to remove this practice? All timings for this practice will be deleted.')) {
+            // If it's an existing practice (has data-practice-id), delete from server
+            const practiceId = practiceCard.getAttribute('data-practice-id');
+            if (practiceId) {
+                deletePracticeFromServer(practiceId);
+            }
+            practiceCard.remove();
+        }
+    }
+
+    function savePractice(practiceIndex, type) {
+        const practiceCard = document.querySelector(`.practice-card[data-practice-index="${practiceIndex}"]`);
+        if (!practiceCard) return;
+
+        const practiceId = practiceCard.getAttribute('data-practice-id'); // For existing practices
+
+        // Collect form data
+        const formData = new FormData();
+        formData.append('practice_index', practiceIndex);
+        formData.append('practice_type', type);
+        formData.append('practice_id', practiceId || '');
+
+        // Get practice details
+        const practiceName = practiceCard.querySelector('input[name="practice_name"]');
+        const practiceLocation = practiceCard.querySelector('input[name="practice_location"]');
+        const physicalPrice = practiceCard.querySelector('input[name="practice_physical_price"]');
+        const videoPrice = practiceCard.querySelector('input[name="practice_video_price"]');
+
+        if (practiceName) formData.append('practice_name', practiceName.value);
+        if (practiceLocation) formData.append('practice_location', practiceLocation.value);
+        if (physicalPrice) formData.append('physical_price', physicalPrice.value);
+        if (videoPrice) formData.append('video_price', videoPrice.value);
+
+        // Get days data
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        days.forEach(day => {
+            const enabled = practiceCard.querySelector(`#practice_${practiceIndex}_${day}_enabled`);
+            if (enabled && enabled.checked) {
+                formData.append(`days[${day}][enabled]`, 'on');
+                const startTime = practiceCard.querySelector(`input[name="practice_${practiceIndex}_${day}_start_time"]`);
+                const endTime = practiceCard.querySelector(`input[name="practice_${practiceIndex}_${day}_end_time"]`);
+                const duration = practiceCard.querySelector(`input[name="practice_${practiceIndex}_${day}_duration"]`);
+
+                if (startTime) formData.append(`days[${day}][start_time]`, startTime.value);
+                if (endTime) formData.append(`days[${day}][end_time]`, endTime.value);
+
+                // Video consultations use a fixed 30-minute slot interval (stored in hidden input)
+                // For physical, use the input value
+                if (duration) {
+                    formData.append(`days[${day}][duration]`, duration.value);
+                } else {
+                    formData.append(`days[${day}][duration]`, '30');
+                }
+            }
+        });
+
+        // Show loading state
+        const saveButton = practiceCard.querySelector('button[onclick*="savePractice"]');
+        const originalText = saveButton.innerHTML;
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+
+        // Send to server
+        fetch('{{ url_for("doctors.save_practice") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update practice ID if it's a new practice
+                    if (!practiceId && data.practice_id) {
+                        practiceCard.setAttribute('data-practice-id', data.practice_id);
+                    }
+                    // Switch to view mode
+                    switchToViewMode(practiceCard, data.practice_data);
+                } else {
+                    // Show error message
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-danger alert-dismissible fade show mt-2';
+                    alertDiv.innerHTML = `
+                <strong>Error!</strong> ${data.message || 'Failed to save practice'}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+                    practiceCard.querySelector('.practice-edit-mode').appendChild(alertDiv);
+                    saveButton.disabled = false;
+                    saveButton.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Show error message
+                saveButton.disabled = false;
+                saveButton.innerHTML = originalText;
+            });
+    }
+
+    function editPractice(practiceIndex) {
+        const practiceCard = document.querySelector(`.practice-card[data-practice-index="${practiceIndex}"]`);
+        if (!practiceCard) return;
+
+        // Hide view mode, show edit mode
+        const viewMode = practiceCard.querySelector('.practice-view-mode');
+        const editMode = practiceCard.querySelector('.practice-edit-mode');
+
+        if (viewMode) viewMode.style.display = 'none';
+        if (editMode) editMode.style.display = 'block';
+
+        practiceCard.setAttribute('data-edit-mode', 'true');
+    }
+
+    function switchToViewMode(practiceCard, practiceData) {
+        // Switch to view mode - reload page to show updated data
+        practiceCard.setAttribute('data-edit-mode', 'false');
+        setTimeout(() => window.location.reload(), 500);
+    }
+
+    function deletePracticeFromServer(practiceId) {
+        fetch('{{ url_for("doctors.delete_practice") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ practice_id: practiceId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    flash('Practice deleted successfully!', 'success');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+    // Initialize previews for existing practices and toggle sections
+    document.addEventListener('DOMContentLoaded', function () {
+        togglePhysicalSection();
+        toggleVideoSection();
+
+        const practiceCards = document.querySelectorAll('.practice-card');
+        practiceCards.forEach(card => {
+            const practiceIndex = card.getAttribute('data-practice-index');
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+            days.forEach(day => {
+                const checkbox = document.getElementById(`practice_${practiceIndex}_${day}_enabled`);
+                if (checkbox && checkbox.checked) {
+                    updatePracticeDayPreview(practiceIndex, day);
+                }
+            });
+        });
+
+        // Initialize counters based on existing practices
+        const physicalCards = document.querySelectorAll('#physical-practices-container .practice-card');
+        const videoCards = document.querySelectorAll('#video-practices-container .practice-card');
+
+        if (physicalCards.length > 0) {
+            const indices = Array.from(physicalCards).map(card => {
+                const idx = card.getAttribute('data-practice-index');
+                const match = idx ? idx.match(/physical_(\d+)/) : null;
+                return match ? parseInt(match[1]) : -1;
+            }).filter(i => i >= 0);
+            if (indices.length > 0) {
+                physicalPracticeCounter = Math.max(...indices) + 1;
+            }
+        }
+
+        if (videoCards.length > 0) {
+            const indices = Array.from(videoCards).map(card => {
+                const idx = card.getAttribute('data-practice-index');
+                const match = idx ? idx.match(/video_(\d+)/) : null;
+                return match ? parseInt(match[1]) : -1;
+            }).filter(i => i >= 0);
+            if (indices.length > 0) {
+                videoPracticeCounter = Math.max(...indices) + 1;
+            }
+        }
+    });
+</script>
+{% endblock %}

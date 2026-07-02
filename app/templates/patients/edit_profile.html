@@ -1,0 +1,747 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile - Quick Care Connect{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-edit-container {
+        background: #f8f9fa;
+        padding: 2rem 0;
+        min-height: calc(100vh - 200px);
+    }
+
+    .edit-profile-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 15px 15px;
+    }
+
+    .form-section {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08),
+                    0 1px 3px rgba(0, 0, 0, 0.05),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 3px solid #10b981;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-title i {
+        color: #10b981;
+    }
+
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 12px;
+        padding: 0.75rem;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25);
+    }
+
+    .form-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+
+    .alert-profile-incomplete {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .alert-profile-incomplete h6 {
+        color: #856404;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+
+    .alert-profile-incomplete ul {
+        margin-bottom: 0;
+        padding-left: 1.5rem;
+    }
+
+    .alert-profile-incomplete li {
+        color: #856404;
+    }
+
+    .btn-action {
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary-action {
+        background: rgba(16, 185, 129, 0.7);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(16, 185, 129, 0.5);
+        color: white;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-primary-action:hover {
+        background: rgba(16, 185, 129, 0.85);
+        border-color: rgba(16, 185, 129, 0.7);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        color: white;
+    }
+
+    .btn-primary-action:focus,
+    .btn-primary-action:active {
+        background: rgba(5, 150, 105, 0.9) !important;
+        border-color: rgba(5, 150, 105, 0.8) !important;
+        color: white !important;
+        box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.5),
+                    0 2px 8px rgba(16, 185, 129, 0.5) !important;
+    }
+
+    .btn-primary-action:disabled {
+        background: rgba(16, 185, 129, 0.4) !important;
+        border-color: rgba(16, 185, 129, 0.3) !important;
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* Date Input Calendar Icon Styling */
+    .date-input-wrapper {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .date-input-wrapper input[type="date"] {
+        padding-right: 45px !important; /* Space for calendar icon */
+        width: 100%;
+    }
+
+    /* Custom Calendar Icon */
+    .date-calendar-icon {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: #6c757d;
+        font-size: 1.1rem;
+        z-index: 2;
+    }
+
+    .date-input-wrapper:hover .date-calendar-icon {
+        color: #495057;
+    }
+
+    .date-input-wrapper input[type="date"]:focus + .date-calendar-icon {
+        color: #10b981;
+    }
+
+    /* WebKit browsers (Chrome, Safari, Edge) - Hide native icon and use custom */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+        opacity: 0;
+        z-index: 3;
+    }
+
+    /* Firefox - Ensure native icon doesn't conflict */
+    @-moz-document url-prefix() {
+        .date-input-wrapper input[type="date"] {
+            padding-right: 45px !important;
+        }
+    }
+
+    /* Phone Number Input Group Styling */
+    .input-group-text {
+        background-color: #e9ecef;
+        border-right: none;
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .phone-input-field {
+        border-left: none;
+    }
+
+    .input-group:focus-within .input-group-text {
+        border-color: #10b981;
+        box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25);
+    }
+
+    .input-group:focus-within .phone-input-field {
+        border-left: 1px solid #dee2e6;
+        border-color: #10b981;
+        box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-edit-container">
+    <div class="edit-profile-header">
+        <div class="container">
+            <h2 class="mb-0">
+                <i class="fas fa-user-edit me-2"></i>Edit Profile
+            </h2>
+            <p class="mb-0 mt-2">Update your profile information</p>
+        </div>
+    </div>
+
+    <div class="container">
+        {% if profile_incomplete %}
+        <div class="alert-profile-incomplete">
+            <h6>
+                <i class="fas fa-exclamation-triangle me-2"></i>Complete Your Profile
+            </h6>
+            <p class="mb-2">To access all features like booking appointments and posting questions, please complete the following required fields:</p>
+            <ul class="mb-0">
+                <li>Date of Birth</li>
+                <li>Gender</li>
+                <li>Emergency Contact Number</li>
+                <li>Blood Group</li>
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{{ 'exclamation-circle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('patients.edit_profile') }}" enctype="multipart/form-data">
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-user"></i>Basic Information
+                </h3>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="name" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="{{ patient.user.name }}" required>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="phone" class="form-label">Phone Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">+92</span>
+                            <input type="tel" class="form-control phone-input-field" id="phone" name="phone" 
+                                   value="{% if patient.user.phone %}{% if patient.user.phone.startswith('+92') %}{{ patient.user.phone[3:] }}{% else %}{{ patient.user.phone }}{% endif %}{% endif %}" 
+                                   placeholder="3001234567" 
+                                   maxlength="10" 
+                                   autocomplete="off"
+                                   required>
+                        </div>
+                        <small class="form-text">Enter 10-digit mobile number (e.g., 3001234567)</small>
+                    </div>
+                </div>
+
+                <!-- Profile Picture Upload Section -->
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="profile_picture" class="form-label">Profile Picture</label>
+                        <div class="d-flex align-items-center gap-4">
+                            <div class="profile-picture-preview-container position-relative">
+                                <div id="profile-picture-display" class="rounded-circle overflow-hidden position-relative" 
+                                     style="width: 120px; height: 120px; border: 3px solid #10b981;">
+                                    <img id="profile-picture-img" 
+                                         {% if patient.user.profile_picture %}
+                                         src="{{ url_for('static', filename='uploads/' + patient.user.profile_picture) }}" 
+                                         data-original-src="{{ url_for('static', filename='uploads/' + patient.user.profile_picture) }}"
+                                         style="width: 100%; height: 100%; object-fit: cover; display: block;"
+                                         {% else %}
+                                         src="" 
+                                         data-original-src=""
+                                         style="width: 100%; height: 100%; object-fit: cover; display: none;"
+                                         {% endif %}
+                                         alt="Profile Picture">
+                                    <div id="profile-picture-placeholder" class="d-flex align-items-center justify-content-center bg-light h-100 w-100 position-absolute top-0 start-0 {% if patient.user.profile_picture %}d-none{% else %}d-flex{% endif %}">
+                                        <i class="fas fa-user fa-3x text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <input type="file" class="form-control" id="profile_picture" name="profile_picture" 
+                                       accept="image/jpeg,image/jpg,image/png" 
+                                       onchange="previewProfilePicture(this)">
+                                <small class="form-text d-block mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>Upload your profile picture (JPG, PNG - Max 5MB). Optional but recommended.
+                                </small>
+                                {% if patient.user.profile_picture %}
+                                <small class="text-success d-block mt-1">
+                                    <i class="fas fa-check-circle me-1"></i>Current profile picture will be replaced
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="date_of_birth" class="form-label required-field">Date of Birth</label>
+                        <div class="date-input-wrapper">
+                            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" 
+                                   value="{% if patient.user.date_of_birth %}{{ patient.user.date_of_birth.strftime('%Y-%m-%d') }}{% endif %}" 
+                                   {% if today %}max="{{ today.strftime('%Y-%m-%d') }}"{% endif %}
+                                   autocomplete="off"
+                                   required>
+                            <i class="fas fa-calendar-alt date-calendar-icon" id="date-calendar-icon"></i>
+                        </div>
+                        <small class="form-text">
+                            Required field - Click to select your date of birth
+                        </small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="gender" class="form-label required-field">Gender</label>
+                        <select class="form-select" id="gender" name="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="male" {% if patient.user.gender == 'male' %}selected{% endif %}>Male</option>
+                            <option value="female" {% if patient.user.gender == 'female' %}selected{% endif %}>Female</option>
+                            <option value="other" {% if patient.user.gender == 'other' %}selected{% endif %}>Other</option>
+                        </select>
+                        <small class="form-text">Required field - Please select your gender</small>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Emergency Information -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-phone-alt"></i>Emergency Contact Information
+                </h3>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="emergency_contact" class="form-label required-field">Emergency Contact Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">+92</span>
+                            <input type="tel" class="form-control phone-input-field" id="emergency_contact" name="emergency_contact" 
+                                   value="{% if patient.emergency_contact %}{% if patient.emergency_contact.startswith('+92') %}{{ patient.emergency_contact[3:] }}{% else %}{{ patient.emergency_contact }}{% endif %}{% endif %}" 
+                                   placeholder="3001234567" 
+                                   maxlength="10" 
+                                   autocomplete="off"
+                                   required>
+                        </div>
+                        <small class="form-text">Enter 10-digit mobile number (e.g., 3001234567)</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="emergency_relation" class="form-label">Relationship with Emergency Contact</label>
+                        <select class="form-select" id="emergency_relation" name="emergency_relation">
+                            <option value="">Select Relation</option>
+                            <option value="father" {% if patient.emergency_relation == 'father' %}selected{% endif %}>Father</option>
+                            <option value="mother" {% if patient.emergency_relation == 'mother' %}selected{% endif %}>Mother</option>
+                            <option value="spouse" {% if patient.emergency_relation == 'spouse' %}selected{% endif %}>Spouse</option>
+                            <option value="brother" {% if patient.emergency_relation == 'brother' %}selected{% endif %}>Brother</option>
+                            <option value="sister" {% if patient.emergency_relation == 'sister' %}selected{% endif %}>Sister</option>
+                            <option value="son" {% if patient.emergency_relation == 'son' %}selected{% endif %}>Son</option>
+                            <option value="daughter" {% if patient.emergency_relation == 'daughter' %}selected{% endif %}>Daughter</option>
+                            <option value="friend" {% if patient.emergency_relation == 'friend' %}selected{% endif %}>Friend</option>
+                            <option value="other" {% if patient.emergency_relation == 'other' %}selected{% endif %}>Other</option>
+                        </select>
+                        <small class="form-text">Optional - Your relationship with the emergency contact</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Medical Information -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-heartbeat"></i>Medical Information
+                </h3>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="blood_group" class="form-label required-field">Blood Group</label>
+                        <select class="form-select" id="blood_group" name="blood_group" required>
+                            <option value="">Select Blood Group</option>
+                            <option value="A+" {% if patient.blood_group == 'A+' %}selected{% endif %}>A+</option>
+                            <option value="A-" {% if patient.blood_group == 'A-' %}selected{% endif %}>A-</option>
+                            <option value="B+" {% if patient.blood_group == 'B+' %}selected{% endif %}>B+</option>
+                            <option value="B-" {% if patient.blood_group == 'B-' %}selected{% endif %}>B-</option>
+                            <option value="AB+" {% if patient.blood_group == 'AB+' %}selected{% endif %}>AB+</option>
+                            <option value="AB-" {% if patient.blood_group == 'AB-' %}selected{% endif %}>AB-</option>
+                            <option value="O+" {% if patient.blood_group == 'O+' %}selected{% endif %}>O+</option>
+                            <option value="O-" {% if patient.blood_group == 'O-' %}selected{% endif %}>O-</option>
+                        </select>
+                        <small class="form-text">Required field - Please select your blood group</small>
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+                        <label for="allergies" class="form-label">Allergies</label>
+                        <textarea class="form-control" id="allergies" name="allergies" rows="3" 
+                                  placeholder="List any allergies you have (e.g., Penicillin, Dust, Pollen)">{% if patient.allergies %}{{ patient.allergies }}{% endif %}</textarea>
+                        <small class="form-text">If you have any allergies, please list them here (Optional)</small>
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+                        <label for="medical_history" class="form-label">Medical History</label>
+                        <textarea class="form-control" id="medical_history" name="medical_history" rows="4" 
+                                  placeholder="Describe any previous medical conditions, surgeries, or chronic illnesses">{% if patient.medical_history %}{{ patient.medical_history }}{% endif %}</textarea>
+                        <small class="form-text">Optional - Describe any relevant medical history</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CNIC Document Upload -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-id-card"></i>CNIC Documents
+                </h3>
+                <p class="text-muted mb-3">Upload clear images of your CNIC (National Identity Card) for verification purposes.</p>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="cnic_front" class="form-label">CNIC Front Image</label>
+                        <input type="file" class="form-control" id="cnic_front" name="cnic_front" 
+                               accept="image/jpeg,image/jpg,image/png">
+                        <small class="form-text">Upload clear image of CNIC front side (JPG, PNG)</small>
+                        {% if patient.cnic_front_image %}
+                        <div class="mt-2">
+                            <small class="text-success">
+                                <i class="fas fa-check-circle me-1"></i>Current CNIC front image uploaded
+                            </small>
+                            <br>
+                            <img src="{{ url_for('static', filename='uploads/' + patient.cnic_front_image) }}" 
+                                 alt="CNIC Front" class="img-thumbnail mt-2" 
+                                 style="max-width: 200px; max-height: 200px;">
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="cnic_back" class="form-label">CNIC Back Image</label>
+                        <input type="file" class="form-control" id="cnic_back" name="cnic_back" 
+                               accept="image/jpeg,image/jpg,image/png">
+                        <small class="form-text">Upload clear image of CNIC back side (JPG, PNG)</small>
+                        {% if patient.cnic_back_image %}
+                        <div class="mt-2">
+                            <small class="text-success">
+                                <i class="fas fa-check-circle me-1"></i>Current CNIC back image uploaded
+                            </small>
+                            <br>
+                            <img src="{{ url_for('static', filename='uploads/' + patient.cnic_back_image) }}" 
+                                 alt="CNIC Back" class="img-thumbnail mt-2" 
+                                 style="max-width: 200px; max-height: 200px;">
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-section">
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{{ url_for('patients.profile') }}" class="btn btn-outline-secondary btn-action">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary-action btn-action">
+                        <i class="fas fa-save me-2"></i>Save Changes
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-hide flash messages after 5 seconds
+    setTimeout(function() {
+        var alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            var bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
+
+    // Form validation on submit
+    document.querySelector('form')?.addEventListener('submit', function(e) {
+        var requiredFields = this.querySelectorAll('[required]');
+        var isValid = true;
+
+        requiredFields.forEach(function(field) {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields (marked with *)');
+        }
+    });
+
+    // Remove invalid class on input
+    document.querySelectorAll('input, select, textarea').forEach(function(field) {
+        field.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+        });
+    });
+
+    // Profile Picture Preview Function (defined globally for inline onchange)
+    window.previewProfilePicture = function(input) {
+        const file = input.files[0];
+        const profilePictureImg = document.getElementById('profile-picture-img');
+        const profilePicturePlaceholder = document.getElementById('profile-picture-placeholder');
+        
+        if (!profilePictureImg) {
+            console.error('Profile picture image element not found');
+            return;
+        }
+        
+        if (file) {
+            // Check file type
+            if (!file.type.match('image.*')) {
+                alert('Please select a valid image file (JPG, PNG).');
+                input.value = '';
+                return;
+            }
+            
+            // Check file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Image size should be less than 5MB. Please choose a smaller image.');
+                input.value = '';
+                return;
+            }
+            
+            // Create FileReader to preview image
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                // Update the image source - this replaces the existing image/placeholder
+                profilePictureImg.src = event.target.result;
+                profilePictureImg.style.display = 'block';
+                profilePictureImg.style.width = '100%';
+                profilePictureImg.style.height = '100%';
+                profilePictureImg.style.objectFit = 'cover';
+                
+                // Hide the placeholder icon
+                if (profilePicturePlaceholder) {
+                    profilePicturePlaceholder.style.display = 'none';
+                }
+                
+                // Force browser to update the image
+                profilePictureImg.onload = function() {
+                    // Image loaded successfully
+                };
+            };
+            
+            reader.onerror = function() {
+                alert('Error reading image file. Please try again.');
+                input.value = '';
+            };
+            
+            reader.readAsDataURL(file);
+        } else {
+            // No file selected - restore original state
+            const originalSrc = profilePictureImg.getAttribute('data-original-src');
+            if (originalSrc && originalSrc !== '') {
+                // If there was an original image, restore it
+                profilePictureImg.src = originalSrc;
+                profilePictureImg.style.display = 'block';
+                if (profilePicturePlaceholder) {
+                    profilePicturePlaceholder.style.display = 'none';
+                }
+            } else {
+                // If no original image, show placeholder
+                profilePictureImg.style.display = 'none';
+                if (profilePicturePlaceholder) {
+                    profilePicturePlaceholder.style.display = 'flex';
+                }
+            }
+        }
+    }
+    
+    // Date of Birth Input - Date picker validation and calendar icon
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateOfBirthField = document.getElementById('date_of_birth');
+        const dateCalendarIcon = document.getElementById('date-calendar-icon');
+        
+        if (dateOfBirthField) {
+            // Set max date to today (prevent future dates)
+            const today = new Date();
+            const maxDate = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+            dateOfBirthField.setAttribute('max', maxDate);
+            
+            // Set a reasonable min date (e.g., 120 years ago)
+            const minDate = new Date();
+            minDate.setFullYear(today.getFullYear() - 120);
+            dateOfBirthField.setAttribute('min', minDate.toISOString().split('T')[0]);
+            
+            // Add validation on change
+            dateOfBirthField.addEventListener('change', function() {
+                if (this.value) {
+                    const selectedDate = new Date(this.value);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    if (selectedDate > today) {
+                        this.setCustomValidity('Date of birth cannot be in the future');
+                    } else {
+                        this.setCustomValidity('');
+                    }
+                }
+            });
+        }
+        
+        // Make calendar icon clickable to open date picker
+        if (dateCalendarIcon && dateOfBirthField) {
+            dateCalendarIcon.style.pointerEvents = 'auto';
+            dateCalendarIcon.style.cursor = 'pointer';
+            dateCalendarIcon.addEventListener('click', function() {
+                if (dateOfBirthField.showPicker) {
+                    dateOfBirthField.showPicker();
+                } else {
+                    dateOfBirthField.focus();
+                }
+            });
+        }
+    });
+    
+    // Phone Number Input Restrictions - Apply to both phone and emergency_contact fields
+    document.addEventListener('DOMContentLoaded', function() {
+        const phoneInput = document.getElementById('phone');
+        const emergencyContactInput = document.getElementById('emergency_contact');
+        const PREFIX = '+92';
+        
+        function applyPhoneRestrictions(inputField) {
+            if (!inputField) return;
+            
+            // Clean initial value - remove +92 prefix and non-digits (should already be done in template, but double-check)
+            let currentValue = inputField.value.trim();
+            if (currentValue.startsWith(PREFIX)) {
+                currentValue = currentValue.substring(3);
+            }
+            currentValue = currentValue.replace(/\D/g, '');
+            if (currentValue.length > 10) {
+                currentValue = currentValue.substring(0, 10);
+            }
+            inputField.value = currentValue;
+            
+            // Restrict input to numbers only
+            inputField.addEventListener('input', function(e) {
+                // Remove any non-digit characters
+                let value = this.value.replace(/\D/g, '');
+                
+                // Limit to 10 digits
+                if (value.length > 10) {
+                    value = value.substring(0, 10);
+                }
+                
+                // Update the field value (only numbers)
+                this.value = value;
+            });
+            
+            // Prevent non-numeric input on keypress
+            inputField.addEventListener('keypress', function(e) {
+                // Allow: backspace, delete, tab, escape, enter
+                if ([46, 8, 9, 27, 13, 110, 190].indexOf(e.keyCode) !== -1 ||
+                    // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                    (e.keyCode === 65 && e.ctrlKey === true) ||
+                    (e.keyCode === 67 && e.ctrlKey === true) ||
+                    (e.keyCode === 86 && e.ctrlKey === true) ||
+                    (e.keyCode === 88 && e.ctrlKey === true) ||
+                    // Allow: home, end, left, right
+                    (e.keyCode >= 35 && e.keyCode <= 39)) {
+                    return;
+                }
+                // Ensure that it is a number and stop the keypress
+                if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                    e.preventDefault();
+                }
+            });
+        }
+        
+        // Apply restrictions
+        if (phoneInput) {
+            applyPhoneRestrictions(phoneInput);
+        }
+        
+        if (emergencyContactInput) {
+            applyPhoneRestrictions(emergencyContactInput);
+        }
+        
+        // On form submit, prepend +92 to both phone values
+        const form = document.querySelector('form[action*="edit_profile"]');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (phoneInput) {
+                    const phoneValue = phoneInput.value.trim();
+                    if (phoneValue && !phoneValue.startsWith(PREFIX)) {
+                        phoneInput.value = PREFIX + phoneValue;
+                    }
+                }
+                if (emergencyContactInput) {
+                    const emergencyValue = emergencyContactInput.value.trim();
+                    if (emergencyValue && !emergencyValue.startsWith(PREFIX)) {
+                        emergencyContactInput.value = PREFIX + emergencyValue;
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+

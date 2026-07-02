@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Payment flow log - Quick Care Connect{% endblock %}
+{% block content %}
+<div class="container-fluid px-2 px-md-3 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0"><i class="fas fa-exchange-alt me-2"></i>Payment flow log</h2>
+        <a href="{{ url_for('admin.accounts') }}" class="btn btn-outline-secondary btn-sm">Accounts</a>
+    </div>
+    <div class="card qc-admin-card border-0 shadow-sm rounded-4">
+        <div class="card-body p-0">
+            {% if pagination.items %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Appt</th>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Amount</th>
+                            <th>Booked</th>
+                            <th>Approved</th>
+                            <th>Payment status</th>
+                            <th>Paid at</th>
+                            <th>Completed</th>
+                            <th>Doctor credited</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in pagination.items %}
+                        <tr>
+                            <td>#{{ a.id }}</td>
+                            <td>{{ a.patient.user.name if a.patient and a.patient.user else '-' }}</td>
+                            <td>{{ a.doctor.user.name if a.doctor and a.doctor.user else '-' }}</td>
+                            <td>PKR {{ "%.0f"|format(a.charges) }}</td>
+                            <td>{{ a.created_at.strftime('%d %b %Y %H:%M') if a.created_at else '-' }}</td>
+                            <td>{{ a.approved_at.strftime('%d %b %Y %H:%M') if a.approved_at else '-' }}</td>
+                            <td><span class="badge {% if a.payment_status == 'approved' %}bg-success{% elif a.payment_status == 'rejected' %}bg-danger{% else %}bg-warning{% endif %}">{{ a.payment_status }}</span></td>
+                            <td>{{ a.payment_approved_at.strftime('%d %b %Y %H:%M') if a.payment_approved_at else (a.payment_submitted_at.strftime('%d %b %Y %H:%M') if a.payment_submitted_at else '-') }}</td>
+                            <td>{{ a.completed_at.strftime('%d %b %Y %H:%M') if a.completed_at else '-' }}</td>
+                            <td>{{ a.doctor_earning_credited_at.strftime('%d %b %Y %H:%M') if a.doctor_earning_credited_at else 'Reserve' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if pagination.pages > 1 %}
+            <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
+                <span class="small text-muted">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('admin.accounts_payment_flow', page=pagination.prev_num) if pagination.has_prev else '#' }}">Prev</a>
+                        </li>
+                        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('admin.accounts_payment_flow', page=pagination.next_num) if pagination.has_next else '#' }}">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="text-center py-5 text-muted">No payment flow records yet.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

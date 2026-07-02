@@ -1,0 +1,15 @@
+[Unit]
+Description=QuickCare Gunicorn (Flask + Socket.IO)
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/var/www/quickcare
+EnvironmentFile=/var/www/quickcare/.env
+ExecStart=/var/www/quickcare/venv/bin/gunicorn -c deploy/gunicorn.conf.py wsgi:app
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

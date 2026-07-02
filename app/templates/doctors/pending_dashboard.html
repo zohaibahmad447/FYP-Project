@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Dashboard - Pending Approval{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Status Alert -->
+            {% if doctor.appeal_status == 'suspended' %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-ban me-3 fs-4"></i>
+                    <div>
+                        <h5 class="alert-heading mb-1">Account Suspended</h5>
+                        <p class="mb-2">Your account has been permanently suspended after 3 failed appeals. You cannot
+                            submit any more appeals.</p>
+                        {% if doctor.rejection_reason %}
+                        <div class="mt-3">
+                            <h6><strong>Final Rejection Reason:</strong></h6>
+                            <p class="mb-2">{{ doctor.rejection_reason }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% elif doctor.appeal_status == 'rejected' %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-times-circle me-3 fs-4"></i>
+                    <div>
+                        <h5 class="alert-heading mb-1">Registration Rejected</h5>
+                        <p class="mb-2">Your doctor registration has been rejected. You can submit an appeal with
+                            improvements.</p>
+                        {% if doctor.rejection_reason %}
+                        <div class="mt-3">
+                            <h6><strong>Rejection Reason:</strong></h6>
+                            <p class="mb-2">{{ doctor.rejection_reason }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-clock me-3 fs-4"></i>
+                    <div>
+                        <h5 class="alert-heading mb-1">Account Pending Approval</h5>
+                        <p class="mb-0">Your doctor account is currently under review by our admin team. You will be
+                            notified once your account is approved.</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Appeal Section (Only for rejected doctors) -->
+            {% if doctor.appeal_status == 'rejected' %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-gavel me-2"></i>Submit Appeal
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6>Appeal Information</h6>
+                            <p class="text-muted mb-3">
+                                Based on the rejection reason above, please make necessary improvements to your profile
+                                and documents, then submit an appeal for review.
+                            </p>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Appeal Count:</strong> {{ doctor.appeal_count }}
+                                <small class="text-muted">(You can submit up to 3 appeals)</small>
+                            </div>
+                            {% if doctor.appeal_status == 'suspended' %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-ban me-2"></i>
+                                <strong>Account Suspended:</strong> You have reached the maximum number of appeals. Your
+                                account is permanently suspended.
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                {% if doctor.appeal_status != 'suspended' and doctor.appeal_count < 3 %} <a
+                                    href="{{ url_for('doctors.edit_registration') }}" class="btn btn-danger btn-lg">
+                                    <i class="fas fa-edit me-2"></i>Edit & Submit Appeal
+                                    </a>
+                                    {% else %}
+                                    <button class="btn btn-secondary btn-lg" disabled>
+                                        <i class="fas fa-ban me-2"></i>Account Suspended
+                                    </button>
+                                    {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Profile Status Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-md me-2"></i>Profile Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    {% if doctor.is_approved %}
+                                    <i class="fas fa-check-circle text-success fs-3"></i>
+                                    {% else %}
+                                    <i class="fas fa-clock text-warning fs-3"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Approval Status</h6>
+                                    <span
+                                        class="badge {% if doctor.is_approved %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                        {% if doctor.is_approved %}Approved{% else %}Pending Review{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    {% if doctor.is_verified %}
+                                    <i class="fas fa-shield-alt text-success fs-3"></i>
+                                    {% else %}
+                                    <i class="fas fa-shield-alt text-secondary fs-3"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Verification Status</h6>
+                                    <span
+                                        class="badge {% if doctor.is_verified %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {% if doctor.is_verified %}Verified{% else %}Not Verified{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Information -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-id-card me-2"></i>Profile Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Full Name</label>
+                                <p class="mb-0 fw-bold">{{ doctor.user.name }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Email</label>
+                                <p class="mb-0">{{ doctor.user.email }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Phone</label>
+                                <p class="mb-0">{{ doctor.user.phone|format_phone }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Specialization</label>
+                                <p class="mb-0">{{ doctor.specialization }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Experience</label>
+                                <p class="mb-0">{{ doctor.experience }} years</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">PMC Code</label>
+                                <p class="mb-0">{{ doctor.pmc_code }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Location</label>
+                                <p class="mb-0">{{ doctor.city }}, {{ doctor.location }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All Actions -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tasks me-2"></i>All Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                <a href="{{ url_for('blogs.index') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-newspaper me-2"></i>Read Health Blogs
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                <a href="{{ url_for('qa.index') }}" class="btn btn-outline-info">
+                                    <i class="fas fa-question-circle me-2"></i>Browse Q&A Forum
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                <a href="{{ url_for('diseases.index') }}" class="btn btn-outline-success">
+                                    <i class="fas fa-book-medical me-2"></i>Disease Information
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary"
+                                    onclick="showRestrictionMessage('Create Blog Post')">
+                                    <i class="fas fa-edit me-2"></i>Create Blog Post
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-info"
+                                    onclick="showRestrictionMessage('Answer Q&A Questions')">
+                                    <i class="fas fa-reply me-2"></i>Answer Q&A Questions
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-success"
+                                    onclick="showRestrictionMessage('Manage Appointments')">
+                                    <i class="fas fa-calendar-check me-2"></i>Manage Appointments
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary"
+                                    onclick="showRestrictionMessage('Patient Chat')">
+                                    <i class="fas fa-comments me-2"></i>Patient Chat
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-info"
+                                    onclick="showRestrictionMessage('Service Settings')">
+                                    <i class="fas fa-cog me-2"></i>Service Settings
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-success"
+                                    onclick="showRestrictionMessage('Profile Editing')">
+                                    <i class="fas fa-user-edit me-2"></i>Profile Editing
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Restriction Message Modal -->
+
+<!-- Restriction Message Modal -->
+<div class="modal fade" id="restrictionModal" tabindex="-1" aria-labelledby="restrictionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="restrictionModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Access Restricted
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-lock text-warning" style="font-size: 3rem;"></i>
+                </div>
+                <h6 class="mb-3">This feature is not available yet</h6>
+                <p class="text-muted mb-3">
+                    <span id="featureName"></span> is currently restricted because your doctor account is pending admin
+                    approval.
+                </p>
+                <p class="text-muted mb-0">
+                    You will be able to access this feature once your account is approved by our admin team.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Understood</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showRestrictionMessage(featureName) {
+        document.getElementById('featureName').textContent = featureName;
+        var modal = new bootstrap.Modal(document.getElementById('restrictionModal'));
+        modal.show();
+    }
+</script>
+{% endblock %}

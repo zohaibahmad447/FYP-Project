@@ -1,0 +1,1183 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Registration - Doctor Appeal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Edit Registration & Submit Appeal
+                    </h4>
+                </div>
+            </div>
+
+            <!-- Registration Form -->
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('doctors.update_registration') }}" enctype="multipart/form-data" novalidate>
+                        {{ form.hidden_tag() }}
+                        <!-- Hidden role field for appeal forms (always doctor) -->
+                        <input type="hidden" name="role" value="doctor">
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-user me-2"></i>Basic Information
+                                </h5>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.name.label(class="form-label") }}
+                                {{ form.name(class="form-control") }}
+                                {% if form.name.errors %}
+                                    <div class="text-danger small mt-1">{% for error in form.name.errors %}{{ error }}{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.email.label(class="form-label") }}
+                                {{ form.email(class="form-control") }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small mt-1">{% for error in form.email.errors %}{{ error }}{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.phone.label(class="form-label") }}
+                                {{ form.phone(class="form-control") }}
+                                {% if form.phone.errors %}
+                                    <div class="text-danger small mt-1">{% for error in form.phone.errors %}{{ error }}{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.cnic.label(class="form-label") }}
+                                {{ form.cnic(class="form-control") }}
+                                {% if form.cnic.errors %}
+                                    <div class="text-danger small mt-1">{% for error in form.cnic.errors %}{{ error }}{% endfor %}</div>
+                                {% endif %}
+                                <small class="text-muted">Enter 13-digit CNIC number (e.g., 1234512345671)</small>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.date_of_birth.label(class="form-label") }}
+                                {{ form.date_of_birth(class="form-control") }}
+                                {% if form.date_of_birth.errors %}
+                                    <div class="text-danger small mt-1">{% for error in form.date_of_birth.errors %}{{ error }}{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.gender.label(class="form-label") }}
+                                {{ form.gender(class="form-select") }}
+                                {% if form.gender.errors %}
+                                    <div class="text-danger small mt-1">{% for error in form.gender.errors %}{{ error }}{% endfor %}</div>
+                                {% endif %}
+                            </div>
+
+                        </div>
+
+                        <!-- Professional Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-stethoscope me-2"></i>Professional Information
+                                </h5>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.category.label(class="form-label") }}
+                                {{ form.category(class="form-select") }}
+                                {% if form.category.errors %}
+                                    <div class="text-danger small mt-1">{% for error in form.category.errors %}{{ error }}{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.specialization.id }}" class="form-label">Specialization / Medical Category</label>
+                                <div class="position-relative">
+                                    {{ form.specialization(class="form-control", id="specialization-input-edit", autocomplete="off", autofill="off") }}
+                                    <div id="specialization-suggestions-edit" class="city-autocomplete-list" style="display: none;"></div>
+                                </div>
+                                {% if form.specialization.errors %}
+                                    <div class="text-danger small mt-1">{% for error in form.specialization.errors %}{{ error }}{% endfor %}</div>
+                                {% endif %}
+                                <small class="text-muted">Start typing specialization to see suggestions</small>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.experience.label(class="form-label") }}
+                                {{ form.experience(class="form-control") }}
+                                {% if form.experience.errors %}
+                                    <div class="text-danger small mt-1">{% for error in form.experience.errors %}{{ error }}{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.pmc_code.label(class="form-label") }}
+                                {{ form.pmc_code(class="form-control") }}
+                                {% if form.pmc_code.errors %}
+                                    <div class="text-danger small mt-1">{% for error in form.pmc_code.errors %}{{ error }}{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12">
+                                {{ form.education.label(class="form-label") }}
+                                {{ form.education(class="form-control", rows="3") }}
+                                {% if form.education.errors %}
+                                    <div class="text-danger small mt-1">{% for error in form.education.errors %}{{ error }}{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12">
+                                {{ form.bio.label(class="form-label") }}
+                                {{ form.bio(class="form-control", rows="3") }}
+                                {% if form.bio.errors %}
+                                    <div class="text-danger small mt-1">{% for error in form.bio.errors %}{{ error }}{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.city.label(class="form-label") }}
+                                <div class="position-relative">
+                                    {{ form.city(class="form-control", id="city-input-edit", autocomplete="off", autofill="off") }}
+                                    <div id="city-suggestions-edit" class="city-autocomplete-list" style="display: none;"></div>
+                                </div>
+                                {% if form.city.errors %}
+                                    <div class="text-danger small mt-1">{% for error in form.city.errors %}{{ error }}{% endfor %}</div>
+                                {% endif %}
+                                <small class="text-muted">Start typing city name to see suggestions</small>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.location.label(class="form-label") }}
+                                {{ form.location(class="form-control") }}
+                                {% if form.location.errors %}
+                                    <div class="text-danger small mt-1">{% for error in form.location.errors %}{{ error }}{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Document Uploads -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-file-upload me-2"></i>Document Uploads
+                                </h5>
+                                <p class="text-muted mb-3">
+                                    <i class="fas fa-info-circle me-1"></i>Your existing documents are shown below. Upload new files only if you want to replace them. Leave blank to keep existing documents.
+                                </p>
+                            </div>
+                            
+                            <!-- CNIC Upload with Existing Preview -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">CNIC Front Image</label>
+                                <div id="cnic-front-container">
+                                    {% if doctor.cnic_front_image %}
+                                    <div class="mb-3" id="cnic-front-preview-container">
+                                        <div class="card border">
+                                            <div class="card-body p-2">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <small class="text-muted"><i class="fas fa-check-circle text-success me-1"></i>Current Image</small>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeCNICFront()">
+                                                        <i class="fas fa-trash me-1"></i>Remove
+                                                    </button>
+                                                </div>
+                                                <img src="{{ url_for('static', filename='uploads/' + doctor.cnic_front_image) }}" 
+                                                     class="img-fluid border rounded cnic-preview-image" 
+                                                     style="max-height: 180px; width: 100%; object-fit: contain; background: #f8f9fa;"
+                                                     alt="CNIC Front"
+                                                     id="cnic-front-preview-img">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    <div id="cnic-front-upload" style="display: {% if doctor.cnic_front_image %}none{% else %}block{% endif %};">
+                                        {{ form.cnic_front(class="form-control", id="cnic-front-input", onchange="previewCNICFront(this)") }}
+                                        {% if form.cnic_front.errors %}
+                                            <div class="text-danger small mt-1">{% for error in form.cnic_front.errors %}{{ error }}{% endfor %}</div>
+                                        {% endif %}
+                                        <div id="cnic-front-new-preview" class="mt-2" style="display: none;">
+                                            <div class="card border">
+                                                <div class="card-body p-2">
+                                                    <small class="text-muted d-block mb-2"><i class="fas fa-image text-info me-1"></i>New Image Preview</small>
+                                                    <img id="cnic-front-new-preview-img" src="" class="img-fluid border rounded cnic-preview-image" 
+                                                         style="max-height: 180px; width: 100%; object-fit: contain; background: #f8f9fa;"
+                                                         alt="New CNIC Front">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="remove_cnic_front" id="remove-cnic-front" value="0">
+                                <small class="text-muted d-block mt-2">
+                                    {% if doctor.cnic_front_image %}
+                                        Click "Remove" to replace with new image. Selected image will be shown in preview.
+                                    {% else %}
+                                        Upload CNIC front image. Preview will be shown after selection.
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">CNIC Back Image</label>
+                                <div id="cnic-back-container">
+                                    {% if doctor.cnic_back_image %}
+                                    <div class="mb-3" id="cnic-back-preview-container">
+                                        <div class="card border">
+                                            <div class="card-body p-2">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <small class="text-muted"><i class="fas fa-check-circle text-success me-1"></i>Current Image</small>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeCNICBack()">
+                                                        <i class="fas fa-trash me-1"></i>Remove
+                                                    </button>
+                                                </div>
+                                                <img src="{{ url_for('static', filename='uploads/' + doctor.cnic_back_image) }}" 
+                                                     class="img-fluid border rounded cnic-preview-image" 
+                                                     style="max-height: 180px; width: 100%; object-fit: contain; background: #f8f9fa;"
+                                                     alt="CNIC Back"
+                                                     id="cnic-back-preview-img">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    <div id="cnic-back-upload" style="display: {% if doctor.cnic_back_image %}none{% else %}block{% endif %};">
+                                        {{ form.cnic_back(class="form-control", id="cnic-back-input", onchange="previewCNICBack(this)") }}
+                                        {% if form.cnic_back.errors %}
+                                            <div class="text-danger small mt-1">{% for error in form.cnic_back.errors %}{{ error }}{% endfor %}</div>
+                                        {% endif %}
+                                        <div id="cnic-back-new-preview" class="mt-2" style="display: none;">
+                                            <div class="card border">
+                                                <div class="card-body p-2">
+                                                    <small class="text-muted d-block mb-2"><i class="fas fa-image text-info me-1"></i>New Image Preview</small>
+                                                    <img id="cnic-back-new-preview-img" src="" class="img-fluid border rounded cnic-preview-image" 
+                                                         style="max-height: 180px; width: 100%; object-fit: contain; background: #f8f9fa;"
+                                                         alt="New CNIC Back">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="remove_cnic_back" id="remove-cnic-back" value="0">
+                                <small class="text-muted d-block mt-2">
+                                    {% if doctor.cnic_back_image %}
+                                        Click "Remove" to replace with new image. Selected image will be shown in preview.
+                                    {% else %}
+                                        Upload CNIC back image. Preview will be shown after selection.
+                                    {% endif %}
+                                </small>
+                            </div>
+
+                            <!-- Degree Documents - Unified Section -->
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Degree Documents</label>
+                                
+                                <div class="degree-documents-unified-section">
+                                    <div class="row" id="degrees-container">
+                                        <!-- Existing Documents -->
+                                        {% if doctor.degree_documents and doctor.degree_documents|length > 0 %}
+                                            {% for degree_doc in doctor.degree_documents %}
+                                            <div class="col-md-3 mb-3 degree-item existing-doc" data-doc-index="{{ loop.index0 }}" data-doc-type="existing">
+                                                <div class="card border position-relative">
+                                                    <div class="card-body p-2">
+                                                        <!-- Delete Button -->
+                                                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 p-1 rounded-circle" 
+                                                                onclick="deleteDegreeDoc(this, {{ loop.index0 }})" 
+                                                                title="Delete Document"
+                                                                style="width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; z-index: 10;">
+                                                            <i class="fas fa-times" style="font-size: 12px;"></i>
+                                                        </button>
+                                                        
+                                                        <div class="mb-2">
+                                                            <small class="text-muted fw-bold">Document {{ loop.index }}</small>
+                                                        </div>
+                                                        
+                                                        {% if degree_doc.endswith('.pdf') %}
+                                                            <div class="text-center p-2 border rounded mb-2" style="background: #f8f9fa; min-height: 120px; display: flex; align-items: center; justify-content: center;">
+                                                                <div>
+                                                                    <i class="fas fa-file-pdf fa-3x text-danger"></i>
+                                                                    <p class="small mb-0 mt-2">PDF Document</p>
+                                                                </div>
+                                                            </div>
+                                                            <a href="{{ url_for('static', filename='uploads/' + degree_doc) }}" 
+                                                               target="_blank" 
+                                                               class="btn btn-sm btn-outline-primary w-100">
+                                                                <i class="fas fa-eye me-1"></i>View PDF
+                                                            </a>
+                                                        {% else %}
+                                                            <img src="{{ url_for('static', filename='uploads/' + degree_doc) }}" 
+                                                                 class="img-fluid border rounded" 
+                                                                 style="max-height: 120px; width: 100%; object-fit: contain; background: #f8f9fa;"
+                                                                 alt="Degree {{ loop.index }}">
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        
+                                        <!-- New Upload Fields (Only shown if no existing documents) -->
+                                        {% if not doctor.degree_documents or doctor.degree_documents|length == 0 %}
+                                        <div class="col-md-3 mb-3 degree-item new-upload" data-doc-type="new">
+                                            <div class="card border border-dashed">
+                                                <div class="card-body p-2 position-relative">
+                                                    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 150px;">
+                                                        <input type="file" class="form-control form-control-sm degree-file-input" 
+                                                               accept=".jpg,.jpeg,.png,.pdf" 
+                                                               name="degree_files[]"
+                                                               onchange="previewDegreeFile(this)">
+                                                        <small class="text-muted text-center mt-2">Upload Document</small>
+                                                    </div>
+                                                    <!-- Preview will be shown here -->
+                                                    <div class="degree-preview mt-2" style="display: none;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Add More Button (Always visible) -->
+                                    <div class="mt-2">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addNewDegreeField()">
+                                            <i class="fas fa-plus me-1"></i>Add More Documents
+                                        </button>
+                                    </div>
+                                    
+                                    <input type="hidden" name="remove_degree_docs" id="remove-degree-docs" value="">
+                                    
+                                    <small class="text-muted d-block mt-2">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Click <i class="fas fa-times text-danger"></i> to delete existing documents. Use <i class="fas fa-plus text-primary"></i> to add more documents.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Live Face Detection with Existing Photo -->
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Live Photo (Selfie)</label>
+                                {% if doctor.live_photo %}
+                                <div class="mb-3">
+                                    <div class="card border" style="max-width: 400px;">
+                                        <div class="card-body p-2">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <small class="text-muted"><i class="fas fa-check-circle text-success me-1"></i>Current Photo</small>
+                                                <button type="button" class="btn btn-sm btn-outline-warning" onclick="showRetakeCamera()">
+                                                    <i class="fas fa-camera me-1"></i>Retake
+                                                </button>
+                                            </div>
+                                            <img src="{{ url_for('static', filename='uploads/' + doctor.live_photo) }}" 
+                                                 class="img-fluid border rounded" 
+                                                 style="max-height: 250px; width: 100%; object-fit: cover; border-radius: 8px;"
+                                                 alt="Live Photo"
+                                                 id="live-photo-preview">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="live-camera-container" style="display: none;">
+                                    <div class="live-camera-container">
+                                        <div class="camera-preview mb-3" style="position: relative; width: 100%; max-width: 400px; height: 300px; margin: 0 auto;">
+                                            <video id="camera-video" autoplay muted style="width: 100%; height: 100%; border: 2px solid #ddd; border-radius: 8px; object-fit: cover; display: none; position: absolute; top: 0; left: 0;"></video>
+                                            <canvas id="camera-canvas" style="display: none;"></canvas>
+                                            <div id="camera-placeholder" class="text-center p-4 border border-dashed rounded" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: absolute; top: 0; left: 0;">
+                                                <div>
+                                                    <i class="fas fa-camera fa-3x text-muted mb-3"></i>
+                                                    <p class="text-muted">Click "Start Camera" to capture new live photo</p>
+                                                </div>
+                                            </div>
+                                            <div id="captured-photo-preview" style="display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; border: 2px solid #28a745; border-radius: 8px; overflow: hidden; background: #000;">
+                                                <img id="captured-image" src="" alt="Captured Photo" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                        </div>
+                                        <div class="camera-controls mb-3">
+                                            <button type="button" class="btn btn-primary me-2" id="start-camera-btn" onclick="startCamera()">
+                                                <i class="fas fa-video me-1"></i> Start Camera
+                                            </button>
+                                            <button type="button" class="btn btn-success me-2" id="capture-btn" onclick="capturePhoto()" disabled>
+                                                <i class="fas fa-camera me-1"></i> Capture Photo
+                                            </button>
+                                            <button type="button" class="btn btn-warning me-2" id="retake-btn" onclick="retakePhoto()" style="display: none;">
+                                                <i class="fas fa-redo me-1"></i> Retake
+                                            </button>
+                                            <button type="button" class="btn btn-danger me-2" id="stop-camera-btn" onclick="stopCamera()" style="display: none;">
+                                                <i class="fas fa-stop me-1"></i> Stop Camera
+                                            </button>
+                                            <button type="button" class="btn btn-secondary" id="cancel-retake-btn" onclick="cancelRetake()">
+                                                <i class="fas fa-times me-1"></i> Cancel
+                                            </button>
+                                        </div>
+                                        <div id="capture-success-message" style="display: none;">
+                                            <p class="text-success mb-0"><i class="fas fa-check-circle me-1"></i> Photo captured successfully!</p>
+                                        </div>
+                                        {{ form.live_photo_data() }}
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="live-camera-container">
+                                    <div class="camera-preview mb-3" style="position: relative; width: 100%; max-width: 400px; height: 300px; margin: 0 auto;">
+                                        <video id="camera-video" autoplay muted style="width: 100%; height: 100%; border: 2px solid #ddd; border-radius: 8px; object-fit: cover; display: none; position: absolute; top: 0; left: 0;"></video>
+                                        <canvas id="camera-canvas" style="display: none;"></canvas>
+                                        <div id="camera-placeholder" class="text-center p-4 border border-dashed rounded" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: absolute; top: 0; left: 0;">
+                                            <div>
+                                                <i class="fas fa-camera fa-3x text-muted mb-3"></i>
+                                                <p class="text-muted">Click "Start Camera" to capture live photo</p>
+                                            </div>
+                                        </div>
+                                        <div id="captured-photo-preview" style="display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; border: 2px solid #28a745; border-radius: 8px; overflow: hidden; background: #000;">
+                                            <img id="captured-image" src="" alt="Captured Photo" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                    </div>
+                                    <div class="camera-controls mb-3">
+                                        <button type="button" class="btn btn-primary me-2" id="start-camera-btn" onclick="startCamera()">
+                                            <i class="fas fa-video me-1"></i> Start Camera
+                                        </button>
+                                        <button type="button" class="btn btn-success me-2" id="capture-btn" onclick="capturePhoto()" disabled>
+                                            <i class="fas fa-camera me-1"></i> Capture Photo
+                                        </button>
+                                        <button type="button" class="btn btn-warning me-2" id="retake-btn" onclick="retakePhoto()" style="display: none;">
+                                            <i class="fas fa-redo me-1"></i> Retake
+                                        </button>
+                                        <button type="button" class="btn btn-danger" id="stop-camera-btn" onclick="stopCamera()" style="display: none;">
+                                            <i class="fas fa-stop me-1"></i> Stop Camera
+                                        </button>
+                                    </div>
+                                    <div id="capture-success-message" style="display: none;">
+                                        <p class="text-success mb-0"><i class="fas fa-check-circle me-1"></i> Photo captured successfully!</p>
+                                    </div>
+                                    {{ form.live_photo_data() }}
+                                </div>
+                                {% endif %}
+                                <small class="text-muted d-block mt-2">
+                                    {% if doctor.live_photo %}
+                                        Click "Retake" to capture a new photo, or keep the current one.
+                                    {% else %}
+                                        Take a live photo for identity verification
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-danger btn-lg">
+                                        <i class="fas fa-gavel me-2"></i>Update & Submit Appeal
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* City Autocomplete Styles */
+.city-autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    margin-top: 2px;
+}
+
+.city-autocomplete-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+}
+
+.city-autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.city-autocomplete-item:hover,
+.city-autocomplete-item.active {
+    background-color: #e3f2fd;
+    color: #2563eb;
+}
+
+.city-autocomplete-item:first-child {
+    border-radius: 8px 8px 0 0;
+}
+
+.city-autocomplete-item:last-child {
+    border-radius: 0 0 8px 8px;
+}
+
+.city-autocomplete-empty {
+    padding: 10px 15px;
+    color: #999;
+    font-style: italic;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Camera variables
+let cameraStream = null;
+let capturedPhotoData = null;
+
+async function startCamera() {
+    try {
+        const video = document.getElementById('camera-video');
+        const placeholder = document.getElementById('camera-placeholder');
+        const startBtn = document.getElementById('start-camera-btn');
+        const captureBtn = document.getElementById('capture-btn');
+        const stopBtn = document.getElementById('stop-camera-btn');
+        
+        const preview = document.getElementById('captured-photo-preview');
+        const successMessage = document.getElementById('capture-success-message');
+        const retakeBtn = document.getElementById('retake-btn');
+        
+        // Request camera access
+        cameraStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                width: { ideal: 640 },
+                height: { ideal: 480 },
+                facingMode: 'user' // Front camera
+            } 
+        });
+        
+        video.srcObject = cameraStream;
+        video.style.display = 'block';
+        if (placeholder) {
+            placeholder.style.display = 'none';
+        }
+        if (preview) {
+            preview.style.display = 'none';
+        }
+        if (successMessage) {
+            successMessage.style.display = 'none';
+        }
+        startBtn.style.display = 'none';
+        captureBtn.disabled = false;
+        captureBtn.style.display = 'inline-block';
+        stopBtn.style.display = 'inline-block';
+        if (retakeBtn) {
+            retakeBtn.style.display = 'none';
+        }
+        
+        // Show success message
+        showMessage('Camera started successfully!', 'success');
+        
+    } catch (error) {
+        console.error('Error accessing camera:', error);
+        showMessage('Error accessing camera. Please check permissions.', 'error');
+    }
+}
+
+function capturePhoto() {
+    const video = document.getElementById('camera-video');
+    const canvas = document.getElementById('camera-canvas');
+    const capturedImage = document.getElementById('captured-image');
+    const preview = document.getElementById('captured-photo-preview');
+    const captureBtn = document.getElementById('capture-btn');
+    const retakeBtn = document.getElementById('retake-btn');
+    const stopBtn = document.getElementById('stop-camera-btn');
+    const placeholder = document.getElementById('camera-placeholder');
+    const successMessage = document.getElementById('capture-success-message');
+    const livePhotoData = document.querySelector('input[name="live_photo_data"]');
+    
+    // Set canvas dimensions to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    // Draw video frame to canvas
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Convert canvas to base64 image data
+    capturedPhotoData = canvas.toDataURL('image/jpeg', 0.8);
+    
+    // Stop camera stream immediately after capturing
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+    
+    // Clear video source
+    video.srcObject = null;
+    
+    // Hide video and placeholder, show captured image in the same box
+    video.style.display = 'none';
+    if (placeholder) {
+        placeholder.style.display = 'none';
+    }
+    
+    // Show captured image in the preview box (same position as video/placeholder)
+    capturedImage.src = capturedPhotoData;
+    preview.style.display = 'block';
+    
+    // Update button states
+    captureBtn.style.display = 'none';
+    retakeBtn.style.display = 'inline-block';
+    stopBtn.style.display = 'none';
+    
+    // Show success message below controls
+    if (successMessage) {
+        successMessage.style.display = 'block';
+    }
+    
+    // Set hidden field value
+    livePhotoData.value = capturedPhotoData;
+    
+    showMessage('Photo captured successfully! Camera stopped.', 'success');
+}
+
+function retakePhoto() {
+    const video = document.getElementById('camera-video');
+    const preview = document.getElementById('captured-photo-preview');
+    const captureBtn = document.getElementById('capture-btn');
+    const retakeBtn = document.getElementById('retake-btn');
+    const stopBtn = document.getElementById('stop-camera-btn');
+    const startBtn = document.getElementById('start-camera-btn');
+    const placeholder = document.getElementById('camera-placeholder');
+    const successMessage = document.getElementById('capture-success-message');
+    const livePhotoData = document.querySelector('input[name="live_photo_data"]');
+    
+    // Make sure camera is stopped if it was running
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+    video.srcObject = null;
+    
+    // Hide captured image and show placeholder
+    preview.style.display = 'none';
+    video.style.display = 'none';
+    if (placeholder) {
+        placeholder.style.display = 'flex';
+    }
+    
+    // Hide success message
+    if (successMessage) {
+        successMessage.style.display = 'none';
+    }
+    
+    // Reset UI
+    captureBtn.style.display = 'inline-block';
+    captureBtn.disabled = true; // Disable until camera is started again
+    retakeBtn.style.display = 'none';
+    stopBtn.style.display = 'none';
+    startBtn.style.display = 'inline-block';
+    
+    // Clear captured data
+    capturedPhotoData = null;
+    livePhotoData.value = '';
+    
+    showMessage('Ready to capture new photo. Please start camera again.', 'info');
+}
+
+function stopCamera() {
+    const video = document.getElementById('camera-video');
+    const placeholder = document.getElementById('camera-placeholder');
+    const startBtn = document.getElementById('start-camera-btn');
+    const captureBtn = document.getElementById('capture-btn');
+    const retakeBtn = document.getElementById('retake-btn');
+    const stopBtn = document.getElementById('stop-camera-btn');
+    const preview = document.getElementById('captured-photo-preview');
+    const livePhotoData = document.querySelector('input[name="live_photo_data"]');
+    
+    const successMessage = document.getElementById('capture-success-message');
+    
+    // Stop camera stream
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+    
+    video.srcObject = null;
+    
+    // Reset UI
+    video.style.display = 'none';
+    if (preview) {
+        preview.style.display = 'none';
+    }
+    if (placeholder) {
+        placeholder.style.display = 'flex';
+    }
+    if (successMessage) {
+        successMessage.style.display = 'none';
+    }
+    startBtn.style.display = 'inline-block';
+    captureBtn.disabled = true;
+    captureBtn.style.display = 'inline-block';
+    if (retakeBtn) {
+        retakeBtn.style.display = 'none';
+    }
+    stopBtn.style.display = 'none';
+    
+    // Clear captured data
+    capturedPhotoData = null;
+    if (livePhotoData) {
+        livePhotoData.value = '';
+    }
+    
+    showMessage('Camera stopped', 'info');
+}
+
+// CNIC Remove Functions
+function removeCNICFront() {
+    const previewContainer = document.getElementById('cnic-front-preview-container');
+    const upload = document.getElementById('cnic-front-upload');
+    const removeFlag = document.getElementById('remove-cnic-front');
+    
+    // Hide current preview
+    if (previewContainer) {
+        previewContainer.style.display = 'none';
+    }
+    
+    // Show upload field
+    if (upload) {
+        upload.style.display = 'block';
+        const fileInput = document.getElementById('cnic-front-input');
+        if (fileInput) {
+            fileInput.required = false;
+            fileInput.value = ''; // Clear any previous selection
+        }
+        // Hide new preview if it was shown
+        const newPreview = document.getElementById('cnic-front-new-preview');
+        if (newPreview) {
+            newPreview.style.display = 'none';
+        }
+    }
+    
+    // Set remove flag
+    if (removeFlag) {
+        removeFlag.value = '1';
+    }
+}
+
+function removeCNICBack() {
+    const previewContainer = document.getElementById('cnic-back-preview-container');
+    const upload = document.getElementById('cnic-back-upload');
+    const removeFlag = document.getElementById('remove-cnic-back');
+    
+    // Hide current preview
+    if (previewContainer) {
+        previewContainer.style.display = 'none';
+    }
+    
+    // Show upload field
+    if (upload) {
+        upload.style.display = 'block';
+        const fileInput = document.getElementById('cnic-back-input');
+        if (fileInput) {
+            fileInput.required = false;
+            fileInput.value = ''; // Clear any previous selection
+        }
+        // Hide new preview if it was shown
+        const newPreview = document.getElementById('cnic-back-new-preview');
+        if (newPreview) {
+            newPreview.style.display = 'none';
+        }
+    }
+    
+    // Set remove flag
+    if (removeFlag) {
+        removeFlag.value = '1';
+    }
+}
+
+// CNIC Preview Functions
+function previewCNICFront(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        const newPreview = document.getElementById('cnic-front-new-preview');
+        const newPreviewImg = document.getElementById('cnic-front-new-preview-img');
+        
+        reader.onload = function(e) {
+            if (newPreviewImg) {
+                newPreviewImg.src = e.target.result;
+            }
+            if (newPreview) {
+                newPreview.style.display = 'block';
+            }
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        const newPreview = document.getElementById('cnic-front-new-preview');
+        if (newPreview) {
+            newPreview.style.display = 'none';
+        }
+    }
+}
+
+function previewCNICBack(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        const newPreview = document.getElementById('cnic-back-new-preview');
+        const newPreviewImg = document.getElementById('cnic-back-new-preview-img');
+        
+        reader.onload = function(e) {
+            if (newPreviewImg) {
+                newPreviewImg.src = e.target.result;
+            }
+            if (newPreview) {
+                newPreview.style.display = 'block';
+            }
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        const newPreview = document.getElementById('cnic-back-new-preview');
+        if (newPreview) {
+            newPreview.style.display = 'none';
+        }
+    }
+}
+
+// Degree Document Functions
+let removedDegreeIndices = [];
+let newUploadFieldCount = 0;
+
+function deleteDegreeDoc(button, index) {
+    const docItem = button.closest('.degree-item.existing-doc');
+    const removeInput = document.getElementById('remove-degree-docs');
+    
+    if (docItem) {
+        // Add to removed indices
+        removedDegreeIndices.push(index);
+        if (removeInput) {
+            removeInput.value = removedDegreeIndices.join(',');
+        }
+        
+        // Remove the document card
+        docItem.remove();
+        
+        // Check if there are any existing documents left
+        const existingDocs = document.querySelectorAll('.degree-item.existing-doc');
+        const newUploadFields = document.querySelectorAll('.degree-item.new-upload');
+        
+        // If no existing docs and no new upload fields, show one new upload field
+        if (existingDocs.length === 0 && newUploadFields.length === 0) {
+            addNewDegreeField();
+        }
+    }
+}
+
+function addNewDegreeField() {
+    const container = document.getElementById('degrees-container');
+    newUploadFieldCount++;
+    
+    const newField = document.createElement('div');
+    newField.className = 'col-md-3 mb-3 degree-item new-upload';
+    newField.setAttribute('data-doc-type', 'new');
+    newField.setAttribute('data-upload-index', newUploadFieldCount);
+    
+    newField.innerHTML = `
+        <div class="card border border-dashed">
+            <div class="card-body p-2 position-relative">
+                <!-- Remove Button for New Upload -->
+                <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 p-1 rounded-circle" 
+                        onclick="removeNewDegreeField(this)" 
+                        title="Remove Upload Field"
+                        style="width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; z-index: 10;">
+                    <i class="fas fa-times" style="font-size: 12px;"></i>
+                </button>
+                
+                <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 150px;">
+                    <input type="file" class="form-control form-control-sm degree-file-input" 
+                           accept=".jpg,.jpeg,.png,.pdf" 
+                           name="degree_files[]"
+                           onchange="previewDegreeFile(this)">
+                    <small class="text-muted text-center mt-2">Upload Document</small>
+                </div>
+                <!-- Preview will be shown here -->
+                <div class="degree-preview mt-2" style="display: none;"></div>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(newField);
+}
+
+function removeNewDegreeField(button) {
+    const uploadItem = button.closest('.degree-item.new-upload');
+    if (uploadItem) {
+        uploadItem.remove();
+    }
+}
+
+function previewDegreeFile(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const previewDiv = input.closest('.card-body').querySelector('.degree-preview');
+        const fileType = file.type;
+        const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+        
+        if (previewDiv) {
+            if (isPDF) {
+                previewDiv.innerHTML = `
+                    <div class="text-center p-2 border rounded" style="background: #f8f9fa; min-height: 100px; display: flex; align-items: center; justify-content: center;">
+                        <div>
+                            <i class="fas fa-file-pdf fa-2x text-danger"></i>
+                            <p class="small mb-0 mt-1">${file.name}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewDiv.innerHTML = `
+                        <img src="${e.target.result}" 
+                             class="img-fluid border rounded" 
+                             style="max-height: 100px; width: 100%; object-fit: contain; background: #f8f9fa;"
+                             alt="Preview">
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+            previewDiv.style.display = 'block';
+        }
+    } else {
+        const previewDiv = input.closest('.card-body').querySelector('.degree-preview');
+        if (previewDiv) {
+            previewDiv.style.display = 'none';
+            previewDiv.innerHTML = '';
+        }
+    }
+}
+
+// Live Photo Retake Function
+function showRetakeCamera() {
+    const preview = document.getElementById('live-photo-preview');
+    const cameraContainer = document.getElementById('live-camera-container');
+    
+    if (preview && preview.closest('.card')) {
+        preview.closest('.card').parentElement.style.display = 'none';
+    }
+    if (cameraContainer) {
+        cameraContainer.style.display = 'block';
+    }
+}
+
+function cancelRetake() {
+    const preview = document.getElementById('live-photo-preview');
+    const cameraContainer = document.getElementById('live-camera-container');
+    const livePhotoData = document.querySelector('input[name="live_photo_data"]');
+    
+    // Stop camera if running
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+    
+    // Reset camera UI
+    stopCamera();
+    
+    // Hide camera container
+    if (cameraContainer) {
+        cameraContainer.style.display = 'none';
+    }
+    
+    // Show preview again
+    if (preview && preview.closest('.card')) {
+        preview.closest('.card').parentElement.style.display = 'block';
+    }
+    
+    // Clear any captured data
+    if (livePhotoData) {
+        livePhotoData.value = '';
+    }
+}
+
+
+// Message display
+function showMessage(message, type) {
+    // Create toast notification
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 3000);
+}
+
+// City Autocomplete - Complete list of Pakistan cities (All Provinces and Territories)
+const pakistanCities = [
+    // Major Cities
+    'Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Faisalabad', 'Multan', 'Peshawar', 'Quetta',
+    // Punjab Province
+    'Ahmedpur East', 'Ahmadpur East', 'Arifwala', 'Attock', 'Bahawalnagar', 'Bahawalpur', 
+    'Bhakkar', 'Bhalwal', 'Bhawana', 'Bhera', 'Burewala', 'Chakwal', 'Chiniot', 
+    'Chiniot City', 'Daska', 'Depalpur', 'Dera Ghazi Khan', 'Dera Ismail Khan', 
+    'Duniyapur', 'Faisalabad', 'Gojra', 'Gojra City', 'Gujar Khan', 'Gujranwala', 
+    'Gujranwala City', 'Gujrat', 'Hafizabad', 'Haroonabad', 'Havelian', 'Jaranwala', 
+    'Jatoi', 'Jauharabad', 'Jhang', 'Jhelum', 'Jhelum City', 'Kamalia', 'Kamoke', 
+    'Karor Lal Esan', 'Kasur', 'Khanewal', 'Khanpur', 'Khushab', 'Kot Momin', 
+    'Kot Radha Kishan', 'Lahore', 'Layyah', 'Lodhran', 'Mandi Bahauddin', 
+    'Mianwali', 'Mianwali City', 'Multan', 'Muridke', 'Nankana Sahib', 'Narowal', 
+    'Naushahro Firoz', 'Okara', 'Okara City', 'Pakpattan', 'Pakpattan City', 
+    'Pasrur', 'Pind Dadan Khan', 'Rahim Yar Khan', 'Rawalpindi', 'Renala Khurd', 
+    'Sahiwal', 'Sahiwal City', 'Sargodha', 'Sargodha City', 'Shahkot', 'Sheikhupura', 
+    'Sialkot', 'Sialkot City', 'Talagang', 'Toba Tek Singh', 'Tulamba', 'Vehari', 
+    'Vehari City', 'Wah Cantonment', 'Wazirabad', 'Zafarwal', 'Zahir Pir',
+    // Sindh Province
+    'Badin', 'Chishtian', 'Dadu', 'Ghotki', 'Hyderabad', 'Jacobabad', 'Jamshoro', 
+    'Kandhkot', 'Karachi', 'Kashmore', 'Khairpur', 'Khairpur Nathan Shah', 'Kotri', 
+    'Larkana', 'Matiari', 'Mehar', 'Mirpur Khas', 'Muzaffargarh', 'Nawabshah', 
+    'Naushahro Firoz', 'Qambar', 'Rohri', 'Sanghar', 'Shahdadkot', 'Shikarpur', 
+    'Sukkur', 'Tando Adam', 'Tando Allahyar', 'Tando Muhammad Khan', 'Thatta', 
+    'Umerkot', 'Warah',
+    // Khyber Pakhtunkhwa Province
+    'Abbottabad', 'Bannu', 'Battagram', 'Charsadda', 'Chitral', 'Dera Ismail Khan', 
+    'Hangu', 'Haripur', 'Hasan Abdal', 'Kohat', 'Kohistan', 'Mardan', 'Mansehra', 
+    'Mingaora', 'Nowshera', 'Peshawar', 'Swabi', 'Swat', 'Tank', 'Timergara', 
+    'Tordher', 'Upper Dir',
+    // Balochistan Province
+    'Chaman', 'Gwadar', 'Hub', 'Jaffarabad', 'Khuzdar', 'Loralai', 'Mastung', 
+    'Muslim Bagh', 'Naseerabad', 'Nushki', 'Quetta', 'Sibi', 'Turbat', 'Usta Muhammad', 
+    'Zhob', 'Ziarat',
+    // Gilgit-Baltistan (GB)
+    'Aliabad', 'Astore', 'Chilas', 'Gakuch', 'Gilgit', 'Hunza', 'Khaplu', 'Skardu',
+    // Azad Jammu and Kashmir (AJK)
+    'Bhimber', 'Bhimber City', 'Hattian Bala', 'Haveli', 'Kotli', 'Mirpur', 
+    'Muzaffarabad', 'Neelum', 'Pallandri', 'Rawalakot', 'Sudhnoti',
+    // Additional Cities (Additional major towns and cities)
+    'Jalalpur Jattan', 'Kot Addu', 'Kot Diji', 'Kot Sultan', 'Kundian', 
+    'Lahri', 'Lakki Marwat', 'Lala Musa', 'Landi Kotal', 'Mian Channu', 
+    'Moro', 'Murree', 'Muzaffargarh', 'Nowshera Virkan', 'Pasni', 'Pattoki', 
+    'Phalia', 'Qila Saifullah', 'Rabwah', 'Raiwind', 'Rajanpur', 'Ratodero', 
+    'Sadiqabad', 'Sambrial', 'Samundri', 'Sarai Alamgir', 'Shahdadpur', 
+    'Shorkot', 'Sohawa', 'Tarbela', 'Taxila', 'Uch Sharif', 'Wana'
+];
+
+function filterCities(query) {
+    if (!query || query.trim().length < 1) return [];
+    const queryLower = query.toLowerCase().trim();
+    const matches = [];
+    for (const city of pakistanCities) {
+        if (city.toLowerCase().startsWith(queryLower)) matches.push(city);
+    }
+    if (matches.length === 0) {
+        for (const city of pakistanCities) {
+            if (city.toLowerCase().includes(queryLower)) matches.push(city);
+        }
+    }
+    return matches.slice(0, 6);
+}
+
+function initCityAutocomplete(inputId, suggestionsId) {
+    const cityInput = document.getElementById(inputId);
+    const citySuggestions = document.getElementById(suggestionsId);
+    if (!cityInput || !citySuggestions) return;
+    
+    let selectedIndex = -1;
+    let filteredCities = [];
+    
+    function showSuggestions(cities) {
+        if (cities.length === 0) {
+            citySuggestions.innerHTML = '<div class="city-autocomplete-empty">No cities found</div>';
+            citySuggestions.style.display = 'block';
+            return;
+        }
+        let html = '';
+        cities.forEach((city, index) => {
+            const activeClass = index === selectedIndex ? 'active' : '';
+            html += `<div class="city-autocomplete-item ${activeClass}" data-city="${city}">${city}</div>`;
+        });
+        citySuggestions.innerHTML = html;
+        citySuggestions.style.display = 'block';
+        
+        citySuggestions.querySelectorAll('.city-autocomplete-item').forEach(item => {
+            item.addEventListener('click', function() {
+                cityInput.value = this.getAttribute('data-city');
+                citySuggestions.style.display = 'none';
+                selectedIndex = -1;
+            });
+        });
+    }
+    
+    cityInput.addEventListener('input', function() {
+        const query = this.value;
+        if (query.length < 1) {
+            citySuggestions.style.display = 'none';
+            return;
+        }
+        filteredCities = filterCities(query);
+        selectedIndex = -1;
+        showSuggestions(filteredCities);
+    });
+    
+    cityInput.addEventListener('keydown', function(e) {
+        if (citySuggestions.style.display === 'none') return;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedIndex = (selectedIndex + 1) % filteredCities.length;
+            updateHighlight();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedIndex = selectedIndex <= 0 ? filteredCities.length - 1 : selectedIndex - 1;
+            updateHighlight();
+        } else if (e.key === 'Enter' && selectedIndex >= 0) {
+            e.preventDefault();
+            cityInput.value = filteredCities[selectedIndex];
+            citySuggestions.style.display = 'none';
+        } else if (e.key === 'Escape') {
+            citySuggestions.style.display = 'none';
+        }
+    });
+    
+    function updateHighlight() {
+        const items = citySuggestions.querySelectorAll('.city-autocomplete-item');
+        items.forEach((item, index) => {
+            item.classList.toggle('active', index === selectedIndex);
+            if (index === selectedIndex) item.scrollIntoView({ block: 'nearest' });
+        });
+    }
+    
+    cityInput.addEventListener('blur', function() {
+        const value = this.value.trim();
+        if (value) {
+            for (const city of pakistanCities) {
+                if (city.toLowerCase() === value.toLowerCase()) {
+                    this.value = city;
+                    break;
+                }
+            }
+        }
+        setTimeout(() => citySuggestions.style.display = 'none', 200);
+    });
+    
+    document.addEventListener('click', function(e) {
+        if (!cityInput.contains(e.target) && !citySuggestions.contains(e.target)) {
+            citySuggestions.style.display = 'none';
+        }
+    });
+}
+
+// CNIC Validation
+document.addEventListener('DOMContentLoaded', function() {
+    const cnicField = document.querySelector('input[name="cnic"]');
+    if (cnicField) {
+        cnicField.addEventListener('input', function() {
+            let value = this.value.replace(/\D/g, '');
+            if (value.length > 13) {
+                value = value.substring(0, 13);
+            }
+            this.value = value;
+        });
+    }
+    
+    // Initialize city autocomplete for edit form
+    initCityAutocomplete('city-input-edit', 'city-suggestions-edit');
+});
+</script>
+{% endblock %}
+

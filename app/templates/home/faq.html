@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}FAQ - Quick Care Connect{% endblock %}
+
+{% block page_breadcrumb %}
+<div class="container">
+    <div class="page-breadcrumb">
+        <a href="{{ url_for('home.index') }}">Home</a>
+        <span class="separator"><i class="fas fa-chevron-right"></i></span>
+        <span class="current">FAQ</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/info-pages.css') }}">
+<div class="container py-4">
+    <div class="info-hero">
+        <h1><i class="fas fa-question-circle me-2 text-success"></i>Frequently Asked Questions</h1>
+        <p>Quick answers about appointments, payments, video calls, and your health data.</p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h5 class="fw-bold text-success mb-3">Appointments</h5>
+            <details class="faq-item">
+                <summary>How do I book an appointment?</summary>
+                <div class="faq-body">Create a patient account, search for a doctor, choose a date and time, and submit your request. Once the doctor approves, complete payment to confirm your slot.</div>
+            </details>
+            <details class="faq-item">
+                <summary>Can I cancel an appointment?</summary>
+                <div class="faq-body">Approved appointments may be cancelled according to our cancellation policy. Refund eligibility depends on timing and whether payment was completed. See Terms of Service for details.</div>
+            </details>
+            <details class="faq-item">
+                <summary>What happens after the doctor completes my visit?</summary>
+                <div class="faq-body">You can view your prescription, leave a rating, and close the visit from the appointment detail page (Satisfied, Unsatisfied, or Dispute). If you take no action within 24 hours, the visit auto-completes.</div>
+            </details>
+
+            <h5 class="fw-bold text-success mb-3 mt-4">Video &amp; prescriptions</h5>
+            <details class="faq-item">
+                <summary>How do I join a video consultation?</summary>
+                <div class="faq-body">Open your appointment from My Appointments after payment is approved. At the scheduled time, use the Join Video Call button on the appointment page. Allow camera and microphone access in your browser.</div>
+            </details>
+            <details class="faq-item">
+                <summary>Where is my prescription?</summary>
+                <div class="faq-body">After the doctor completes the visit, your prescription appears on the appointment page and under My Prescription. You can view or download it anytime.</div>
+            </details>
+
+            <h5 class="fw-bold text-success mb-3 mt-4">Payments &amp; account</h5>
+            <details class="faq-item">
+                <summary>Which payment methods are supported?</summary>
+                <div class="faq-body">We support Safepay checkout and manual payment verification where enabled. Payment must be approved before your appointment is fully confirmed.</div>
+            </details>
+            <details class="faq-item">
+                <summary>Is my medical information private?</summary>
+                <div class="faq-body">Yes. Your health data is shared only with your treating doctors and authorized admins for support. Read our <a href="{{ url_for('home.privacy') }}">Privacy Policy</a> for full details.</div>
+            </details>
+
+            <div class="text-center mt-5 p-4 rounded-3" style="background:#f0fdf4;">
+                <p class="mb-3 text-muted">Still have questions?</p>
+                <a href="{{ url_for('home.contact') }}" class="btn btn-success px-4"><i class="fas fa-envelope me-2"></i>Contact support</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

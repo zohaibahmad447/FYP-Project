@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Dashboard - Quick Care Connect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="patient-avatar">
+                        {% if patient.user.profile_picture %}
+                        <img src="{{ url_for('static', filename='uploads/' + patient.user.profile_picture) }}"
+                            alt="{{ patient.user.name }}"
+                            style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div
+                            style="display: none; position: absolute; width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 2rem; font-weight: 600; color: white;">
+                            {{ patient.user.name[0].upper() }}
+                        </div>
+                        {% else %}
+                        {{ patient.user.name[0].upper() }}
+                        {% endif %}
+                    </div>
+                    <h5 class="card-title">{{ patient.user.name }}</h5>
+                    <p class="text-muted">{{ patient.user.email }}</p>
+                    <a href="{{ url_for('patients.edit_profile') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-edit me-1"></i>Edit Profile
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('patients.find_doctors') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-search me-2"></i>Find Doctors
+                        </a>
+                        <a href="{{ url_for('patients.ask_question') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-question-circle me-2"></i>Ask Question
+                        </a>
+                        <a href="{{ url_for('patients.medical_history') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-file-medical me-2"></i>Medical History
+                        </a>
+                        <a href="{{ url_for('patients.refunds') }}" class="btn btn-outline-warning btn-sm">
+                            <i class="fas fa-undo me-2"></i>Refund Center
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9 col-md-8">
+            <!-- Welcome Message -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="fas fa-home me-2"></i>Welcome back, {{ patient.user.name }}!
+                    </h4>
+                    <p class="card-text text-muted">
+                        Here's an overview of your health journey with Quick Care Connect.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="row mb-4">
+                <div class="col-lg col-md-6 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.total }}</div>
+                        <div class="stat-label">Total Appointments</div>
+                    </div>
+                </div>
+                <div class="col-lg col-md-6 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.pending }}</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                </div>
+                <div class="col-lg col-md-6 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.approved }}</div>
+                        <div class="stat-label">Approved</div>
+                    </div>
+                </div>
+                <div class="col-lg col-md-6 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.completed }}</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                </div>
+                <div class="col-lg col-md-6 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.pending_refunds }}</div>
+                        <div class="stat-label">Pending Refunds</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming Appointments -->
+            {% if upcoming_appointments %}
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-check me-2"></i>Upcoming Appointments
+                    </h5>
+                    <a href="{{ url_for('patients.appointments') }}" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% for appointment in upcoming_appointments %}
+                    <div class="appointment-item border-bottom pb-3 mb-3">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h6 class="mb-1">{{ appointment.doctor.user.name }}</h6>
+                                <p class="text-muted mb-1">{{ appointment.doctor.specialization }}</p>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>{{ appointment.appointment_date.strftime('%B %d,
+                                    %Y') }}
+                                    <i class="fas fa-clock me-1 ms-3"></i>{{
+                                    appointment.appointment_time.strftime('%I:%M %p') }}
+                                </small>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <span
+                                    class="badge badge-{{ 'success' if appointment.appointment_type == 'video' else 'primary' }}">
+                                    {{ appointment.appointment_type.title() }}
+                                </span>
+                                <div class="mt-2">
+                                    <a href="{{ url_for('appointments.view_appointment', appointment_id=appointment.id) }}"
+                                        class="btn btn-sm btn-outline-primary">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent Appointments -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Recent Appointments
+                    </h5>
+                    <a href="{{ url_for('patients.appointments') }}" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_appointments %}
+                    {% for appointment in recent_appointments %}
+                    <div class="appointment-item border-bottom pb-3 mb-3">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h6 class="mb-1">{{ appointment.doctor.user.name }}</h6>
+                                <p class="text-muted mb-1">{{ appointment.doctor.specialization }}</p>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>{{ appointment.appointment_date.strftime('%B %d,
+                                    %Y') }}
+                                </small>
+                            </div>
+                            <div class="col-md-3">
+                                <span class="badge badge-{{ appointment|appt_status_badge }}">
+                                    {{ appointment|appt_status_label }}
+                                </span>
+                            </div>
+                            <div class="col-md-3 text-md-end">
+                                <div class="d-flex gap-1 justify-content-md-end">
+                                    <a href="{{ url_for('appointments.view_appointment', appointment_id=appointment.id) }}"
+                                        class="btn btn-sm btn-outline-primary">
+                                        View Details
+                                    </a>
+                                    {% if appointment.payment_status == 'approved' and appointment.status == 'approved' %}
+                                    <a href="{{ url_for('appointments.chat', appointment_id=appointment.id) }}"
+                                        class="btn btn-sm btn-success" title="Start Chat">
+                                        <i class="fas fa-comments me-1"></i>Chat
+                                    </a>
+                                    {% elif appointment.status in ['completed', 'completed_pending_review', 'disputed'] %}
+                                    <a href="{{ url_for('appointments.chat', appointment_id=appointment.id) }}"
+                                        class="btn btn-sm btn-outline-secondary" title="View Chat History">
+                                        <i class="fas fa-comments me-1"></i>View Chat
+                                    </a>
+                                    {% endif %}
+                                    {% if appointment.prescription %}
+                                    <a href="{{ url_for('prescriptions.view_prescription', prescription_id=appointment.prescription.id) }}"
+                                        class="btn btn-sm btn-success" title="View Prescription">
+                                        <i class="fas fa-file-prescription me-1"></i>Rx
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-times text-muted mb-3" style="font-size: 3rem;"></i>
+                        <h6 class="text-muted">No appointments yet</h6>
+                        <p class="text-muted">Start by finding a doctor and booking your first appointment.</p>
+                        <a href="{{ url_for('patients.find_doctors') }}" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Find Doctors
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Health Tips -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Health Tips
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-heart text-danger me-3"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Stay Hydrated</h6>
+                                    <p class="text-muted mb-0">Drink at least 8 glasses of water daily for optimal
+                                        health.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-running text-success me-3"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Regular Exercise</h6>
+                                    <p class="text-muted mb-0">Aim for 30 minutes of physical activity most days.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-moon text-primary me-3"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Quality Sleep</h6>
+                                    <p class="text-muted mb-0">Get 7-9 hours of sleep for better health and recovery.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-apple-alt text-warning me-3"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Balanced Diet</h6>
+                                    <p class="text-muted mb-0">Include fruits, vegetables, and whole grains in your
+                                        meals.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Completion Modal -->
+{% if profile_incomplete %}
+<div class="modal fade show" id="profileCompletionModal" tabindex="-1" aria-labelledby="profileCompletionModalLabel"
+    aria-hidden="false" style="display: block; background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="profileCompletionModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Complete Your Profile
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">
+                    <strong>Welcome to Quick Care Connect!</strong>
+                </p>
+                <p class="mb-3">
+                    To access all features like booking appointments and posting questions, please complete your profile
+                    with the following required information:
+                </p>
+                <ul class="mb-3">
+                    <li>Date of Birth</li>
+                    <li>Gender</li>
+                    <li>Emergency Contact Number</li>
+                    <li>Blood Group</li>
+                </ul>
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Note:</strong> You cannot book appointments or post questions until your profile is
+                    complete.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Later</button>
+                <a href="{{ url_for('patients.edit_profile') }}" class="btn btn-primary">
+                    <i class="fas fa-user-edit me-2"></i>Complete Profile Now
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    .patient-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        font-weight: 600;
+        margin: 0 auto 1rem auto;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .appointment-item:last-child {
+        border-bottom: none !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+</style>
+{% endblock %}

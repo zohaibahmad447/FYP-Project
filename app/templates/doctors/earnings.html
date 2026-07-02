@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% block title %}Earnings - Quick Care Connect{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0"><i class="fas fa-wallet me-2" style="color: #10b981;"></i>Earnings</h2>
+        <a href="{{ url_for('doctors.dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Dashboard</a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #10b981 !important;">
+                <div class="card-body d-flex flex-column">
+                    <div class="text-muted small">Available Balance</div>
+                    <div class="h3 mb-0 text-success">PKR {{ "%.2f"|format(doctor.balance) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #f59e0b !important;">
+                <div class="card-body d-flex flex-column">
+                    <div class="text-muted small">Pending Release</div>
+                    <div class="h3 mb-0 text-warning">PKR {{ "%.2f"|format(pending_earnings) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #6366f1 !important;">
+                <div class="card-body d-flex flex-column">
+                    <div class="text-muted small">Total Earned</div>
+                    <div class="h3 mb-0 text-primary">PKR {{ "%.2f"|format(doctor.total_earned) }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Transaction History</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th class="text-end">Amount (PKR)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for t in transactions %}
+                                <tr>
+                                    <td>{{ t.created_at.strftime('%d %b %Y %H:%M') if t.created_at else '-' }}</td>
+                                    <td>
+                                        {% if t.transaction_type == 'earning' %}
+                                        <span class="badge bg-success">Earning</span>
+                                        {% elif t.transaction_type == 'penalty' %}
+                                        <span class="badge bg-danger">Penalty</span>
+                                        {% elif t.transaction_type == 'withdrawal' %}
+                                        <span class="badge bg-info">Withdrawal</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ t.transaction_type }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ t.description[:50] }}{% if t.description|length > 50 %}...{% endif %}</td>
+                                    <td class="text-end {% if t.amount >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                        {{ "%+.2f"|format(t.amount) }}
+                                        {% if t.commission_deducted and t.amount > 0 %}
+                                        <br><small class="text-muted">(commission −{{ "%.2f"|format(t.commission_deducted) }})</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-receipt fa-3x mb-3"></i>
+                        <p class="mb-0">No transactions yet. Earnings appear after completed consultations (24h review window).</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0"><i class="fas fa-paper-plane me-2"></i>Request Payout</h5>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">Minimum withdrawal: PKR {{ "%.0f"|format(min_payout) }}. Admin will process your request.</p>
+                    <form method="post" action="{{ url_for('doctors.request_payout') }}" id="payoutRequestForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+
+                        <div class="mb-3">
+                            <label class="form-label">Payout Method</label>
+                            <select name="payout_method" id="payoutMethod" class="form-select" required>
+                                <option value="">Select method</option>
+                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="mobile_wallet">Mobile Wallet</option>
+                                <option value="visa_card">Visa Card</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Amount (PKR)</label>
+                            <input type="number" name="amount" class="form-control" step="0.01" min="{{ min_payout }}" max="{{ doctor.balance }}" placeholder="{{ "%.0f"|format(min_payout) }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Account Title</label>
+                            <input type="text" name="account_title" class="form-control" maxlength="120" required>
+                        </div>
+
+                        <div id="bankWalletFields" style="display: none;">
+                            <div class="mb-3">
+                                <label class="form-label">Bank/Wallet Name</label>
+                                <input type="text" name="provider_name" id="providerName" class="form-control" maxlength="120">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Account Number</label>
+                                <input type="text" name="account_number" id="accountNumber" class="form-control" maxlength="64">
+                            </div>
+                        </div>
+
+                        <div id="bankOnlyFields" style="display: none;">
+                            <div class="mb-3">
+                                <label class="form-label">IBAN (optional)</label>
+                                <input type="text" name="iban" class="form-control" maxlength="64" placeholder="PK00ABCD0000000000000000">
+                            </div>
+                        </div>
+
+                        <div id="visaFields" style="display: none;">
+                            <div class="mb-3">
+                                <label class="form-label">Card Holder Name</label>
+                                <input type="text" name="visa_card_holder_name" id="visaCardHolderName" class="form-control" maxlength="120">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Visa Card Last 4 Digits</label>
+                                <input type="text" name="visa_card_last4" id="visaCardLast4" class="form-control" maxlength="4" pattern="[0-9]{4}" placeholder="1234">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Visa Receiving ID</label>
+                                <input type="text" name="visa_recipient_id" id="visaRecipientId" class="form-control" maxlength="120" placeholder="Recipient/token identifier">
+                            </div>
+                            <small class="text-muted d-block mb-3">Security note: CVV/full card number is not stored.</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100" {% if doctor.balance < min_payout %}disabled{% endif %}>
+                            <i class="fas fa-paper-plane me-1"></i>Submit Payout Request
+                        </button>
+                    </form>
+                    {% if doctor.balance < min_payout %}
+                    <small class="text-muted d-block mt-2">Balance below minimum (PKR {{ "%.0f"|format(min_payout) }})</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Payout Requests</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if payout_requests %}
+                    <ul class="list-group list-group-flush">
+                        {% for r in payout_requests %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>PKR {{ "%.2f"|format(r.amount) }}</span>
+                                <span class="badge {% if r.status == 'pending' %}bg-warning{% elif r.status in ['approved','paid'] %}bg-success{% else %}bg-danger{% endif %}">{{ r.status|title }}</span>
+                                <small class="text-muted">{{ r.requested_at.strftime('%d %b') if r.requested_at else '' }}</small>
+                            </div>
+                            <small class="text-muted d-block mt-1">
+                                Method: {{ (r.payout_method or 'legacy')|replace('_', ' ')|title }}
+                            </small>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="text-center py-4 text-muted small">No payout requests yet.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const methodSelect = document.getElementById('payoutMethod');
+    const bankWalletFields = document.getElementById('bankWalletFields');
+    const bankOnlyFields = document.getElementById('bankOnlyFields');
+    const visaFields = document.getElementById('visaFields');
+    const providerName = document.getElementById('providerName');
+    const accountNumber = document.getElementById('accountNumber');
+    const visaCardHolderName = document.getElementById('visaCardHolderName');
+    const visaCardLast4 = document.getElementById('visaCardLast4');
+    const visaRecipientId = document.getElementById('visaRecipientId');
+
+    function applyMethodRules() {
+        const method = methodSelect ? methodSelect.value : '';
+        bankWalletFields.style.display = 'none';
+        bankOnlyFields.style.display = 'none';
+        visaFields.style.display = 'none';
+
+        providerName.required = false;
+        accountNumber.required = false;
+        visaCardHolderName.required = false;
+        visaCardLast4.required = false;
+        visaRecipientId.required = false;
+
+        if (method === 'bank_transfer') {
+            bankWalletFields.style.display = 'block';
+            bankOnlyFields.style.display = 'block';
+            providerName.required = true;
+            accountNumber.required = true;
+        } else if (method === 'mobile_wallet') {
+            bankWalletFields.style.display = 'block';
+            providerName.required = true;
+            accountNumber.required = true;
+        } else if (method === 'visa_card') {
+            visaFields.style.display = 'block';
+            visaCardHolderName.required = true;
+            visaCardLast4.required = true;
+            visaRecipientId.required = true;
+        }
+    }
+
+    if (methodSelect) {
+        methodSelect.addEventListener('change', applyMethodRules);
+        applyMethodRules();
+    }
+});
+</script>
+{% endblock %}

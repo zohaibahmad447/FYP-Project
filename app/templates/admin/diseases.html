@@ -1,0 +1,625 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Diseases - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Playfair+Display:wght@600&display=swap');
+
+    .disease-hero {
+        background:
+            radial-gradient(circle at 0% 0%, rgba(16,185,129,0.12), transparent 40%),
+            radial-gradient(circle at 100% 0%, rgba(14,165,233,0.12), transparent 45%),
+            linear-gradient(135deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96));
+        border: 1px solid rgba(148,163,184,0.2);
+        border-radius: 24px;
+        padding: 1.6rem 2rem;
+        box-shadow: 0 12px 30px rgba(15,23,42,0.08);
+    }
+
+    .disease-title {
+        font-family: 'Playfair Display', serif;
+        font-weight: 600;
+        color: #0f172a;
+        letter-spacing: 0.2px;
+    }
+
+    .disease-subtitle {
+        font-family: 'Manrope', sans-serif;
+        color: #64748b;
+    }
+
+    .disease-cta {
+        font-family: 'Manrope', sans-serif;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 0.7rem 1.6rem;
+        box-shadow: 0 10px 22px rgba(16,185,129,0.25);
+    }
+
+    .disease-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-top: 1.2rem;
+    }
+
+    .metric-chip {
+        background: #ffffff;
+        border: 1px solid rgba(148,163,184,0.2);
+        border-radius: 18px;
+        padding: 0.85rem 1rem;
+        box-shadow: 0 8px 20px rgba(15,23,42,0.05);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .metric-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(16,185,129,0.12);
+        color: #0f766e;
+        font-size: 1.1rem;
+    }
+
+    .metric-value {
+        font-family: 'Manrope', sans-serif;
+        font-weight: 800;
+        color: #0f172a;
+        font-size: 1.25rem;
+        line-height: 1;
+    }
+
+    .metric-label {
+        font-family: 'Manrope', sans-serif;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #64748b;
+        font-weight: 700;
+    }
+
+    .disease-hero__inner {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .disease-hero__copy {
+        max-width: 54rem;
+    }
+
+    .disease-hero__eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        font-weight: 800;
+        color: #0f766e;
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.14);
+        padding: 0.4rem 0.8rem;
+        border-radius: 999px;
+        margin-bottom: 0.85rem;
+    }
+
+    /* Condition library sits on page surface — no outer board frame */
+    .condition-library__eyebrow {
+        font-family: 'Manrope', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #0f766e;
+        margin-bottom: 0.35rem;
+    }
+
+    .condition-library__title {
+        font-family: 'Manrope', sans-serif;
+        font-weight: 800;
+        font-size: 1.35rem;
+        color: #0f172a;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.35rem;
+    }
+
+    .condition-library__lede {
+        font-family: 'Manrope', sans-serif;
+        font-size: 0.875rem;
+        max-width: 36rem;
+    }
+
+    .disease-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+        gap: 1.15rem;
+    }
+
+    /* Admin disease record cards */
+    .qc-disease-admin-card {
+        position: relative;
+        background: #ffffff;
+        border: 1px solid rgba(16, 185, 129, 0.14);
+        border-radius: 20px;
+        padding: 1.15rem 1.2rem 1rem;
+        box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.85) inset,
+            0 14px 32px rgba(15, 23, 42, 0.06);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        min-height: 100%;
+        overflow: hidden;
+    }
+
+    .qc-disease-admin-card::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #10b981, #059669);
+        opacity: 0.85;
+    }
+
+    .qc-disease-admin-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(16, 185, 129, 0.32);
+        box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.9) inset,
+            0 20px 40px rgba(15, 23, 42, 0.09);
+    }
+
+    .qc-disease-admin-card__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 0.95rem;
+        padding-top: 0.15rem;
+    }
+
+    .qc-disease-admin-card__icon-wrap {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(145deg, rgba(16, 185, 129, 0.14), rgba(16, 185, 129, 0.06));
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        color: #059669;
+        font-size: 1.05rem;
+    }
+
+    .qc-disease-admin-card__idx {
+        font-family: 'Manrope', sans-serif;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        color: #64748b;
+        background: #f8fafc;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        border-radius: 8px;
+        padding: 0.35rem 0.55rem;
+    }
+
+    .qc-disease-admin-card__title {
+        font-family: 'Manrope', sans-serif;
+        font-weight: 800;
+        font-size: 1.08rem;
+        line-height: 1.35;
+        color: #0f172a;
+        margin: 0 0 0.75rem 0;
+        letter-spacing: -0.01em;
+    }
+
+    .qc-disease-admin-card__tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-bottom: 0.65rem;
+    }
+
+    .qc-disease-tag {
+        font-family: 'Manrope', sans-serif;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.28rem;
+        font-size: 0.69rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #475569;
+        background: rgba(248, 250, 252, 0.95);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        border-radius: 999px;
+        padding: 0.32rem 0.62rem;
+    }
+
+    .qc-disease-tag i {
+        color: #059669;
+        font-size: 0.72rem;
+    }
+
+    .qc-disease-admin-card__severity {
+        margin-bottom: 1rem;
+    }
+
+    .severity-pill--high { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+    .severity-pill--medium { background:#fffbeb; color:#d97706; border:1px solid #fde68a; }
+    .severity-pill--low { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
+
+    /* Section headings only — no body copy on list cards */
+    .qc-disease-outline {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1rem 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.45rem 0.6rem;
+    }
+
+    .qc-disease-outline__item {
+        font-family: 'Manrope', sans-serif;
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #0f766e;
+        padding: 0.45rem 0.55rem;
+        border-radius: 10px;
+        border: 1px dashed rgba(16, 185, 129, 0.35);
+        background: rgba(16, 185, 129, 0.045);
+        text-align: center;
+    }
+
+    .qc-disease-admin-card__foot {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(226, 232, 240, 0.95);
+    }
+
+    .qc-disease-admin-card__foot > .btn,
+    .qc-disease-admin-card__foot > form {
+        flex: 1 1 0;
+        min-width: 7rem;
+    }
+
+    .disease-empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 3rem 1.25rem;
+        background: rgba(248, 250, 252, 0.55);
+        border: 1px dashed rgba(16, 185, 129, 0.22);
+        border-radius: 20px;
+    }
+
+    .severity-pill {
+        font-family: 'Manrope', sans-serif;
+        font-weight: 800;
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 0.38rem 0.72rem;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .action-btn {
+        border-radius: 12px !important;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+
+    @media (max-width: 767.98px) {
+        .disease-hero {
+            padding: 1.25rem 1.15rem;
+        }
+
+        .disease-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .qc-disease-outline {
+            grid-template-columns: 1fr;
+        }
+
+        .qc-disease-admin-card__foot {
+            flex-direction: column;
+        }
+
+        .qc-disease-admin-card__foot .btn,
+        .qc-disease-admin-card__foot form {
+            width: 100%;
+            min-width: 100%;
+        }
+    }
+
+    .modal-content-premium {
+        border-radius: 24px;
+        border: none;
+        overflow: hidden;
+    }
+
+    .bullet-point {
+        list-style: none;
+        padding-left: 0;
+    }
+
+    .bullet-point li {
+        position: relative;
+        padding-left: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: #475569;
+        font-size: 0.95rem;
+    }
+
+    .bullet-point li::before {
+        content: "\f058";
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        position: absolute;
+        left: 0;
+        color: var(--primary-color);
+        font-size: 0.9rem;
+    }
+
+    .info-section-premium {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 1.25rem;
+        height: 100%;
+        border: 1px solid #e2e8f0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-3 py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-xl-2 col-lg-3 col-md-4 mb-4 admin-sidebar-col">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center p-4">
+                    <div class="admin-avatar mb-3 mx-auto" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 2.2rem;">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h5 class="card-title fw-bold mb-1">Admin Panel</h5>
+                    <p class="text-muted small mb-0">{{ get_current_user().name }}</p>
+                </div>
+            </div>
+            <div class="card border-0 shadow-sm mt-3 rounded-4 overflow-hidden">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h6 class="mb-0 text-uppercase text-muted fw-bold small" style="letter-spacing:1px;"><i class="fas fa-cogs me-2"></i>Management</h6>
+                </div>
+                <div class="card-body p-0">
+                    {% include 'admin/_management_sidebar.html' %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-xl-10 col-lg-9 col-md-8 admin-main-col">
+            {% set total_records = diseases|length %}
+            {% set high_risk = diseases|selectattr('severity_level','equalto','high')|list|length %}
+            {% set category_count = diseases|map(attribute='category')|unique|list|length %}
+
+            <div class="disease-hero mb-4">
+                <div class="disease-hero__inner">
+                    <div class="disease-hero__copy">
+                        <div class="disease-hero__eyebrow"><i class="fas fa-dna me-2"></i>Medical Knowledge Base</div>
+                        <h3 class="disease-title mb-2">Disease Intelligence Hub</h3>
+                        <p class="disease-subtitle mb-0">Organize conditions, patient guidance, severity, and age targeting in one clean, clinical workspace.</p>
+                    </div>
+                    <div class="disease-hero__actions">
+                        <a href="{{ url_for('admin.add_disease') }}" class="btn btn-success disease-cta">
+                            <i class="fas fa-plus me-2"></i>New Disease
+                        </a>
+                    </div>
+                </div>
+
+                <div class="disease-metrics">
+                    <div class="metric-chip">
+                        <div class="metric-icon"><i class="fas fa-notes-medical"></i></div>
+                        <div>
+                            <div class="metric-value">{{ total_records }}</div>
+                            <div class="metric-label">Total Records</div>
+                        </div>
+                    </div>
+                    <div class="metric-chip">
+                        <div class="metric-icon"><i class="fas fa-triangle-exclamation"></i></div>
+                        <div>
+                            <div class="metric-value">{{ high_risk }}</div>
+                            <div class="metric-label">High Risk</div>
+                        </div>
+                    </div>
+                    <div class="metric-chip">
+                        <div class="metric-icon"><i class="fas fa-layer-group"></i></div>
+                        <div>
+                            <div class="metric-value">{{ category_count }}</div>
+                            <div class="metric-label">Categories</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <section class="condition-library mb-4" aria-labelledby="condition-library-heading">
+                <header class="condition-library__head mb-4">
+                    <p class="condition-library__eyebrow">Clinical registry</p>
+                    <h2 id="condition-library-heading" class="condition-library__title">Condition library</h2>
+                    <p class="condition-library__lede">Structured record index — headings only below. Select <strong>View</strong> for full narratives, bullets, and care protocols.</p>
+                </header>
+
+                <div class="disease-grid">
+                    {% if diseases %}
+                        {% for disease in diseases %}
+                        <article class="qc-disease-admin-card">
+                            <div class="qc-disease-admin-card__head">
+                                <div class="qc-disease-admin-card__icon-wrap" aria-hidden="true">
+                                    <i class="fas fa-heart-pulse"></i>
+                                </div>
+                                <span class="qc-disease-admin-card__idx">#{{ '%02d' % loop.index }}</span>
+                            </div>
+
+                            <h3 class="qc-disease-admin-card__title">{{ disease.name }}</h3>
+
+                            <div class="qc-disease-admin-card__tags">
+                                <span class="qc-disease-tag"><i class="fas fa-layer-group"></i>{{ disease.category }}</span>
+                                <span class="qc-disease-tag"><i class="fas fa-users"></i>{% if disease.age_group %}{{ disease.age_group.replace('_', ' ')|title }}{% else %}All ages{% endif %}</span>
+                                {% if disease.gender_preference and disease.gender_preference|lower != 'both' %}
+                                <span class="qc-disease-tag"><i class="fas fa-venus-mars"></i>{{ disease.gender_preference|title }}</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="qc-disease-admin-card__severity">
+                                {% set sev = (disease.severity_level or 'low')|lower %}
+                                {% if sev in ['high', 'severe'] %}
+                                    <span class="severity-pill severity-pill--high"><i class="fas fa-fire me-1"></i>High risk</span>
+                                {% elif sev in ['medium', 'moderate'] %}
+                                    <span class="severity-pill severity-pill--medium"><i class="fas fa-exclamation-circle me-1"></i>Moderate</span>
+                                {% else %}
+                                    <span class="severity-pill severity-pill--low"><i class="fas fa-shield-heart me-1"></i>Lower risk</span>
+                                {% endif %}
+                            </div>
+
+                            <ul class="qc-disease-outline" aria-label="Sections in this record">
+                                <li class="qc-disease-outline__item">Overview</li>
+                                <li class="qc-disease-outline__item">Symptoms</li>
+                                {% if disease.causes and disease.causes.strip() %}
+                                <li class="qc-disease-outline__item">Causes</li>
+                                {% endif %}
+                                {% if disease.prevention and disease.prevention.strip() %}
+                                <li class="qc-disease-outline__item">Prevention</li>
+                                {% endif %}
+                                <li class="qc-disease-outline__item">Care</li>
+                            </ul>
+
+                            <div class="qc-disease-admin-card__foot">
+                                <button type="button" class="btn btn-sm btn-success action-btn flex-fill" data-bs-toggle="modal" data-bs-target="#viewD{{ disease.id }}">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </button>
+                                <a href="{{ url_for('admin.edit_disease', disease_id=disease.id) }}" class="btn btn-sm btn-outline-secondary action-btn flex-fill">
+                                    <i class="fas fa-pen me-1"></i>Edit
+                                </a>
+                                <form method="POST" action="{{ url_for('admin.delete_disease', disease_id=disease.id) }}" class="flex-fill">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger action-btn w-100" onclick="return confirm('Delete this record?')">
+                                        <i class="fas fa-trash me-1"></i>Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </article>
+                        {% endfor %}
+                    {% else %}
+                        <div class="disease-empty-state">
+                            <i class="fas fa-folder-open fa-4x text-muted opacity-25 mb-3"></i>
+                            <h5 class="text-muted mb-2">No conditions yet</h5>
+                            <p class="text-muted small mb-4">Add your first record to populate the library.</p>
+                            <a href="{{ url_for('admin.add_disease') }}" class="btn btn-success disease-cta">
+                                <i class="fas fa-plus me-2"></i>Add first record
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+{% for disease in diseases %}
+<div class="modal fade" id="viewD{{ disease.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content modal-content-premium shadow">
+            <div class="modal-header border-0 bg-light py-3 px-4">
+                <div>
+                    <h4 class="modal-title fw-bold mb-0">{{ disease.name }}</h4>
+                    <span class="badge rounded-pill" style="background: linear-gradient(135deg, #10b981, #059669);">{{ disease.category }}</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-4">
+                    <h6 class="fw-bold text-muted text-uppercase small mb-2" style="letter-spacing:1px;">Clinical Description</h6>
+                    <p class="text-dark">{{ disease.description }}</p>
+                </div>
+                
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="info-section-premium">
+                            <h6 class="fw-bold text-info mb-3"><i class="fas fa-clipboard-list me-2"></i>Symptoms</h6>
+                            <ul class="bullet-point">
+                                {% for item in disease.symptoms.split(',') %}
+                                    {% if item.strip() %}<li>{{ item.strip() }}</li>{% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-section-premium">
+                            <h6 class="fw-bold text-warning mb-3"><i class="fas fa-exclamation-triangle me-2"></i>Known Causes</h6>
+                            <ul class="bullet-point">
+                                {% if disease.causes %}
+                                    {% for item in disease.causes.split(',') %}
+                                        {% if item.strip() %}<li>{{ item.strip() }}</li>{% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <li class="text-muted italic">No specific causes identified.</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-section-premium">
+                            <h6 class="fw-bold text-success mb-3"><i class="fas fa-shield-virus me-2"></i>Prevention</h6>
+                            <ul class="bullet-point">
+                                {% if disease.prevention %}
+                                    {% for item in disease.prevention.split(',') %}
+                                        {% if item.strip() %}<li>{{ item.strip() }}</li>{% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <li class="text-muted italic">No prevention data.</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-section-premium">
+                            <h6 class="fw-bold text-primary mb-3"><i class="fas fa-stethoscope me-2"></i>Recommended Care</h6>
+                            <ul class="bullet-point">
+                                {% if disease.treatment %}
+                                    {% for item in disease.treatment.split(',') %}
+                                        {% if item.strip() %}<li>{{ item.strip() }}</li>{% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <li class="text-muted italic">Consult a doctor for treatment.</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                <a href="{{ url_for('admin.edit_disease', disease_id=disease.id) }}" class="btn btn-primary rounded-pill px-4">Edit Records</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

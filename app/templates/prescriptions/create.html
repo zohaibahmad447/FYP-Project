@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block title %}Create Prescription - QuickCare{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, rgba(5, 150, 105, 0.02) 100%); min-height: calc(100vh - 100px);">
+    <div class="container">
+        <!-- Professional Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-lg" style="border-radius: 20px; background: white;">
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h3 class="mb-2" style="color: #10b981; font-weight: 700;">
+                                    <i class="fas fa-file-medical me-2"></i>Create Medical Prescription
+                                </h3>
+                                <p class="text-muted mb-0">
+                                    Appointment ID: #{{ appointment.id }} | 
+                                    Patient: <strong>{{ appointment.patient.user.name }}</strong> | 
+                                    Date: {{ appointment.appointment_date.strftime('%d %b %Y') }}
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <a href="{{ url_for('doctors.appointments') }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Appointments
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prescription Form -->
+        <form method="POST" id="prescriptionForm">
+            <div class="row">
+                <!-- Left Column: Patient Info & Vitals -->
+                <div class="col-md-4 mb-4">
+                    <!-- Patient Information Card -->
+                    <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px;">
+                        <div class="card-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 16px 16px 0 0; color: white;">
+                            <h6 class="mb-0"><i class="fas fa-user-circle me-2"></i>Patient Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="small text-muted text-uppercase" style="font-weight: 600; letter-spacing: 0.5px;">Name</label>
+                                <p class="mb-0 fw-bold">{{ appointment.patient.user.name }}</p>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <label class="small text-muted text-uppercase" style="font-weight: 600; letter-spacing: 0.5px;">Age</label>
+                                    <p class="mb-0">{% if appointment.patient.user.date_of_birth %}{{ ((now() - appointment.patient.user.date_of_birth).days / 365.25) | int }} Years{% else %}N/A{% endif %}</p>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <label class="small text-muted text-uppercase" style="font-weight: 600; letter-spacing: 0.5px;">Gender</label>
+                                    <p class="mb-0">{{ appointment.patient.user.gender | title if appointment.patient.user.gender else 'N/A' }}</p>
+                                </div>
+                            </div>
+                            <div class="mb-0">
+                                <label class="small text-muted text-uppercase" style="font-weight: 600; letter-spacing: 0.5px;">Phone</label>
+                                <p class="mb-0">{{ appointment.patient.user.phone | format_phone }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vitals Card -->
+                    <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                        <div class="card-header" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border-radius: 16px 16px 0 0; border-bottom: 2px solid #10b981;">
+                            <h6 class="mb-0" style="color: #10b981;"><i class="fas fa-heartbeat me-2"></i>Vital Signs</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label small text-muted">Weight (kg)</label>
+                                <input type="number" class="form-control" name="weight" step="0.1" placeholder="e.g., 70.5">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted">Blood Pressure (mmHg)</label>
+                                <input type="text" class="form-control" name="bp" placeholder="e.g., 120/80">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted">Temperature (°F)</label>
+                                <input type="number" class="form-control" name="temp" step="0.1" placeholder="e.g., 98.6">
+                            </div>
+                            <div class="mb-0">
+                                <label class="form-label small text-muted">Pulse (bpm)</label>
+                                <input type="number" class="form-control" name="pulse" placeholder="e.g., 72">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Medical Details -->
+                <div class="col-md-8">
+                    <!-- Chief Complaints & Diagnosis -->
+                    <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px;">
+                        <div class="card-header" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border-radius: 16px 16px 0 0; border-bottom: 2px solid #10b981;">
+                            <h6 class="mb-0" style="color: #10b981;"><i class="fas fa-stethoscope me-2"></i>Clinical Assessment</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Chief Complaints</label>
+                                <textarea class="form-control" name="complaints" rows="2" placeholder="e.g., Fever for 3 days, headache, body aches"></textarea>
+                            </div>
+                            <div class="mb-0">
+                                <label class="form-label fw-bold">Diagnosis <span class="text-danger">*</span></label>
+                                <textarea class="form-control" name="diagnosis" rows="2" placeholder="e.g., Acute Viral Fever" required></textarea>
+                                <small class="text-muted">Primary diagnosis or medical condition</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medicines Section -->
+                    <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px;">
+                        <div class="card-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 16px 16px 0 0; color: white;">
+                            <h6 class="mb-0"><i class="fas fa-pills me-2"></i>Rx - Medicines</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="medicinesContainer">
+                                <!-- Medicine Row Template -->
+                                <div class="medicine-row mb-3 p-3" style="background: rgba(16, 185, 129, 0.03); border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.15);">
+                                    <div class="row">
+                                        <div class="col-md-3 mb-2">
+                                            <label class="form-label small">Medicine Name</label>
+                                            <input type="text" class="form-control form-control-sm" name="medicine_name[]" placeholder="e.g., Tab. Panadol">
+                                        </div>
+                                        <div class="col-md-2 mb-2">
+                                            <label class="form-label small">Dosage</label>
+                                            <input type="text" class="form-control form-control-sm" name="medicine_dosage[]" placeholder="e.g., 500mg">
+                                        </div>
+                                        <div class="col-md-2 mb-2">
+                                            <label class="form-label small">Frequency</label>
+                                            <input type="text" class="form-control form-control-sm" name="medicine_frequency[]" placeholder="e.g., 1-0-1">
+                                            <small class="text-muted" style="font-size: 0.7rem;">M-A-N</small>
+                                        </div>
+                                        <div class="col-md-2 mb-2">
+                                            <label class="form-label small">Duration</label>
+                                            <input type="text" class="form-control form-control-sm" name="medicine_duration[]" placeholder="e.g., 5 Days">
+                                        </div>
+                                        <div class="col-md-3 mb-2">
+                                            <label class="form-label small">Instructions</label>
+                                            <input type="text" class="form-control form-control-sm" name="medicine_instructions[]" placeholder="e.g., After meal">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-success" onclick="addMedicine()">
+                                <i class="fas fa-plus-circle me-1"></i>Add Medicine
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Lab Tests Section -->
+                    <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px;">
+                        <div class="card-header" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border-radius: 16px 16px 0 0; border-bottom: 2px solid #10b981;">
+                            <h6 class="mb-0" style="color: #10b981;"><i class="fas fa-vials me-2"></i>Laboratory Tests</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="testsContainer">
+                                <!-- Test Row Template -->
+                                <div class="test-row mb-2">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <input type="text" class="form-control form-control-sm" name="test_name[]" placeholder="e.g., CBC, Lipid Profile">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="text" class="form-control form-control-sm" name="test_instructions[]" placeholder="Instructions (e.g., Fasting required)">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-success" onclick="addTest()">
+                                <i class="fas fa-plus-circle me-1"></i>Add Test
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Advice & Follow-up -->
+                    <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px;">
+                        <div class="card-header" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border-radius: 16px 16px 0 0; border-bottom: 2px solid #10b981;">
+                            <h6 class="mb-0" style="color: #10b981;"><i class="fas fa-clipboard-list me-2"></i>Advice & Follow-up</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Medical Advice</label>
+                                <textarea class="form-control" name="advice" rows="3" placeholder="e.g., Complete bed rest, drink plenty of fluids, avoid spicy food"></textarea>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Follow-up Date</label>
+                                    <input type="date" class="form-control" name="follow_up_date">
+                                </div>
+                                <div class="col-md-6 mb-0">
+                                    <label class="form-label fw-bold">Follow-up Notes</label>
+                                    <input type="text" class="form-control" name="follow_up_notes" placeholder="e.g., Review after 1 week">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-success btn-lg px-5" style="border-radius: 12px; font-weight: 600; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                            <i class="fas fa-save me-2"></i>Save & Generate Prescription
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Add Medicine Row
+function addMedicine() {
+    const container = document.getElementById('medicinesContainer');
+    const newRow = document.createElement('div');
+    newRow.className = 'medicine-row mb-3 p-3 position-relative';
+    newRow.style = 'background: rgba(16, 185, 129, 0.03); border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.15);';
+    newRow.innerHTML = `
+        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2" style="border-radius: 50%; width: 30px; height: 30px; padding: 0;" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="row">
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Medicine Name</label>
+                <input type="text" class="form-control form-control-sm" name="medicine_name[]" placeholder="e.g., Tab. Panadol">
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Dosage</label>
+                <input type="text" class="form-control form-control-sm" name="medicine_dosage[]" placeholder="e.g., 500mg">
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Frequency</label>
+                <input type="text" class="form-control form-control-sm" name="medicine_frequency[]" placeholder="e.g., 1-0-1">
+                <small class="text-muted" style="font-size: 0.7rem;">M-A-N</small>
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Duration</label>
+                <input type="text" class="form-control form-control-sm" name="medicine_duration[]" placeholder="e.g., 5 Days">
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Instructions</label>
+                <input type="text" class="form-control form-control-sm" name="medicine_instructions[]" placeholder="e.g., After meal">
+            </div>
+        </div>
+    `;
+    container.appendChild(newRow);
+}
+
+// Add Test Row
+function addTest() {
+    const container = document.getElementById('testsContainer');
+    const newRow = document.createElement('div');
+    newRow.className = 'test-row mb-2 position-relative';
+    newRow.innerHTML = `
+        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" style="border-radius: 50%; width: 25px; height: 25px; padding: 0; font-size: 0.7rem;" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="row">
+            <div class="col-md-6">
+                <input type="text" class="form-control form-control-sm" name="test_name[]" placeholder="e.g., CBC, Lipid Profile">
+            </div>
+            <div class="col-md-6">
+                <input type="text" class="form-control form-control-sm" name="test_instructions[]" placeholder="Instructions (e.g., Fasting required)">
+            </div>
+        </div>
+    `;
+    container.appendChild(newRow);
+}
+
+// Form validation
+document.getElementById('prescriptionForm').addEventListener('submit', function(e) {
+    const diagnosis = document.querySelector('[name="diagnosis"]').value;
+    if (!diagnosis.trim()) {
+        e.preventDefault();
+        alert('Diagnosis is required!');
+        return false;
+    }
+});
+</script>
+
+<style>
+.form-control:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4) !important;
+}
+
+.medicine-row, .test-row {
+    transition: all 0.3s ease;
+}
+
+.medicine-row:hover, .test-row:hover {
+    background: rgba(16, 185, 129, 0.06) !important;
+    border-color: rgba(16, 185, 129, 0.25) !important;
+}
+</style>
+{% endblock %}

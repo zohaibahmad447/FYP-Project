@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Appeals - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-0">
+                        <i class="fas fa-gavel me-2"></i>Doctor Appeals
+                    </h2>
+                    <p class="text-muted mb-0">Review and process doctor appeals</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            {% if appeals %}
+                <!-- Appeals List -->
+                <div class="card qc-admin-card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-danger text-white border-0 py-3 px-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Pending Appeals ({{ appeals|length }})
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Doctor</th>
+                                        <th>Specialization</th>
+                                        <th>PMC Code</th>
+                                        <th>Appeal Count</th>
+                                        <th>Last Rejection</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for doctor in appeals %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="doctor-avatar-small me-3">
+                                                    {{ doctor.user.name[0].upper() }}
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">{{ doctor.user.name }}</h6>
+                                                    <small class="text-muted">{{ doctor.user.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ doctor.specialization }}</td>
+                                        <td>{{ doctor.pmc_code }}</td>
+                                        <td>
+                                            <span class="badge bg-warning">{{ doctor.appeal_count }}</span>
+                                        </td>
+                                        <td>
+                                            {% if doctor.rejection_date %}
+                                                {{ doctor.rejection_date.strftime('%B %d, %Y at %I:%M:%S %p') }}
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{{ url_for('admin.view_doctor_details', doctor_id=doctor.id) }}" 
+                                                   class="btn btn-info btn-sm">
+                                                    <i class="fas fa-eye me-1"></i>Review
+                                                </a>
+                                                <form method="POST" action="{{ url_for('admin.process_appeal', doctor_id=doctor.id) }}" class="d-inline">
+                                                    <input type="hidden" name="appeal_decision" value="approve">
+                                                    <button type="submit" class="btn btn-success btn-sm">
+                                                        <i class="fas fa-check me-1"></i>Approve
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm" 
+                                                        data-bs-toggle="modal" data-bs-target="#rejectAppealModal{{ doctor.id }}">
+                                                    <i class="fas fa-times me-1"></i>Reject
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <!-- No Appeals -->
+                <div class="card qc-admin-card border-0 shadow-sm rounded-4">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-gavel fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Pending Appeals</h5>
+                        <p class="text-muted">All appeals have been processed.</p>
+                        <a href="{{ url_for('admin.doctors') }}" class="btn btn-primary">
+                            <i class="fas fa-user-md me-1"></i>View All Doctors
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Reject Appeal Modals -->
+{% for doctor in appeals %}
+<div class="modal fade" id="rejectAppealModal{{ doctor.id }}" tabindex="-1" aria-labelledby="rejectAppealModalLabel{{ doctor.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectAppealModalLabel{{ doctor.id }}">Reject Appeal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.process_appeal', doctor_id=doctor.id) }}">
+                <input type="hidden" name="appeal_decision" value="reject">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="appeal_reason{{ doctor.id }}" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="appeal_reason{{ doctor.id }}" name="appeal_reason" rows="4" 
+                                  placeholder="Please provide specific reasons for rejection..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times me-1"></i>Reject
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+

@@ -1,0 +1,486 @@
+ {% extends "base.html" %}
+
+{% block title %}{{ blog.meta_title or blog.title }} - Quick Care Connect{% endblock %}
+
+{% block extra_meta %}
+{% if blog.meta_description %}<meta name="description" content="{{ blog.meta_description }}">{% endif %}
+<meta property="og:title" content="{{ blog.meta_title or blog.title }}">
+<meta property="og:description" content="{{ blog.meta_description or (blog.excerpt or blog.content|striptags|truncate(160)) }}">
+{% if hero_static_path %}<meta property="og:image" content="{{ url_for('static', filename=hero_static_path, _external=True) }}">{% endif %}
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+{% endblock %}
+
+{% block page_breadcrumb %}
+<div class="container">
+    <div class="page-breadcrumb">
+        <a href="{{ url_for('home.index') }}">Home</a>
+        <span class="separator"><i class="fas fa-chevron-right"></i></span>
+        <a href="{{ url_for('blogs.index') }}">Health Articles</a>
+        <span class="separator"><i class="fas fa-chevron-right"></i></span>
+        <span class="current">{{ blog.title[:50] }}{% if blog.title|length > 50 %}...{% endif %}</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Main Article Column -->
+        <div class="col-lg-9">
+            <div class="article-container pe-lg-4">
+                <!-- Title moved to hero image banner -->
+                
+                <!-- Premium Animated Meta Bar -->
+                <div class="d-flex flex-wrap align-items-center py-4 mb-4 border-top border-bottom meta-bar-premium">
+                    <div class="d-flex align-items-center pe-4 me-4 border-end meta-item">
+                        <div class="icon-wrapper me-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" fill="none" viewBox="0 0 24 24" stroke-width="1.3" stroke="#0f172a">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="text-secondary mb-1" style="font-size: 0.85rem; line-height: 1; font-weight: 500;">Written By</div>
+                            <div class="fw-bold" style="font-size: 1rem; color: #020617; line-height: 1.2; letter-spacing: -0.2px;">{{ blog.doctor.user.name }}</div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center pe-4 me-4 border-end meta-item">
+                        <div class="icon-wrapper me-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" fill="none" viewBox="0 0 24 24" stroke-width="1.3" stroke="#0f172a">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="text-secondary mb-1" style="font-size: 0.85rem; line-height: 1; font-weight: 500;">Category</div>
+                            <div class="fw-bold" style="font-size: 1rem; color: #020617; line-height: 1.2; letter-spacing: -0.2px;">{{ blog.category or 'Health' }}</div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center meta-item">
+                        <div class="icon-wrapper me-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" fill="none" viewBox="0 0 24 24" stroke-width="1.3" stroke="#0f172a">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="text-secondary mb-1" style="font-size: 0.85rem; line-height: 1; font-weight: 500;">Published On</div>
+                            <div class="fw-bold" style="font-size: 1rem; color: #020617; line-height: 1.2; letter-spacing: -0.2px;">
+                                {% if blog.published_at %}
+                                    {{ blog.published_at.strftime('%b %d %Y') }}
+                                {% else %}
+                                    Pending Review
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Branded Hero Image -->
+                <div class="article-hero-img position-relative overflow-hidden rounded-3 border mb-2 bg-light">
+                    {% if hero_static_path %}
+                    <img id="blogHeroImage" crossorigin="anonymous" src="{{ url_for('static', filename=hero_static_path) }}" alt="{{ blog.title }}" class="img-fluid w-100" style="object-fit: cover; max-height: 500px;">
+                    {% else %}
+                    <div class="w-100 d-flex align-items-center justify-content-center" style="height: 400px;">
+                        <i class="fas fa-image fa-4x text-muted opacity-25"></i>
+                    </div>
+                    {% endif %}
+
+                    <!-- Dynamic Top Left Logo -->
+                    <div id="dynamicBranding" class="position-absolute d-flex align-items-center rounded-3 shadow-sm" style="top: 20px; left: 20px; z-index: 10; transition: filter 0.3s ease; padding: 8px 16px; background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px);">
+                        <img src="{{ url_for('static', filename='images/quickcare-logo.png') }}" alt="Quick Care logo" style="width: 45px; height: 45px; object-fit: contain;">
+                        <span class="ms-2 fw-bold branding-text" style="font-family: 'Inter', sans-serif; font-size: 1.6rem; letter-spacing: -0.5px; color: #020617; transition: color 0.3s ease;">Quick Care</span>
+                    </div>
+
+                    <!-- Title Banner Overlay -->
+                    <div class="position-absolute w-100 banner-overlay" style="bottom: 40px; left: 0; background-color: rgba(16, 185, 129, 0.95); backdrop-filter: blur(5px); z-index: 5;">
+                        <h1 class="m-0 py-3 px-4 text-white text-center fw-bold" style="font-family: 'Inter', sans-serif; font-size: 1.5rem; line-height: 1.4; letter-spacing: -0.3px; text-shadow: 0 1px 3px rgba(0,0,0,0.15);">
+                            {{ blog.title }}
+                        </h1>
+                    </div>
+                </div>
+
+                <!-- Instacare Style Collapsible Table of Contents -->
+                <div class="article-toc-inline bg-light border rounded-3 mb-3" id="tocWidget" style="display: none;">
+                    <div class="p-3 d-flex justify-content-between align-items-center cursor-pointer" onclick="toggleToc()" style="cursor: pointer; background-color: #f8fafc; border-radius: 8px;">
+                        <h6 class="mb-0 fw-bold text-dark d-flex align-items-center" style="font-size: 1.05rem;">
+                            <i class="fas fa-list-ul text-primary me-2"></i> Table of contents
+                        </h6>
+                        <span id="tocToggleText" class="text-muted small fw-medium" style="user-select: none;">show</span>
+                    </div>
+                    <div id="tocContent" class="p-3 pt-0 border-top toc-nav small" style="display: none; background-color: #f8fafc; border-radius: 0 0 8px 8px;">
+                        <!-- Generated by JS -->
+                    </div>
+                </div>
+
+
+
+                <div class="article-body mb-5">
+                    {{ render_content | safe }}
+                </div>
+
+                {% if blog.references %}
+                <div class="article-references p-4 bg-light rounded-3 border mb-5">
+                    <h6 class="mb-2 fw-bold text-dark"><i class="fas fa-bookmark text-primary me-2"></i>Medical References</h6>
+                    <div class="text-muted small" style="white-space: pre-wrap; line-height: 1.5;">{{ blog.references }}</div>
+                </div>
+                {% endif %}
+
+                <!-- Author Bio -->
+                <div class="author-box border rounded-3 p-4 mb-4 bg-light">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="author-avatar-large me-3" style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #10b981; color: white;">
+                            {% if blog.doctor.user.profile_picture %}
+                                <img src="{{ url_for('static', filename='uploads/' + blog.doctor.user.profile_picture) }}" alt="{{ blog.doctor.user.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            {% else %}
+                                <span class="fw-bold fs-4">{{ blog.doctor.user.name[0].upper() }}</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h5 class="mb-1 fw-bold">{{ blog.doctor.user.name }}</h5>
+                            <p class="text-muted mb-0 small">{{ blog.doctor.specialization }}</p>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-0">{{ blog.doctor.bio }}</p>
+                </div>
+
+                <!-- End of Article Appointment CTA -->
+                <div class="text-center my-5">
+                    <a href="{{ url_for('patients.find_doctors', specialty=blog.category) }}" class="btn text-white fw-bold border-0 px-4 py-3 shadow-sm instacare-cta-btn" style="background-color: #10b981; border-radius: 8px; font-size: 1.05rem; letter-spacing: 0.3px;">
+                        <i class="far fa-calendar-check me-2"></i>
+                        Book appointment with best {{ blog.category }} specialists Now
+                    </a>
+                </div>
+
+                <!-- Related Articles -->
+                {% if related_blogs %}
+                <div class="related-articles-section mt-5">
+                    <h5 class="fw-bold mb-4 border-bottom pb-2">More Articles by {{ blog.doctor.user.name }}</h5>
+                    <div class="row g-4">
+                        {% for related_blog in related_blogs %}
+                        <div class="col-md-6">
+                            <div class="related-article bg-white border rounded-3 p-3 h-100 transition-hover">
+                                <h6 class="fw-bold mb-2">
+                                    <a href="{{ url_for('blogs.view_blog', blog_id=related_blog.id) }}" class="text-dark text-decoration-none instacare-hover">
+                                        {{ related_blog.title }}
+                                    </a>
+                                </h6>
+                                <p class="small text-muted mb-2" style="display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                    {{ related_blog.content[:100] | striptags }}
+                                </p>
+                                <small class="text-primary fw-bold" style="font-size: 0.75rem;">
+                                    <i class="far fa-calendar-alt me-1"></i>{{ related_blog.published_at.strftime('%b %d, %Y') }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-3">
+            
+            <!-- Search -->
+            <div class="sidebar-widget mb-4">
+                <form action="{{ url_for('blogs.index') }}" method="GET">
+                    <div class="input-group shadow-sm">
+                        <input type="text" name="search" class="form-control border-end-0 py-2" placeholder="Search articles..." style="border-radius: 8px 0 0 8px;">
+                        <button class="btn border border-start-0 bg-white text-muted px-3" type="submit" style="border-radius: 0 8px 8px 0;"><i class="fas fa-search"></i></button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Categories -->
+            <div class="sidebar-widget mb-4 bg-white border rounded-3 p-4 shadow-sm">
+                <h6 class="fw-bold mb-3 border-bottom pb-3">Categories</h6>
+                <div class="list-group list-group-flush small">
+                    <a href="{{ url_for('blogs.index', search='Cardiology') }}" class="list-group-item list-group-item-action px-0 border-0 py-2 text-muted d-flex justify-content-between align-items-center">Cardiology <i class="fas fa-chevron-right small opacity-50"></i></a>
+                    <a href="{{ url_for('blogs.index', search='Neurology') }}" class="list-group-item list-group-item-action px-0 border-0 py-2 text-muted d-flex justify-content-between align-items-center">Neurology <i class="fas fa-chevron-right small opacity-50"></i></a>
+                    <a href="{{ url_for('blogs.index', search='Nutrition') }}" class="list-group-item list-group-item-action px-0 border-0 py-2 text-muted d-flex justify-content-between align-items-center">Nutrition & Diet <i class="fas fa-chevron-right small opacity-50"></i></a>
+                    <a href="{{ url_for('blogs.index', search='Dermatology') }}" class="list-group-item list-group-item-action px-0 border-0 py-2 text-muted d-flex justify-content-between align-items-center">Dermatology <i class="fas fa-chevron-right small opacity-50"></i></a>
+                    <a href="{{ url_for('blogs.index', search='Psychology') }}" class="list-group-item list-group-item-action px-0 border-0 py-2 text-muted d-flex justify-content-between align-items-center">Psychology <i class="fas fa-chevron-right small opacity-50"></i></a>
+                </div>
+            </div>
+
+            <!-- Share Article -->
+            <div class="sidebar-widget mb-4 bg-white border rounded-3 p-4 shadow-sm">
+                <h6 class="fw-bold mb-3 border-bottom pb-3">Share Article</h6>
+                <div class="d-flex justify-content-between gap-2">
+                    <button class="btn btn-light flex-grow-1 text-primary border-0 shadow-sm share-btn" onclick="shareOnFacebook()" title="Facebook"><i class="fab fa-facebook-f"></i></button>
+                    <button class="btn btn-light flex-grow-1 text-info border-0 shadow-sm share-btn" onclick="shareOnTwitter()" title="Twitter"><i class="fab fa-twitter"></i></button>
+                    <button class="btn btn-light flex-grow-1 text-success border-0 shadow-sm share-btn" onclick="shareOnWhatsApp()" title="WhatsApp"><i class="fab fa-whatsapp"></i></button>
+                    <button class="btn btn-light flex-grow-1 text-secondary border-0 shadow-sm share-btn" onclick="copyLink(event)" title="Copy Link"><i class="fas fa-link"></i></button>
+                </div>
+            </div>
+
+            <!-- Sticky Sidebar Container -->
+            <div class="sticky-sidebar-container" style="position: sticky; top: 90px; z-index: 10; transition: all 0.3s ease;">
+                
+                <!-- Book Appointment (Sticky CTA) -->
+                <div class="sidebar-widget bg-gradient-primary rounded-3 p-4 mb-4 text-center text-white shadow-lg appointment-cta" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <div class="mb-3"><i class="fas fa-user-md fa-3x text-white opacity-75"></i></div>
+                    <h5 class="fw-bold mb-2 text-white" style="letter-spacing: -0.5px;">Need a Consultation?</h5>
+                    <p class="small mb-4 opacity-75">Connect with top-rated specialists online instantly.</p>
+                    <a href="{{ url_for('patients.find_doctors') if session.user_role == 'patient' else url_for('auth.login') }}" class="btn btn-light w-100 fw-bold text-success shadow-sm py-2" style="border-radius: 8px;">
+                        Book Appointment Now
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Compressed Typography (Instacare Style) */
+    .article-title {
+        font-family: 'Inter', sans-serif;
+        color: #0f172a;
+        line-height: 1.25;
+        font-size: 2rem;
+        font-weight: 800;
+        text-align: left;
+    }
+    
+    .banner-overlay {
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+    }
+    .article-body {
+        font-size: 1.05rem;
+        line-height: 1.6;
+        color: #374151;
+    }
+    .article-body p {
+        margin-bottom: 1.25rem;
+    }
+    .article-body h2, .article-body h3, .article-body h4 { 
+        font-weight: 700; color: #111827; margin-top: 2rem; margin-bottom: 1rem;
+    }
+    .article-body h2 { font-size: 1.5rem; }
+    .article-body h3 { font-size: 1.25rem; }
+    
+    .instacare-cta-btn {
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+    .instacare-cta-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2) !important;
+        background-color: #059669 !important; /* Darker theme green on hover */
+        color: white;
+    }
+    
+    .author-avatar-sm {
+        width: 32px; height: 32px; border-radius: 50%;
+        background: #10b981;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-weight: 700; font-size: 13px;
+    }
+    .article-hero-img img {
+        max-height: 500px;
+    }
+    .author-avatar-large {
+        width: 60px; height: 60px; border-radius: 50%;
+        background: #10b981;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-weight: 700; font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    .article-references {
+        border-left: 4px solid #10b981 !important;
+    }
+    .transition-hover {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .transition-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .instacare-hover:hover {
+        color: #10b981 !important;
+    }
+    .w-15px { width: 15px; }
+
+    /* Custom animations for Meta Bar icons */
+    .meta-item {
+        transition: transform 0.3s ease;
+    }
+    .meta-item:hover {
+        transform: translateY(-2px);
+    }
+    .meta-item .icon-wrapper svg {
+        transition: all 0.3s ease;
+    }
+    .meta-item:hover .icon-wrapper svg {
+        stroke: #10b981;  /* Turns green on hover */
+        transform: scale(1.1);
+    }
+    
+    /* Table of Contents Styles */
+    .toc-nav a {
+        display: block;
+        color: #4b5563;
+        text-decoration: none;
+        padding: 8px 0;
+        border-bottom: 1px solid #f3f4f6;
+        transition: color 0.2s ease, padding-left 0.2s ease;
+        line-height: 1.4;
+    }
+    .toc-nav a:last-child {
+        border-bottom: none;
+    }
+    .toc-nav a:hover, .toc-nav a.active {
+        color: #10b981;
+        padding-left: 6px;
+        font-weight: 600;
+    }
+    .toc-nav a.toc-h3 {
+        padding-left: 15px;
+        font-size: 0.9em;
+        color: #6b7280;
+    }
+    .toc-nav a.toc-h3:hover, .toc-nav a.toc-h3.active {
+        padding-left: 21px;
+        color: #10b981;
+    }
+    
+    .share-btn {
+        transition: transform 0.2s, background-color 0.2s;
+    }
+    .share-btn:hover {
+        transform: translateY(-3px);
+        background-color: #f3f4f6;
+    }
+
+    /* Inline Image Sizing Override */
+    .article-body img {
+        max-width: 100% !important;
+        max-height: 550px;
+        width: auto !important;
+        height: auto !important;
+        object-fit: contain;
+        display: block;
+        margin: 2.5rem auto;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    /* Remove outer container padding to let the grid breathe */
+    .container.py-4 { padding-top: 1.5rem !important; }
+</style>
+
+<script>
+    function toggleToc() {
+        const content = document.getElementById('tocContent');
+        const toggleText = document.getElementById('tocToggleText');
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            toggleText.textContent = 'hide';
+        } else {
+            content.style.display = 'none';
+            toggleText.textContent = 'show';
+        }
+    }
+
+    function shareOnFacebook() {
+        const url = encodeURIComponent(window.location.href);
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+    }
+
+    function shareOnTwitter() {
+        const url = encodeURIComponent(window.location.href);
+        const title = '{{ blog.title|urlencode }}';
+        window.open(`https://twitter.com/intent/tweet?url=${url}&text=${title}`, '_blank');
+    }
+
+    function shareOnWhatsApp() {
+        const url = encodeURIComponent(window.location.href);
+        const title = '{{ blog.title|urlencode }}';
+        window.open(`https://wa.me/?text=${title}%20${url}`, '_blank');
+    }
+
+    function copyLink(event) {
+        navigator.clipboard.writeText(window.location.href).then(function () {
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+            btn.classList.add('btn-success');
+            btn.classList.remove('btn-outline-secondary');
+
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-outline-secondary');
+            }, 2000);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('Article viewed: {{ blog.id }}');
+        
+        // Generate Table of Contents
+        const articleBody = document.querySelector('.article-body');
+        const tocWidget = document.getElementById('tocWidget');
+        const tocContent = document.getElementById('tocContent');
+        
+        if (articleBody && tocWidget && tocContent) {
+            const headings = articleBody.querySelectorAll('h2, h3');
+            if (headings.length > 0) {
+                tocWidget.style.display = 'block';
+                let tocHTML = '';
+                
+                headings.forEach((heading, index) => {
+                    // Create an ID if none exists
+                    if (!heading.id) {
+                        // Create a URL-friendly ID from heading text
+                        const idText = heading.textContent.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+                        heading.id = idText || 'heading-' + index;
+                    }
+                    
+                    const level = heading.tagName.toLowerCase() === 'h2' ? 'toc-h2' : 'toc-h3';
+                    tocHTML += `<a href="#${heading.id}" class="${level}"><i class="fas fa-angle-right me-2 opacity-50 small"></i>${heading.textContent}</a>`;
+                });
+                
+                tocContent.innerHTML = tocHTML;
+                
+                // Add smooth scrolling to ToC links
+                const tocLinks = tocContent.querySelectorAll('a');
+                tocLinks.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const targetId = this.getAttribute('href').substring(1);
+                        const targetElement = document.getElementById(targetId);
+                        if (targetElement) {
+                            window.scrollTo({
+                                top: targetElement.offsetTop - 100, // Account for fixed header
+                                behavior: 'smooth'
+                            });
+                        }
+                    });
+                });
+                
+                // Highlight active ToC item on scroll
+                window.addEventListener('scroll', () => {
+                    let current = '';
+                    headings.forEach(heading => {
+                        const headingTop = heading.offsetTop;
+                        if (scrollY >= headingTop - 150) {
+                            current = heading.getAttribute('id');
+                        }
+                    });
+
+                    tocLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href').substring(1) === current) {
+                            link.classList.add('active');
+                        }
+                    });
+                });
+            }
+        }
+        
+
+    });
+</script>
+{% endblock %}

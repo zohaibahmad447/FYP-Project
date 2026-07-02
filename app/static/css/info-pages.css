@@ -1,0 +1,225 @@
+/* Marketing / legal info pages */
+.info-hero {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.06) 100%);
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.info-hero h1 {
+    font-weight: 800;
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    color: #065f46;
+    margin-bottom: 0.75rem;
+}
+
+.info-hero p {
+    color: #4b5563;
+    font-size: 1.05rem;
+    margin: 0;
+    max-width: 640px;
+}
+
+.info-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(16, 185, 129, 0.12);
+}
+
+.info-card .icon-wrap {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    margin-bottom: 1rem;
+}
+
+.info-step-num {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #10b981;
+    color: #fff;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.info-step-row {
+    display: flex;
+    align-items: flex-start;
+    padding: 1.25rem 0;
+    border-bottom: 1px dashed #e5e7eb;
+}
+
+.info-step-row:last-child {
+    border-bottom: none;
+}
+
+.legal-doc {
+    background: #fff;
+    border-radius: 16px;
+    padding: 2rem 2.25rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.legal-doc h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #065f46;
+    margin-top: 1.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.legal-doc h2:first-child {
+    margin-top: 0;
+}
+
+.legal-doc p,
+.legal-doc li {
+    color: #4b5563;
+    line-height: 1.75;
+}
+
+.faq-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+}
+
+.faq-item summary {
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.faq-item summary::-webkit-details-marker {
+    display: none;
+}
+
+.faq-item summary::after {
+    content: '+';
+    font-size: 1.25rem;
+    color: #10b981;
+    font-weight: 700;
+}
+
+.faq-item[open] summary::after {
+    content: '−';
+}
+
+.faq-item .faq-body {
+    padding: 0 1.25rem 1rem;
+    color: #4b5563;
+    line-height: 1.7;
+    border-top: 1px solid #f3f4f6;
+}
+
+.error-404-wrap {
+    text-align: center;
+    padding: 4rem 1rem;
+}
+
+.error-404-wrap h1 {
+    font-size: 6rem;
+    font-weight: 800;
+    color: #10b981;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+/* About — team member cards */
+.team-member-card {
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.12);
+    height: 100%;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.team-member-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(16, 185, 129, 0.18);
+}
+
+.team-photo-wrap {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    padding: 1.5rem 1.5rem 0;
+    text-align: center;
+}
+
+.team-photo {
+    width: 100%;
+    max-width: 280px;
+    height: 300px;
+    object-fit: cover;
+    object-position: top center;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.team-member-body {
+    padding: 1.5rem 1.75rem 1.75rem;
+}
+
+.team-name {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #065f46;
+    margin-bottom: 0.35rem;
+}
+
+.team-role {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #10b981;
+    margin-bottom: 0.85rem;
+}
+
+.team-bio {
+    font-size: 0.92rem;
+    color: #4b5563;
+    line-height: 1.65;
+    margin-bottom: 1rem;
+}
+
+.team-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.team-tags span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    background: #f0fdf4;
+    color: #047857;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}

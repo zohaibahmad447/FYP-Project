@@ -1,0 +1,67 @@
+{# Shared site footer — include from base.html and home/landing_base.html #}
+<footer class="footer{% if footer_extra_class %} {{ footer_extra_class }}{% endif %}">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <a href="{{ url_for('home.index') }}" class="footer-logo">
+                    <img src="{{ url_for('static', filename='images/quickcare-logo.png') }}" alt="Quick Care logo" class="brand-logo-mark"> QuickCare
+                </a>
+                <p>Telehealth for Pakistan — book doctors, video consultations, prescriptions, and care in one place.</p>
+                <div class="social-links">
+                    <a href="{{ url_for('home.contact') }}" class="social-link" aria-label="Contact us"><i class="fas fa-envelope"></i></a>
+                    <a href="https://quickcares.me" class="social-link" aria-label="Website" target="_blank" rel="noopener"><i class="fas fa-globe"></i></a>
+                </div>
+            </div>
+
+            <div class="footer-col">
+                <h4>Explore</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('home.index') }}">Home</a></li>
+                    <li><a href="{{ url_for('home.about') }}">About us</a></li>
+                    <li><a href="{{ url_for('patients.find_doctors') }}">Find doctors</a></li>
+                    <li><a href="{{ url_for('blogs.index') }}">Health blog</a></li>
+                    <li><a href="{{ url_for('qa.index') }}">Q&amp;A forum</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Support</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('home.how_it_works') }}">How it works</a></li>
+                    <li><a href="{{ url_for('home.faq') }}">FAQ</a></li>
+                    <li><a href="{{ url_for('home.contact') }}">Contact us</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('home.privacy') }}">Privacy policy</a></li>
+                    <li><a href="{{ url_for('home.terms') }}">Terms of service</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Get in touch</h4>
+                <ul class="footer-links">
+                    <li>Karachi, Pakistan</li>
+                    <li><a href="tel:+923420820447">+92 342 0820447</a></li>
+                    <li><a href="mailto:support@quickcares.me">support@quickcares.me</a></li>
+                    <li><a href="https://quickcares.me">quickcares.me</a></li>
+                </ul>
+                <h4 style="margin-top: 1.5rem; margin-bottom: 12px; font-size: 16px;">Newsletter</h4>
+                <p style="margin-top: 0; margin-bottom: 12px; font-size: 13px;">Health tips and platform updates.</p>
+                <form class="subscribe-form" method="POST" action="{{ url_for('home.newsletter_subscribe') }}">
+                    <input type="email" name="email" class="subscribe-input" placeholder="Your email" required>
+                    <button type="submit" class="subscribe-btn">Subscribe</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p class="mb-0" style="margin: 0; padding: 0; font-size: 13px;">
+                &copy; {{ now_local().year }} <a href="{{ url_for('home.index') }}">Quick Care Connect</a>. All rights reserved.
+            </p>
+        </div>
+    </div>
+</footer>

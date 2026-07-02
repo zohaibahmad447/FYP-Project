@@ -1,0 +1,316 @@
+/**
+ * Quick Care — shared site footer (emerald)
+ * Linked from base.html and home/landing_base.html
+ */
+
+/* Match homepage hero / QA & blog banners: vibrant emerald (#10b981 → #059669) */
+footer {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    padding: 60px 0 30px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.92) !important;
+    box-shadow: 0 -8px 28px rgba(16, 185, 129, 0.2) !important;
+}
+
+footer.footer {
+    margin-top: 60px;
+}
+
+footer h5,
+footer h6,
+footer .footer-title,
+footer .footer-col h4 {
+    color: #ffffff !important;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+footer .footer-col h4 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    margin-top: 0;
+}
+
+footer p,
+footer .footer-col p {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+footer .footer-col p {
+    margin-top: 20px;
+    margin-bottom: 24px;
+    max-width: 250px;
+}
+
+footer .list-unstyled li,
+footer .footer-links li {
+    margin-bottom: 12px;
+    color: rgba(255, 255, 255, 0.88) !important;
+    font-size: 14px;
+}
+
+footer .footer-links li {
+    font-size: 15px;
+}
+
+footer .list-unstyled a,
+footer .footer-links a {
+    color: rgba(255, 255, 255, 0.9) !important;
+    text-decoration: none;
+    transition: color 0.25s ease, opacity 0.25s ease;
+    display: inline-block;
+}
+
+footer .list-unstyled a:hover,
+footer .footer-links a:hover {
+    color: #d1fae5 !important;
+}
+
+footer .footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 22px;
+    color: #ffffff !important;
+    text-decoration: none;
+    margin-bottom: 20px;
+}
+
+footer .brand-logo-mark {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+footer .social-links {
+    display: flex;
+    gap: 12px;
+}
+
+footer .social-links a,
+footer .social-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.14) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: none;
+    text-decoration: none;
+}
+
+footer .social-links a:hover,
+footer .social-link:hover {
+    background-color: #ffffff !important;
+    color: #047857 !important;
+    border-color: #ffffff;
+    transform: translateY(-2px);
+}
+
+/* Landing: multi-column grid */
+footer .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 2fr;
+    gap: 40px;
+    margin-bottom: 60px;
+}
+
+footer .footer-bottom {
+    padding-top: 25px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.75) !important;
+    position: relative;
+}
+
+footer .footer-bottom a {
+    color: #ffffff !important;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+footer .footer-bottom a:hover {
+    color: #d1fae5 !important;
+}
+
+/* Default: pill subscribe (base.html) */
+footer .subscribe-form {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 30px;
+    padding: 4px;
+    margin-top: 10px;
+    max-width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+footer .subscribe-form input:not(.subscribe-input) {
+    background-color: transparent;
+    border: none;
+    padding: 8px 15px;
+    font-size: 14px;
+    color: #1f2937;
+    flex: 1;
+    outline: none;
+    width: 100%;
+}
+
+footer .subscribe-form input::placeholder {
+    color: #9ca3af;
+}
+
+footer .subscribe-form button:not(.subscribe-btn) {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: #ffffff !important;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.3s, transform 0.2s;
+    white-space: nowrap;
+}
+
+footer .subscribe-form button:not(.subscribe-btn):hover {
+    opacity: 0.95;
+}
+
+/* Landing: row layout with .subscribe-input / .subscribe-btn */
+footer .subscribe-form:has(.subscribe-input) {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    margin-top: 20px;
+    background: transparent !important;
+    border-radius: 0;
+    padding: 0;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+footer .subscribe-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    background-color: rgba(255, 255, 255, 0.95);
+    color: #1f2937;
+}
+
+footer .subscribe-input:focus {
+    border-color: #d1fae5;
+    box-shadow: 0 0 0 2px rgba(209, 250, 229, 0.35);
+}
+
+footer .subscribe-input::placeholder {
+    color: #9ca3af;
+}
+
+footer .subscribe-btn {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: #ffffff !important;
+    border: none;
+    padding: 0 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+}
+
+footer .subscribe-btn:hover {
+    opacity: 0.95;
+}
+
+footer .scroll-top-btn {
+    display: none !important;
+}
+
+/* Fixed corner back-to-top (not inside footer) */
+.qc-scroll-top {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    z-index: 1100;
+    width: 3rem;
+    height: 3rem;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: #fff;
+    background: linear-gradient(145deg, #059669 0%, #10b981 50%, #047857 100%);
+    box-shadow:
+        0 0 0 3px rgba(255, 255, 255, 0.35),
+        0 8px 24px rgba(5, 150, 105, 0.45);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px) scale(0.9);
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease, box-shadow 0.2s ease;
+}
+
+.qc-scroll-top.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+.qc-scroll-top:hover {
+    box-shadow:
+        0 0 0 4px rgba(255, 255, 255, 0.45),
+        0 12px 28px rgba(5, 150, 105, 0.55);
+    transform: translateY(-2px) scale(1.05);
+}
+
+.qc-scroll-top:active {
+    transform: translateY(0) scale(0.98);
+}
+
+body.landing-page .qc-scroll-top {
+    bottom: 6.25rem;
+}
+
+@media (max-width: 576px) {
+    .qc-scroll-top {
+        right: 1rem;
+        bottom: 1rem;
+        width: 2.75rem;
+        height: 2.75rem;
+    }
+
+    body.landing-page .qc-scroll-top {
+        bottom: 5.5rem;
+    }
+}
+
+@media (max-width: 992px) {
+    footer .footer-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    footer .footer-grid {
+        grid-template-columns: 1fr;
+    }
+}

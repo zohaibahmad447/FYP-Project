@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Video Recordings - Appointment #{{ appointment.id }} - Quick Care Connect{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0"><i class="fas fa-video me-2"></i>Video call recordings — Appointment #{{ appointment.id }}</h2>
+        <div>
+            <a href="{{ url_for('admin.accounts') }}" class="btn btn-outline-secondary btn-sm">Accounts</a>
+            <a href="{{ url_for('admin.appointments') }}" class="btn btn-outline-secondary btn-sm">Appointments</a>
+        </div>
+    </div>
+
+    <div class="card qc-admin-card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Appointment details</h5>
+        </div>
+        <div class="card-body">
+            <p class="mb-1"><strong>Patient:</strong> {{ appointment.patient.user.name if appointment.patient and appointment.patient.user else '-' }}</p>
+            <p class="mb-1"><strong>Doctor:</strong> {{ appointment.doctor.user.name if appointment.doctor and appointment.doctor.user else '-' }}</p>
+            <p class="mb-1"><strong>Date:</strong> {{ appointment.appointment_date.strftime('%d %b %Y') if appointment.appointment_date else '-' }}, {{ appointment.appointment_time.strftime('%H:%M') if appointment.appointment_time else '-' }}</p>
+            <p class="mb-0"><strong>Type:</strong> {{ appointment.appointment_type }}</p>
+            {% if appointment.patient_disputed and appointment.dispute_reason %}
+            <hr>
+            <p class="mb-0"><strong class="text-danger">Dispute reason:</strong> {{ appointment.dispute_reason }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card qc-admin-card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="fas fa-film me-2"></i>Recordings</h5>
+            <small class="text-muted">Opens in a new tab with fullscreen player</small>
+        </div>
+        <div class="card-body p-0">
+            {% if recording_items %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Session</th>
+                            <th>Started</th>
+                            <th>Ended</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                            <th>Playback</th>
+                            <th>Download</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in recording_items %}
+                        {% set r = item.recording %}
+                        <tr>
+                            <td>#{{ r.id }}</td>
+                            <td>{{ r.started_at.strftime('%d %b %Y %H:%M:%S') if r.started_at else '-' }}</td>
+                            <td>{{ r.ended_at.strftime('%d %b %Y %H:%M:%S') if r.ended_at else '-' }}</td>
+                            <td>
+                                {% if r.duration_seconds %}
+                                    {{ r.duration_seconds }}s
+                                {% elif r.started_at and r.ended_at %}
+                                    {{ ((r.ended_at - r.started_at).total_seconds())|int }}s
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if r.status == 'recording' %}<span class="badge bg-warning">Recording</span>
+                                {% elif r.status == 'stopping' %}<span class="badge bg-info">Processing</span>
+                                {% elif r.status == 'ready' %}<span class="badge bg-success">Ready</span>
+                                {% elif r.status == 'empty' %}<span class="badge bg-secondary" title="{{ r.error_message or '' }}">No media captured</span>
+                                {% elif r.status == 'failed' %}<span class="badge bg-danger" title="{{ r.error_message or '' }}">Failed</span>
+                                {% else %}<span class="badge bg-secondary">{{ r.status }}</span>{% endif %}
+                            </td>
+                            <td>
+                                {% if item.watch_url %}
+                                <a href="{{ item.watch_url }}"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   class="btn btn-sm btn-primary">
+                                    <i class="fas fa-external-link-alt me-1"></i>Watch
+                                </a>
+                                {% elif r.file_path and r.status == 'ready' %}
+                                <span class="text-muted small" title="{{ r.file_path }}">Stored — configure DO Spaces</span>
+                                {% else %}
+                                <span class="text-muted small">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.download_url %}
+                                <a href="{{ item.download_url }}"
+                                   class="btn btn-sm btn-outline-success"
+                                   title="Save recording to your computer (HLS sessions download as a ZIP)">
+                                    <i class="fas fa-download me-1"></i>Download
+                                </a>
+                                {% else %}
+                                <span class="text-muted small">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p class="small text-muted px-3 py-2 mb-0">Recordings start when both doctor and patient join; each reconnection creates a new session.</p>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-video-slash fa-3x mb-3 opacity-50"></i>
+                <p class="mb-0">No recordings for this appointment.</p>
+                <p class="small">Enable <code>AGORA_ENABLE_RECORDING=true</code> and complete a video consultation.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

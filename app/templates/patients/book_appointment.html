@@ -1,0 +1,1123 @@
+{% extends "base.html" %}
+
+{% block title %}Book Appointment with {{ doctor.user.name }} - Quick Care Connect{% endblock %}
+
+{% block extra_css %}
+<style>
+    .booking-page-container {
+        background: #f5f7fa;
+        min-height: calc(100vh - 200px);
+        padding: 2rem 0;
+    }
+
+    .booking-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .booking-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Select Hospital/Clinic Section */
+    .select-clinic-section {
+        margin-bottom: 3rem;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #10b981;
+    }
+
+    .practice-card {
+        background: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .practice-card:hover {
+        border-color: #10b981;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .practice-card.selected {
+        border-color: #10b981;
+        border-width: 2px;
+        background: rgba(16, 185, 129, 0.05);
+    }
+
+    .practice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .practice-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 0.25rem;
+    }
+
+    .practice-location {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .practice-price {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #10b981;
+        text-align: right;
+    }
+
+    .practice-discount {
+        font-size: 0.85rem;
+        color: #10b981;
+        font-weight: 600;
+        margin-top: 0.25rem;
+    }
+
+    .practice-timings {
+        font-size: 0.9rem;
+        color: #555;
+        margin-bottom: 1rem;
+    }
+
+    .timing-entry {
+        margin-bottom: 0.5rem;
+    }
+
+    .timing-date {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .timing-time {
+        color: #666;
+    }
+
+    /* Select Date & Time Section */
+    .select-datetime-section {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .datetime-row {
+        display: flex;
+        gap: 1.5rem;
+        align-items: flex-end;
+    }
+
+    .datetime-field {
+        flex: 1;
+    }
+
+    .datetime-field label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .datetime-field input,
+    .datetime-field select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .datetime-field select:focus {
+        border-color: #10b981;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    /* Custom Select Dropdown Styling */
+    .custom-select-dropdown {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-color: #ffffff;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 20px;
+        padding-right: 3rem;
+        cursor: pointer;
+        font-weight: 500;
+        color: #2d3748;
+    }
+
+    .custom-select-dropdown:hover {
+        border-color: #10b981;
+        background-color: #f8fffe;
+    }
+
+    .custom-select-dropdown:focus {
+        border-color: #10b981;
+        background-color: #ffffff;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+    }
+
+    .custom-select-dropdown option {
+        padding: 12px;
+        font-size: 0.95rem;
+        background-color: #ffffff;
+        color: #2d3748;
+    }
+
+    .custom-select-dropdown option:disabled {
+        color: #a0aec0;
+        font-style: italic;
+    }
+
+    .custom-select-dropdown option:hover {
+        background-color: #f0fdf4;
+    }
+
+    .custom-select-dropdown option:checked {
+        background-color: #10b981;
+        color: #ffffff;
+    }
+
+    /* Error Message Styling */
+    #date-error-message,
+    #slot-error-message {
+        animation: fadeInError 0.3s ease-in-out;
+    }
+
+    @keyframes fadeInError {
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    #date-error-message i,
+    #slot-error-message i {
+        margin-right: 0.25rem;
+    }
+
+    /* Input validation states */
+    .datetime-field select.error {
+        border-color: #dc3545;
+        background-color: #fff5f5;
+    }
+
+    .datetime-field input.success {
+        border-color: #10b981;
+    }
+
+    /* Datalist option styling hint */
+    .datetime-field input[list]::-webkit-calendar-picker-indicator {
+        opacity: 0;
+    }
+
+
+    /* Reviews Section */
+    .reviews-section {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .reviews-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .reviews-count {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+
+    .reviews-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .rating-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #10b981;
+    }
+
+    .rating-text {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .reviews-breakdown {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .review-metric {
+        text-align: center;
+    }
+
+    .review-metric-label {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 0.5rem;
+    }
+
+    .review-metric-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+
+
+    /* OTP Verification Section */
+    .otp-section {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        display: none;
+    }
+
+    .otp-section.active {
+        display: block;
+    }
+
+    .otp-input-group {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-end;
+        margin-top: 1rem;
+    }
+
+    .otp-input {
+        flex: 1;
+        padding: 0.75rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        text-align: center;
+        letter-spacing: 0.5rem;
+    }
+
+    .otp-timer {
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 0.5rem;
+    }
+
+    /* Medical Information Section */
+    .medical-info-section {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+        border-color: #10b981;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    /* Submit Button */
+    .submit-section {
+        text-align: center;
+        margin-top: 3rem;
+    }
+
+    .submit-btn {
+        background: rgba(16, 185, 129, 0.7);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        color: #ffffff;
+        border: 1px solid rgba(16, 185, 129, 0.5);
+        padding: 1rem 3rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .submit-btn:hover {
+        background: rgba(16, 185, 129, 0.85);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    /* Location Booking Option */
+    .location-booking-option {
+        background: #f9fafb;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .location-option-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .location-option-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .location-option-list li {
+        padding: 0.25rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .location-option-list li:before {
+        content: "✓";
+        color: #10b981;
+        font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+        .datetime-row {
+            flex-direction: column;
+        }
+
+        .practice-header {
+            flex-direction: column;
+        }
+
+        .practice-price {
+            text-align: left;
+            margin-top: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="booking-page-container">
+    <div class="container" style="max-width: 1200px;">
+        <!-- Header -->
+        <div class="booking-header">
+            <h1>Get Confirmed Appointment Online</h1>
+        </div>
+
+        <form method="POST" id="booking-form">
+            {{ form.hidden_tag() }}
+
+            <!-- Select Hospital/Clinic Section -->
+            {% if practices %}
+            <div class="select-clinic-section">
+                <h2 class="section-title">Select Hospital/Clinic</h2>
+
+                {% for practice_name, practice_data in practices.items() %}
+                {% if practice_data.get('video_price') %}
+                <div class="practice-card" data-practice="{{ practice_name }}" data-type="video"
+                    onclick="selectPractice(this, 'video')">
+                    <div class="practice-header">
+                        <div>
+                            <div class="practice-title">Video Consultation</div>
+                            <div class="practice-location">Online</div>
+                        </div>
+                        <div>
+                            <div class="practice-price">Rs. {{ "%.0f"|format(practice_data.video_price) }}</div>
+                        </div>
+                    </div>
+                    <div class="practice-timings">
+                        {% if practice_data.days %}
+                        {% for day_name, day_data in practice_data.days.items() %}
+                        <div class="timing-entry">
+                            <span class="timing-date">{{ day_name|title }}:</span>
+                            <span class="timing-time">{{ day_data.start_time }} - {{ day_data.end_time }}</span>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                    <input type="radio" name="selected_practice" value="{{ practice_name }}" data-type="video"
+                        style="display: none;">
+                </div>
+                {% endif %}
+
+                {% if practice_data.get('physical_price') %}
+                <div class="practice-card" data-practice="{{ practice_name }}" data-type="physical"
+                    onclick="selectPractice(this, 'physical')">
+                    <div class="practice-header">
+                        <div>
+                            <div class="practice-title">{{ practice_name }}</div>
+                            <div class="practice-location">
+                                Area: {% if practice_data.get('location') %}{{ practice_data.location }}{% else %}{{
+                                doctor.city|title if doctor.city else 'N/A' }}{% endif %}{% if doctor.city %}, {{
+                                doctor.city|title }}{% endif %}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="practice-price">Rs. {{ "%.0f"|format(practice_data.physical_price) }}</div>
+                        </div>
+                    </div>
+                    <div class="practice-timings">
+                        {% if practice_data.days %}
+                        {% for day_name, day_data in practice_data.days.items() %}
+                        <div class="timing-entry">
+                            <span class="timing-date">{{ day_name|title }}:</span>
+                            <span class="timing-time">{{ day_data.start_time }} - {{ day_data.end_time }}</span>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                    <input type="radio" name="selected_practice" value="{{ practice_name }}" data-type="physical"
+                        style="display: none;">
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Select Date & Time Section -->
+            <div class="select-datetime-section">
+                <h2 class="section-title">Select Date & Time</h2>
+
+                <div class="datetime-row">
+                    <div class="datetime-field">
+                        <label for="appointment_date" class="form-label">Appointment Date</label>
+                        <select class="form-control custom-select-dropdown" id="appointment_date"
+                            name="appointment_date" required>
+                            <option value="" selected disabled>Choose a date</option>
+                            <!-- Populated dynamically by JavaScript -->
+                        </select>
+                        <div id="date-error-message" class="text-danger small mt-1"
+                            style="display:none; font-weight: 600;">
+                            <i class="fas fa-exclamation-circle"></i> <span id="date-error-text"></span>
+                        </div>
+                        {% if form.appointment_date.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.appointment_date.errors %}
+                            <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="datetime-field">
+                        <label for="appointment_time" class="form-label">Appointment Time</label>
+                        <select class="form-control custom-select-dropdown" id="appointment_time"
+                            name="appointment_time" required>
+                            <option value="" selected disabled>Choose a time</option>
+                            <!-- Populated dynamically by JavaScript -->
+                        </select>
+                        <div id="slot-error-message" class="text-danger small mt-1"
+                            style="display:none; font-weight: 600;">
+                            <i class="fas fa-exclamation-circle"></i> <span id="slot-error-text"></span>
+                        </div>
+                        {% if form.appointment_time.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.appointment_time.errors %}
+                            <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Are you booking from outside? -->
+                <div class="location-booking-option">
+                    <div class="location-option-label">
+                        <input type="checkbox" id="booking_from_outside" name="booking_from_outside">
+                        <label for="booking_from_outside">Are you booking from outside?</label>
+                    </div>
+                    <ul class="location-option-list">
+                        <li>Get contact details and clinic directions in message</li>
+                        <li>Priority customer support if needed</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Reviews Section -->
+            <div class="reviews-section">
+                {% set avg_rating = review_stats.average_rating if review_stats is defined else 0 %}
+                {% set total_reviews = review_stats.total_reviews if review_stats is defined else 0 %}
+                {% set full_stars = avg_rating|int %}
+                {% set has_half_star = 1 if (avg_rating - full_stars) >= 0.5 else 0 %}
+                {% set empty_stars = 5 - full_stars - has_half_star %}
+                <div class="reviews-header">
+                    <div class="reviews-count">{{ total_reviews }} Reviews</div>
+                </div>
+                <div class="reviews-rating">
+                    <div class="rating-number">{{ '%.1f'|format(avg_rating) }}</div>
+                    <div class="stars-display">
+                        {% for _ in range(full_stars) %}
+                        <i class="fas fa-star" style="color: #ffc107;"></i>
+                        {% endfor %}
+                        {% if has_half_star %}
+                        <i class="fas fa-star-half-alt" style="color: #ffc107;"></i>
+                        {% endif %}
+                        {% for _ in range(empty_stars) %}
+                        <i class="far fa-star" style="color: #ffc107;"></i>
+                        {% endfor %}
+                    </div>
+                    <div class="rating-text">
+                        {% if total_reviews > 0 %}
+                        Average rating based on {{ total_reviews }} reviews.
+                        {% else %}
+                        No ratings yet.
+                        {% endif %}
+                    </div>
+                </div>
+                {% if total_reviews > 0 %}
+                <div class="reviews-breakdown">
+                    <div class="review-metric">
+                        <div class="review-metric-label">Patient Satisfaction</div>
+                        <div class="review-metric-value">{{ '%.1f'|format(review_stats.patient_satisfaction) }}/5</div>
+                    </div>
+                    <div class="review-metric">
+                        <div class="review-metric-label">Diagnosis</div>
+                        <div class="review-metric-value">{{ '%.1f'|format(review_stats.diagnosis_accuracy) }}/5</div>
+                    </div>
+                    <div class="review-metric">
+                        <div class="review-metric-label">Staff Behaviour</div>
+                        <div class="review-metric-value">{{ '%.1f'|format(review_stats.staff_behaviour) }}/5</div>
+                    </div>
+                    <div class="review-metric">
+                        <div class="review-metric-label">Clinic Environment</div>
+                        <div class="review-metric-value">{{ '%.1f'|format(review_stats.clinic_environment) }}/5</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Medical Information Section -->
+            <div class="medical-info-section">
+                <h2 class="section-title">Reason for Visit</h2>
+
+                <div class="form-group">
+                    {{ form.reason_for_visit.label(class="form-label") }}
+                    {{ form.reason_for_visit(class="form-control") }}
+                    {% if form.reason_for_visit.errors %}
+                    <div class="text-danger small mt-1">
+                        {% for error in form.reason_for_visit.errors %}
+                        <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+
+            <!-- Hidden fields for form submission -->
+            <input type="hidden" name="appointment_type" id="hidden_appointment_type"
+                value="{{ form.appointment_type.data or '' }}">
+            <input type="hidden" name="practice" id="hidden_practice" value="{{ request.args.get('practice', '') }}">
+
+            <!-- Submit Button -->
+            <div class="submit-section">
+                {{ form.submit(class="submit-btn", id="book_appointment_btn") }}
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const doctorId = "{{ doctor.id }}";
+        const dateInput = document.getElementById('appointment_date');  // Now a select element
+        const timeInput = document.getElementById('appointment_time');  // Now a select element
+        const dateErrorMessage = document.getElementById('date-error-message');
+        const dateErrorText = document.getElementById('date-error-text');
+        const slotErrorMessage = document.getElementById('slot-error-message');
+        const slotErrorText = document.getElementById('slot-error-text');
+
+        let selectedPractice = null;
+        let selectedPracticeType = null;
+        let availableDates = [];
+        let formattedDates = [];
+        let availableSlots = [];
+        let dateValueMap = {};  // Maps 'Day - DD Mon' display to ISO value
+
+        // ========================================
+        // HELPER FUNCTIONS
+        // ========================================
+
+        function showDateError(message) {
+            dateErrorText.textContent = message;
+            dateErrorMessage.style.display = 'block';
+        }
+
+        function hideDateError() {
+            dateErrorMessage.style.display = 'none';
+            dateErrorText.textContent = '';
+        }
+
+        function showSlotError(message) {
+            slotErrorText.textContent = message;
+            slotErrorMessage.style.display = 'block';
+        }
+
+        function hideSlotError() {
+            slotErrorMessage.style.display = 'none';
+            slotErrorText.textContent = '';
+        }
+
+        function parseUserDate(input) {
+            /**
+             * Parse date from select dropdown (Day - DD Mon format)
+             * Returns ISO format (YYYY-MM-DD) or null
+             */
+            if (!input) return null;
+            input = input.trim();
+
+            // If input is already in ISO format (YYYY-MM-DD), return it
+            if (/^\d{4}-\d{2}-\d{2}$/.test(input)) {
+                return input;
+            }
+
+            // Use the map that links display format to ISO value
+            return dateValueMap[input] || null;
+        }
+
+        function parseUserTime(input) {
+            /**
+             * Parse user input time in multiple formats
+             * Returns HH:MM format (24-hour) or null
+             */
+            if (!input) return null;
+
+            input = input.trim();
+
+            // Try parsing different formats
+            const formats = [
+                // HH:MM AM/PM (e.g., "10:30 AM" or "2:30 PM")
+                { regex: /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i, type: '12h' },
+                // HH:MMAM/PM (no space, e.g., "10:30AM")
+                { regex: /^(\d{1,2}):(\d{2})(AM|PM)$/i, type: '12h' },
+                // H AM/PM (e.g., "2 PM")
+                { regex: /^(\d{1,2})\s*(AM|PM)$/i, type: '12h_short' },
+                // HAM/PM (no space, e.g., "2PM")
+                { regex: /^(\d{1,2})(AM|PM)$/i, type: '12h_short' },
+                // HH:MM (24-hour, e.g., "14:30")
+                { regex: /^(\d{1,2}):(\d{2})$/i, type: '24h' },
+            ];
+
+            for (let fmt of formats) {
+                const match = input.match(fmt.regex);
+                if (match) {
+                    if (fmt.type === '12h') {
+                        let hour = parseInt(match[1]);
+                        const minute = match[2];
+                        const period = match[3].toUpperCase();
+
+                        if (period === 'PM' && hour !== 12) hour += 12;
+                        if (period === 'AM' && hour === 12) hour = 0;
+
+                        return `${hour.toString().padStart(2, '0')}:${minute}`;
+                    } else if (fmt.type === '12h_short') {
+                        let hour = parseInt(match[1]);
+                        const period = match[2].toUpperCase();
+
+                        if (period === 'PM' && hour !== 12) hour += 12;
+                        if (period === 'AM' && hour === 12) hour = 0;
+
+                        return `${hour.toString().padStart(2, '0')}:00`;
+                    } else if (fmt.type === '24h') {
+                        const hour = parseInt(match[1]).toString().padStart(2, '0');
+                        const minute = match[2];
+                        return `${hour}:${minute}`;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        // ========================================
+        // DATALIST POPULATION
+        // ========================================
+
+        function populateDateDatalist(dates) {
+            // Clear existing options except the first placeholder
+            while (dateInput.options.length > 1) {
+                dateInput.remove(1);
+            }
+
+            dateValueMap = {};  // Reset the map
+
+            if (!dates || dates.length === 0) {
+                return;
+            }
+
+            dates.forEach(dateObj => {
+                const option = document.createElement('option');
+                option.value = dateObj.value;  // ISO Date format (YYYY-MM-DD) for backend validation
+                option.setAttribute('data-display', dateObj.display); // Store display format for reference
+                option.textContent = dateObj.display;
+                dateInput.appendChild(option);
+
+                // Build map: display format -> ISO value
+                dateValueMap[dateObj.display] = dateObj.value;
+            });
+
+            // Auto-select first available date
+            if (dates.length > 0) {
+                dateInput.value = dates[0].value;
+                // Trigger change event to load slots
+                validateDateInput();
+            }
+        }
+
+        function populateTimeDatalist(slots) {
+            // Clear existing options except the first placeholder
+            while (timeInput.options.length > 1) {
+                timeInput.remove(1);
+            }
+
+            if (!slots || slots.length === 0) {
+                return;
+            }
+
+            // Group by period
+            const grouped = {
+                'Morning': [],
+                'Afternoon': [],
+                'Evening': []
+            };
+
+            slots.forEach(slot => {
+                const period = slot.period || 'Unknown';
+                if (grouped[period]) {
+                    grouped[period].push(slot);
+                }
+            });
+
+            let firstTimeSlot = null;
+
+            // Add options per period with period headers
+            ['Morning', 'Afternoon', 'Evening'].forEach(period => {
+                if (grouped[period].length > 0) {
+                    // Add period header as disabled option
+                    const headerOption = document.createElement('option');
+                    headerOption.value = '';
+                    headerOption.textContent = `─── ${period} ───`;
+                    headerOption.disabled = true;
+                    headerOption.style.fontWeight = 'bold';
+                    headerOption.style.textAlign = 'center';
+                    timeInput.appendChild(headerOption);
+
+                    // Add time slots for this period
+                    grouped[period].forEach(slot => {
+                        const option = document.createElement('option');
+                        const timeStr = formatTimeTo12Hour(slot.time);
+                        option.value = slot.time; // Use 24-hour format for form submission (e.g., "11:00")
+                        option.textContent = timeStr; // Display 12-hour format to user (e.g., "11:00 AM")
+                        timeInput.appendChild(option);
+
+                        // Remember first time slot (in 24-hour format for correct value setting)
+                        if (!firstTimeSlot) {
+                            firstTimeSlot = slot.time;
+                        }
+                    });
+                }
+            });
+
+            // Auto-select first available time slot
+            if (firstTimeSlot) {
+                timeInput.value = firstTimeSlot;
+            }
+        }
+
+        function formatTimeTo12Hour(time24) {
+            /**
+             * Convert 24-hour time to 12-hour format
+             * e.g., "14:30" -> "02:30 PM"
+             */
+            const [hourStr, minute] = time24.split(':');
+            let hour = parseInt(hourStr);
+            const period = hour >= 12 ? 'PM' : 'AM';
+
+            if (hour > 12) hour -= 12;
+            if (hour === 0) hour = 12;
+
+            return `${hour.toString().padStart(2, '0')}:${minute} ${period}`;
+        }
+
+        // ========================================
+        // FETCH FUNCTIONS
+        // ========================================
+
+        function fetchAvailableDates() {
+            if (!selectedPractice || !selectedPracticeType) {
+                availableDates = [];
+                formattedDates = [];
+                populateDateDatalist([]);
+                return;
+            }
+
+            const url = `/appointments/api/available-dates/${doctorId}?type=${selectedPracticeType}&practice=${encodeURIComponent(selectedPractice)}&max_days=210`;
+
+            fetch(url, {
+                credentials: 'include'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    availableDates = data.available_dates || [];
+                    formattedDates = data.formatted_dates || [];
+                    populateDateDatalist(formattedDates);
+                })
+                .catch(error => {
+                    console.error('Error fetching available dates:', error);
+                });
+        }
+
+        function fetchAvailableSlots() {
+            const selectedDate = dateInput.value;
+            hideSlotError();
+
+            if (!selectedDate) {
+                timeInput.value = '';
+                populateTimeDatalist([]);
+                return;
+            }
+
+            if (!selectedPractice || !selectedPracticeType) {
+                return;
+            }
+
+            // Parse date to ISO format
+            const parsedDate = parseUserDate(selectedDate);
+            if (!parsedDate) {
+                return;
+            }
+
+            const url = `/appointments/api/available-slots/${doctorId}?date=${parsedDate}&type=${selectedPracticeType}&practice=${encodeURIComponent(selectedPractice)}`;
+
+            fetch(url, {
+                credentials: 'include'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    availableSlots = data.available_times || [];
+                    populateTimeDatalist(availableSlots);
+
+                    // Show message if no slots available
+                    if (availableSlots.length === 0) {
+                        showSlotError('No time slots available for this date.');
+                    } else {
+                        hideSlotError();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching slots:', error);
+                });
+        }
+
+        // ========================================
+        // VALIDATION FUNCTIONS
+        // ========================================
+
+        function validateDateInput() {
+            const userInput = dateInput.value.trim();
+
+            if (!userInput) {
+                return; // Empty is OK
+            }
+
+            // Simply fetch available time slots for the selected date
+            fetchAvailableSlots();
+        }
+
+        function validateTimeInput() {
+            // Select dropdowns only contain valid options
+            // No need for aggressive validation that clears the field
+            // Just ensure something is selected
+            const userInput = timeInput.value.trim();
+
+            if (!userInput) {
+                return; // Empty is OK - will be caught by HTML5 required attribute
+            }
+
+            // If we have a value from the dropdown, it's valid
+            hideSlotError();
+        }
+
+        // ========================================
+        // EVENT LISTENERS
+        // ========================================
+
+        // Only validate on change (user selection), not on blur
+        dateInput.addEventListener('change', validateDateInput);
+
+        // No validation needed on blur/change for time select dropdowns
+        // HTML5 required attribute will handle validation on form submit
+
+        // ========================================
+        // PRACTICE SELECTION
+        // ========================================
+
+        window.selectPractice = function (card, type) {
+            // Remove selected class from all cards
+            document.querySelectorAll('.practice-card').forEach(c => c.classList.remove('selected'));
+
+            // Add selected class to clicked card
+            card.classList.add('selected');
+
+            const practiceName = card.getAttribute('data-practice');
+
+            // Set hidden form fields
+            document.getElementById('hidden_appointment_type').value = type;
+            document.getElementById('hidden_practice').value = practiceName;
+
+            // Check the radio button
+            const radio = card.querySelector('input[type="radio"]');
+            if (radio) radio.checked = true;
+
+            selectedPractice = practiceName;
+            selectedPracticeType = type;
+
+            // Clear previous selections
+            dateInput.value = '';
+            timeInput.value = '';
+            hideDateError();
+            hideSlotError();
+
+            // Fetch new available dates
+            fetchAvailableDates();
+        };
+
+        // ========================================
+        // PRE-SELECT PRACTICE FROM URL
+        // ========================================
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const practiceParam = urlParams.get('practice');
+        const typeParam = urlParams.get('type');
+
+        if (practiceParam && typeParam) {
+            const practiceCard = document.querySelector(`[data-practice="${practiceParam}"][data-type="${typeParam}"]`);
+            if (practiceCard) {
+                selectPractice(practiceCard, typeParam);
+            }
+        }
+
+        // ========================================
+        // FORM SUBMISSION VALIDATION
+        // ========================================
+
+        document.getElementById('booking-form').addEventListener('submit', function (e) {
+            const dateValue = dateInput.value.trim();
+            const timeValue = timeInput.value.trim();
+
+            // Check if practice is selected
+            if (!selectedPractice || !selectedPracticeType) {
+                e.preventDefault();
+                alert('Please select a hospital/clinic first');
+                return false;
+            }
+
+            // Check if date is entered
+            if (!dateValue) {
+                e.preventDefault();
+                alert('Please select an appointment date');
+                dateInput.focus();
+                return false;
+            }
+
+            // Check if time is entered
+            if (!timeValue) {
+                e.preventDefault();
+                alert('Please select an appointment time');
+                timeInput.focus();
+                return false;
+            }
+
+            // Check if there are any visible error messages
+            if (dateErrorMessage.style.display === 'block' || slotErrorMessage.style.display === 'block') {
+                e.preventDefault();
+                alert('Please fix the errors before submitting');
+                return false;
+            }
+
+            // Parse date and time to ensure they're in correct format for backend
+            const parsedDate = parseUserDate(dateValue);
+            const parsedTime = parseUserTime(timeValue);
+
+            if (!parsedDate || !parsedTime) {
+                e.preventDefault();
+                alert('Please enter valid date and time');
+                return false;
+            }
+
+            // Update the inputs with parsed values for form submission
+            dateInput.value = parsedDate;
+            timeInput.value = parsedTime;
+
+            // Allow form to submit
+            return true;
+        });
+    });
+</script>
+{% endblock %}

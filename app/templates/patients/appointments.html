@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}My Appointments - Quick Care Connect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-calendar-alt me-2" style="color: #10b981;"></i>My Appointments
+            </h2>
+
+            <!-- Filters -->
+            <div class="card mb-4"
+                style="border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('patients.appointments') }}" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-control">
+                                <option value="all" {% if current_status=='all' %}selected{% endif %}>All Status
+                                </option>
+                                <option value="pending" {% if current_status=='pending' %}selected{% endif %}>Pending
+                                </option>
+                                <option value="approved" {% if current_status=='approved' %}selected{% endif %}>Approved
+                                </option>
+                                <option value="completed" {% if current_status=='completed' %}selected{% endif %}>
+                                    Completed</option>
+                                <option value="cancelled" {% if current_status=='cancelled' %}selected{% endif %}>
+                                    Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100"
+                                style="background: rgba(16, 185, 129, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(16, 185, 129, 0.5);">
+                                <i class="fas fa-filter me-2"></i>Filter
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Appointments List -->
+            <div class="card"
+                style="border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div class="card-header"
+                    style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border-bottom: 2px solid #10b981; border-radius: 16px 16px 0 0;">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2" style="color: #10b981;"></i>Appointments ({{ appointments|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Doctor</th>
+                                    <th>Date & Time</th>
+                                    <th>Type</th>
+                                    <th>Disease Category</th>
+                                    <th>Status</th>
+                                    <th>Payment Status</th>
+                                    <th>Charges</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in appointments %}
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <strong>{{ appointment.doctor.user.name }}</strong><br>
+                                            <small class="text-muted">{{ appointment.doctor.specialization }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <i class="fas fa-calendar me-1"></i>{{
+                                            appointment.appointment_date.strftime('%B %d, %Y') }}<br>
+                                            <i class="fas fa-clock me-1"></i>{{
+                                            appointment.appointment_time.strftime('%I:%M %p') }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="badge badge-{% if appointment.appointment_type == 'video' %}success{% else %}primary{% endif %}"
+                                            style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                            <i
+                                                class="fas fa-{% if appointment.appointment_type == 'video' %}video{% else %}hospital{% endif %} me-1"></i>
+                                            {{ appointment.appointment_type.title() }}
+                                        </span>
+                                    </td>
+                                    <td>{{ appointment.disease_category }}</td>
+                                    <td>
+                                        {% include 'partials/appointment_status_badge.html' %}
+                                    </td>
+                                    <td>
+                                        {% if appointment.status == 'pending' %}
+                                            {% if appointment.payment_status in ['pending', 'rejected'] %}
+                                            <span class="badge badge-warning" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                                Payment Pending
+                                            </span>
+                                            {% elif appointment.payment_status == 'submitted' %}
+                                            <span class="badge badge-info" style="font-size: 0.85rem; padding: 0.4rem 0.8rem; background-color: #0dcaf0; color: #000; border: 1px solid #0dcaf0;">
+                                                Payment Under Review
+                                            </span>
+                                            {% elif appointment.payment_status == 'approved' %}
+                                            <span class="badge badge-warning" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                                Awaiting Doctor
+                                            </span>
+                                            {% elif appointment.payment_status == 'disputed' %}
+                                            <span class="badge" style="font-size: 0.85rem; padding: 0.4rem 0.8rem; background-color: #f59e0b; color: #111827; border: 1px solid #f59e0b;">
+                                                Payment Disputed
+                                            </span>
+                                            {% else %}
+                                            <span class="text-muted">-</span>
+                                            {% endif %}
+                                        {% elif appointment.status == 'approved' %}
+                                            {% if appointment.payment_status == 'approved' %}
+                                            <span class="badge badge-success" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                                Payment Approved
+                                            </span>
+                                            {% elif appointment.payment_status == 'submitted' %}
+                                            <span class="badge badge-info" style="font-size: 0.85rem; padding: 0.4rem 0.8rem; background-color: #0dcaf0; color: #000; border: 1px solid #0dcaf0;">
+                                                Under Review
+                                            </span>
+                                            {% elif appointment.payment_status == 'rejected' %}
+                                            <span class="badge badge-danger" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                                Payment Rejected
+                                            </span>
+                                            {% elif appointment.payment_status == 'disputed' %}
+                                            <span class="badge" style="font-size: 0.85rem; padding: 0.4rem 0.8rem; background-color: #f59e0b; color: #111827; border: 1px solid #f59e0b;">
+                                                Payment Disputed
+                                            </span>
+                                            {% else %}
+                                            <span class="text-muted">-</span>
+                                            {% endif %}
+                                        {% elif appointment.payment_status == 'disputed' %}
+                                        <span class="badge" style="font-size: 0.85rem; padding: 0.4rem 0.8rem; background-color: #f59e0b; color: #111827; border: 1px solid #f59e0b;">
+                                            Payment Disputed
+                                        </span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>PKR {{ "%.0f"|format(appointment.charges) }}</strong>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1 align-items-center flex-wrap">
+                                            <a href="{{ url_for('appointments.view_appointment', appointment_id=appointment.id) }}"
+                                                class="btn btn-sm btn-outline-primary" title="View Details">
+                                                <i class="fas fa-eye me-1"></i>View
+                                            </a>
+                                            {% if appointment.status == 'approved' and appointment.payment_status ==
+                                            'approved' and not appointment.patient_completed %}
+                                            {% if appointment.doctor_completed %}
+                                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                                data-bs-target="#confirmCompleteModal{{ appointment.id }}"
+                                                title="Mark Appointment as Complete">
+                                                <i class="fas fa-check-circle me-1"></i>Mark Complete
+                                            </button>
+                                            {% else %}
+                                            <span class="badge badge-info text-dark" style="font-size: 0.8rem;">
+                                                <i class="fas fa-user-md me-1"></i>Waiting for Doctor
+                                            </span>
+                                            {% endif %}
+
+                                            <!-- Confirmation Modal -->
+                                            <div class="modal fade" id="confirmCompleteModal{{ appointment.id }}"
+                                                tabindex="-1"
+                                                aria-labelledby="confirmCompleteModalLabel{{ appointment.id }}"
+                                                aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header bg-success text-white">
+                                                            <h5 class="modal-title"
+                                                                id="confirmCompleteModalLabel{{ appointment.id }}">
+                                                                <i class="fas fa-check-circle me-2"></i>Confirm
+                                                                Completion
+                                                            </h5>
+                                                            <button type="button" class="btn-close btn-close-white"
+                                                                data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body text-start">
+                                                            <p class="mb-3">Are you sure you want to mark this
+                                                                appointment as <strong>Complete</strong>?</p>
+                                                            <div class="alert alert-warning">
+                                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                                                <strong>Warning:</strong> Only confirm this if you have
+                                                                fully completed your consultation. This action cannot be
+                                                                undone.
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary"
+                                                                data-bs-dismiss="modal">Cancel</button>
+                                                            <form method="POST"
+                                                                action="{{ url_for('appointments.patient_complete_appointment', appointment_id=appointment.id) }}"
+                                                                class="d-inline">
+                                                                <button type="submit" class="btn btn-success">Yes,
+                                                                    Service Received</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% elif appointment.status == 'approved' and appointment.patient_completed
+                                            and not appointment.doctor_completed %}
+                                            <span class="badge badge-info btn-sm"
+                                                title="Waiting for doctor confirmation">
+                                                <i class="fas fa-clock me-1"></i>Pending Doctor
+                                            </span>
+                                            {% endif %}
+                                            {% if appointment.payment_status == 'approved' and appointment.status ==
+                                            'approved' %}
+                                            <a href="{{ url_for('appointments.chat', appointment_id=appointment.id) }}"
+                                                class="btn btn-sm btn-success btn-chat-start" title="Start Chat">
+                                                <i class="fas fa-comments me-1"></i>Chat
+                                            </a>
+                                            {% elif appointment.status in ['completed', 'completed_pending_review', 'disputed'] %}
+                                            <a href="{{ url_for('appointments.chat', appointment_id=appointment.id) }}"
+                                                class="btn btn-sm btn-outline-secondary btn-chat-view"
+                                                title="View Chat History (Read-Only)">
+                                                <i class="fas fa-comments me-1"></i>View Chat
+                                            </a>
+                                            {% endif %}
+                                            <!-- My Prescription - always visible when prescription exists -->
+                                            {% if appointment.prescription %}
+                                            <a href="{{ url_for('prescriptions.view_prescription', prescription_id=appointment.prescription.id) }}"
+                                                class="btn btn-sm btn-success" title="View My Prescription">
+                                                <i class="fas fa-file-medical me-1"></i>My Prescription
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-calendar-times text-muted mb-3" style="font-size: 4rem;"></i>
+                        <h5 class="text-muted mb-3">No appointments found</h5>
+                        <p class="text-muted">You don't have any appointments matching your filters.</p>
+                        <a href="{{ url_for('patients.find_doctors') }}" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Find Doctors
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</div>
+
+<style>
+    /* Chat button status styles to avoid linter errors with inline Jinja */
+    .btn-chat-view {
+        border-color: #6c757d !important;
+        color: #6c757d !important;
+        font-weight: 600;
+    }
+
+    .btn-chat-start {
+        background: rgba(16, 185, 129, 0.9) !important;
+        border-color: rgba(16, 185, 129, 0.9) !important;
+        color: white !important;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}

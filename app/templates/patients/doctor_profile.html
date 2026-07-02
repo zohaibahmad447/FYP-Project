@@ -1,0 +1,971 @@
+{% extends "base.html" %}
+
+{% block title %}{{ doctor.user.name }} - {{ doctor.category }}{% endblock %}
+
+{% block extra_css %}
+<!-- MapLibre GL + OpenFreeMap vector tiles -->
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+<style>
+    /* ════════════════════════════════════════════════════════════════
+       DOCTOR PROFILE — MARHAM-STYLE REDESIGN
+       ════════════════════════════════════════════════════════════════ */
+
+    body { background-color: #f5f7fa; }
+
+    /* ── A. DARK HEADER ───────────────────────────────────────────── */
+    .profile-hero {
+        background: linear-gradient(135deg, #004D71 0%, #003B57 50%, #00394F 100%);
+        color: #ffffff;
+        padding: 2.5rem 0 2rem;
+    }
+    .profile-hero .container { max-width: 1200px; margin: 0 auto; }
+
+    .hero-grid {
+        display: flex;
+        align-items: flex-start;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .hero-avatar {
+        width: 130px; height: 130px;
+        border-radius: 50%;
+        border: 4px solid rgba(255,255,255,0.6);
+        overflow: hidden;
+        flex-shrink: 0;
+        background: rgba(255,255,255,0.15);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-avatar .avatar-initial {
+        font-size: 3.5rem; font-weight: 700; color: #fff;
+        display: flex; align-items: center; justify-content: center;
+        width: 100%; height: 100%;
+    }
+
+    .hero-info { flex: 1; min-width: 280px; }
+
+    .hero-name {
+        font-size: 1.65rem; font-weight: 700; margin-bottom: 0.25rem;
+        display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+    }
+    .hero-specialization { font-size: 0.95rem; opacity: 0.85; margin-bottom: 0.3rem; }
+    .hero-qualifications { font-size: 0.88rem; opacity: 0.75; margin-bottom: 0.6rem; }
+
+    .pmdc-badge {
+        display: inline-flex; align-items: center; gap: 0.3rem;
+        background: rgba(16,185,129,0.2); color: #6ee7b7;
+        padding: 0.2rem 0.6rem; border-radius: 4px;
+        font-size: 0.78rem; font-weight: 600;
+    }
+
+    .hero-stats {
+        display: flex; gap: 1.5rem; margin: 1rem 0; flex-wrap: wrap;
+    }
+    .hero-stat {
+        text-align: center;
+        background: rgba(255,255,255,0.1);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        min-width: 80px;
+    }
+    .hero-stat-value { font-size: 1.15rem; font-weight: 700; }
+    .hero-stat-label { font-size: 0.72rem; text-transform: uppercase; opacity: 0.7; letter-spacing: 0.5px; }
+
+    .hero-cta {
+        display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap;
+    }
+    .hero-btn {
+        padding: 0.6rem 1.4rem; border-radius: 8px; font-weight: 600;
+        text-decoration: none; display: inline-flex; align-items: center;
+        gap: 0.5rem; font-size: 0.9rem; transition: all 0.3s ease; border: none;
+    }
+    .hero-btn-primary {
+        background: #10b981; color: #fff;
+    }
+    .hero-btn-primary:hover {
+        background: #059669; color: #fff; transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16,185,129,0.4);
+    }
+    .hero-btn-outline {
+        background: transparent; color: #fff;
+        border: 1.5px solid rgba(255,255,255,0.5);
+    }
+    .hero-btn-outline:hover {
+        background: rgba(255,255,255,0.15); color: #fff;
+        transform: translateY(-2px);
+    }
+
+    /* Online badge in header */
+    .online-pill {
+        display: inline-flex; align-items: center; gap: 0.3rem;
+        background: #d1fae5; color: #065f46;
+        font-size: 0.72rem; font-weight: 700;
+        padding: 0.2rem 0.6rem; border-radius: 999px;
+    }
+    .online-pill .dot {
+        width: 7px; height: 7px; background: #10b981;
+        border-radius: 50%; display: inline-block;
+        animation: pulse-dot 1.5s infinite;
+    }
+
+    /* ── B. LAYOUT: MAIN + SIDEBAR ────────────────────────────────── */
+    .profile-layout {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    .profile-main { min-width: 0; }
+
+    .profile-sidebar {
+        position: sticky;
+        top: 80px;
+        align-self: start;
+    }
+
+    .sidebar-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border: 1px solid #e0e0e0;
+        padding: 1.5rem;
+    }
+    .sidebar-fee {
+        font-size: 1.35rem; font-weight: 700; color: #10b981;
+        margin-bottom: 0.3rem;
+    }
+    .sidebar-fee-label { font-size: 0.82rem; color: #888; margin-bottom: 1rem; }
+    .sidebar-btn {
+        display: block; width: 100%; padding: 0.75rem;
+        text-align: center; border-radius: 8px; font-weight: 600;
+        text-decoration: none; margin-bottom: 0.75rem;
+        font-size: 0.92rem; transition: all 0.3s ease;
+    }
+    .sidebar-btn-green {
+        background: #10b981; color: #fff; border: none;
+    }
+    .sidebar-btn-green:hover {
+        background: #059669; color: #fff;
+        box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+    }
+    .sidebar-btn-outline {
+        background: #fff; color: #004D71;
+        border: 1.5px solid #004D71;
+    }
+    .sidebar-btn-outline:hover {
+        background: #f0f7ff; color: #004D71;
+    }
+    .sidebar-info {
+        display: flex; align-items: center; gap: 0.5rem;
+        font-size: 0.82rem; color: #666;
+        margin-top: 0.5rem;
+    }
+    .sidebar-info i { color: #10b981; }
+
+    /* ── CONTENT SECTIONS ─────────────────────────────────────────── */
+    .content-section {
+        background: #ffffff;
+        border-radius: 8px;
+        padding: 1.5rem 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        border: 1px solid #e8e8e8;
+    }
+    .section-title {
+        font-size: 1.15rem; font-weight: 700; color: #1a1a1a;
+        margin-bottom: 1.25rem; padding-bottom: 0.6rem;
+        border-bottom: 2px solid #10b981;
+    }
+
+    /* ── C. ABOUT / SUMMARY ───────────────────────────────────────── */
+    .about-bio {
+        font-size: 0.9rem; color: #444; line-height: 1.75;
+        margin-bottom: 1rem;
+    }
+    .service-pills {
+        display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .service-pill {
+        display: inline-block; background: #f0f7f4; color: #2E7D5A;
+        border: 1px solid #c3e6da;
+        font-size: 0.78rem; font-weight: 500;
+        padding: 3px 12px; border-radius: 20px;
+    }
+
+    /* ── D. PRACTICE LOCATIONS + MAP ──────────────────────────────── */
+    .practice-section { margin-bottom: 1.5rem; }
+    .practice-block {
+        border: 1px solid #e0e0e0; border-radius: 8px;
+        margin-bottom: 1.5rem; overflow: hidden;
+    }
+    .practice-header-bar {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #eee;
+    }
+    .practice-name-link {
+        font-size: 1.05rem; font-weight: 700; color: #004D71;
+        text-decoration: none; margin-bottom: 0.2rem; display: block;
+    }
+    .practice-name-link:hover { text-decoration: underline; color: #004D71; }
+    .practice-area { font-size: 0.85rem; color: #666; }
+    .practice-fee { font-size: 1.1rem; font-weight: 700; color: #10b981; margin-top: 0.35rem; }
+
+    .practice-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        min-height: 250px;
+    }
+
+    .practice-timings-col { padding: 1.25rem; }
+    .practice-timings-title {
+        font-size: 0.88rem; font-weight: 700; color: #333;
+        margin-bottom: 0.75rem;
+    }
+    .timing-row {
+        display: flex; justify-content: space-between;
+        padding: 0.45rem 0;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 0.85rem;
+    }
+    .timing-row:last-child { border-bottom: none; }
+    .timing-day { font-weight: 600; color: #004D71; }
+    .timing-time { color: #555; }
+
+    .practice-map-col {
+        border-left: 1px solid #eee;
+        min-height: 250px;
+    }
+    .practice-map-col .maplibregl-map {
+        width: 100%; height: 100%;
+    }
+    .practice-map-attribution {
+        font-size: 0.7rem;
+        color: #94a3b8;
+        margin-top: 0.35rem;
+        text-align: right;
+    }
+    .practice-map-attribution a {
+        color: #64748b;
+        text-decoration: none;
+    }
+    .practice-map-attribution a:hover {
+        text-decoration: underline;
+    }
+
+    .practice-footer {
+        display: grid; grid-template-columns: 1fr 1fr;
+        border-top: 1px solid #eee;
+    }
+    .practice-footer-btn {
+        padding: 0.8rem; text-align: center; font-weight: 600;
+        text-decoration: none; font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    .practice-footer-btn:first-child { border-right: 1px solid #eee; }
+    .practice-book-btn {
+        background: #10b981; color: #fff;
+    }
+    .practice-book-btn:hover { background: #059669; color: #fff; }
+    .practice-address-btn {
+        background: #fff; color: #004D71;
+    }
+    .practice-address-btn:hover { background: #f0f7ff; color: #004D71; }
+
+    /* Video practice card (simpler) */
+    .video-practice-block {
+        border: 1px solid #e0e0e0; border-radius: 8px;
+        padding: 1.25rem; margin-bottom: 1.5rem;
+    }
+
+    /* ── E. REVIEWS (compact list) ───────────────────────────────── */
+    .review-row-compact {
+        display: flex;
+        gap: 0.85rem;
+        align-items: flex-start;
+        padding: 0.85rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    .review-row-compact:last-child { border-bottom: none; }
+    .reviewer-avatar {
+        width: 42px; height: 42px; border-radius: 50%;
+        overflow: hidden; flex-shrink: 0;
+        background: #e8f5ef;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .reviewer-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .reviewer-avatar .rev-initial {
+        font-size: 1rem; font-weight: 700; color: #059669;
+    }
+    .review-stars-inline {
+        color: #ffc107;
+        font-size: 0.72rem;
+        letter-spacing: 0.02em;
+    }
+    .review-comment { font-size: 0.88rem; color: #555; line-height: 1.55; margin-top: 0.35rem; }
+
+    /* ── G. SIMILAR DOCTORS (full-width strip, no outer card) ─────── */
+    .similar-doctors-section {
+        max-width: 1200px;
+        margin: 0 auto 2rem;
+        padding: 0 1rem 2rem;
+    }
+    .similar-doctors-section > .section-title {
+        background: transparent;
+        box-shadow: none;
+        border: none;
+        border-radius: 0;
+        padding: 0 0 0.6rem 0;
+        margin-bottom: 1rem;
+    }
+
+    /* ── F. EDUCATION / EXPERIENCE TABLE ──────────────────────────── */
+    .info-table {
+        width: 100%; border-collapse: collapse;
+    }
+    .info-table th {
+        text-align: left; padding: 0.6rem 0.75rem;
+        background: #f8f9fa; font-size: 0.82rem;
+        font-weight: 600; color: #555; border-bottom: 2px solid #e0e0e0;
+    }
+    .info-table td {
+        padding: 0.6rem 0.75rem; border-bottom: 1px solid #f0f0f0;
+        font-size: 0.88rem; color: #444;
+    }
+    .info-table tbody tr:hover { background: #fafafa; }
+
+    /* ── G. SIMILAR DOCTORS GRID ─────────────────────────────────── */
+    .similar-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1rem;
+    }
+    .similar-card {
+        background: #fff; border: 1px solid #e8e8e8;
+        border-radius: 8px; padding: 1rem;
+        text-align: center; text-decoration: none; color: inherit;
+        transition: all 0.3s ease;
+    }
+    .similar-card:hover {
+        border-color: #10b981; transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+        color: inherit;
+    }
+    .similar-avatar {
+        width: 70px; height: 70px; border-radius: 50%;
+        margin: 0 auto 0.6rem; overflow: hidden;
+        background: linear-gradient(135deg, #10b981, #059669);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .similar-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .similar-avatar .initial { color: #fff; font-size: 1.5rem; font-weight: 700; }
+    .similar-name { font-size: 0.88rem; font-weight: 600; color: #333; margin-bottom: 0.15rem; }
+    .similar-spec { font-size: 0.75rem; color: #888; margin-bottom: 0.3rem; }
+    .similar-exp { font-size: 0.72rem; color: #10b981; font-weight: 600; }
+
+    /* ── FAQS ──────────────────────────────────────────────────────── */
+    .faq-accordion .accordion-item {
+        border: 1px solid #e9ecef; border-radius: 8px;
+        margin-bottom: 0.5rem; overflow: hidden;
+    }
+    .faq-accordion .accordion-button {
+        background: #f8f9fa; font-weight: 600; color: #333;
+        padding: 0.85rem 1.25rem; font-size: 0.9rem;
+    }
+    .faq-accordion .accordion-button:not(.collapsed) {
+        background: #004D71; color: white;
+    }
+    .faq-accordion .accordion-body {
+        padding: 1.25rem; line-height: 1.7; color: #555; font-size: 0.88rem;
+    }
+
+    /* ── RESPONSIVE ───────────────────────────────────────────────── */
+    @media (max-width: 992px) {
+        .profile-layout {
+            grid-template-columns: 1fr;
+        }
+        .profile-sidebar {
+            position: static;
+            order: -1;
+        }
+    }
+    @media (max-width: 768px) {
+        .hero-grid { flex-direction: column; align-items: center; text-align: center; }
+        .hero-stats { justify-content: center; }
+        .hero-cta { justify-content: center; }
+        .practice-body { grid-template-columns: 1fr; }
+        .practice-map-col { border-left: none; border-top: 1px solid #eee; min-height: 200px; }
+        .practice-footer { grid-template-columns: 1fr; }
+        .practice-footer-btn:first-child { border-right: none; border-bottom: 1px solid #eee; }
+    }
+
+    @keyframes pulse-dot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.3); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ════════════════ A. DARK HEADER STRIP ════════════════ -->
+<div class="profile-hero">
+    <div class="container">
+        <div class="hero-grid">
+            <!-- Avatar -->
+            <div class="hero-avatar">
+                {% if doctor.user.profile_picture %}
+                <img src="{{ url_for('static', filename='uploads/' + doctor.user.profile_picture) }}"
+                    alt="{{ doctor.user.name }}"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="avatar-initial" style="display:none;">{{ doctor.user.name[0].upper() }}</div>
+                {% else %}
+                <div class="avatar-initial">{{ doctor.user.name[0].upper() }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Info -->
+            <div class="hero-info">
+                <div class="hero-name">
+                    {{ doctor.user.name }}
+                    {% if doctor.user.is_online %}
+                    <span class="online-pill"><span class="dot"></span> Online</span>
+                    {% endif %}
+                </div>
+                <div class="hero-specialization">{{ doctor.specialization or doctor.category }}</div>
+                {% if doctor.education %}
+                <div class="hero-qualifications">{{ doctor.education }}</div>
+                {% endif %}
+
+                {% if doctor.is_verified %}
+                <div style="margin-top: 0.3rem;">
+                    <span class="pmdc-badge"><i class="fas fa-check-circle"></i> PMDC Verified</span>
+                </div>
+                {% endif %}
+
+                <!-- Stats Row -->
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">{{ review_stats.total_reviews }}</div>
+                        <div class="hero-stat-label">Reviews</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">{{ doctor.experience|int }} Yrs</div>
+                        <div class="hero-stat-label">Experience</div>
+                    </div>
+                    {% if review_stats.total_reviews > 0 %}
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">{{ review_stats.average_rating }}/5</div>
+                        <div class="hero-stat-label">Satisfaction</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- CTA Buttons -->
+                {% if is_approved %}
+                <div class="hero-cta">
+                    <a href="#practices" class="hero-btn hero-btn-primary">
+                        <i class="fas fa-calendar-check"></i> Book Appointment
+                    </a>
+                    {% set has_video_global = false %}
+                    {% if practices %}
+                    {% for p_name, p_data in practices.items() %}
+                    {% if p_data.get('video_price') %}{% set has_video_global = true %}{% endif %}
+                    {% endfor %}
+                    {% endif %}
+                    {% if has_video_global %}
+                    <a href="#practices" class="hero-btn hero-btn-outline">
+                        <i class="fas fa-video"></i> Video Call
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════ MAIN LAYOUT: CONTENT + SIDEBAR ════════════════ -->
+<div class="profile-layout">
+    <div class="profile-main">
+
+        <!-- ════════════ C. ABOUT / SUMMARY ════════════ -->
+        {% if doctor.bio or doctor.services %}
+        <section class="content-section">
+            <h2 class="section-title">Summary</h2>
+            {% if doctor.bio %}
+            <div class="about-bio">{{ doctor.bio }}</div>
+            {% endif %}
+            {% if doctor.services %}
+            <div class="service-pills">
+                {% for svc in doctor.services.split(',') %}
+                {% if svc.strip() %}
+                <span class="service-pill">{{ svc.strip() }}</span>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        <!-- ════════════ PATIENT REVIEWS (directly below summary) ════════════ -->
+        <section class="content-section">
+            <h2 class="section-title">Patient reviews{% if review_stats.total_reviews > 0 %} <span class="text-muted fw-normal" style="font-size:0.85rem;">({{ review_stats.total_reviews }}{% if review_stats.average_rating %} · {{ review_stats.average_rating }}/5 avg{% endif %})</span>{% endif %}</h2>
+            {% if visible_reviews %}
+            {% for review in visible_reviews[:25] %}
+            <div class="review-row-compact">
+                <div class="reviewer-avatar">
+                    {% if review.patient and review.patient.user and review.patient.user.profile_picture %}
+                    <img src="{{ url_for('static', filename='uploads/' + review.patient.user.profile_picture) }}"
+                        alt=""
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <span class="rev-initial" style="display:none;">{{ (review.patient.user.name or 'P')[0]|upper }}</span>
+                    {% else %}
+                    <span class="rev-initial">{{ (review.patient.user.name if review.patient and review.patient.user else 'P')[0]|upper }}</span>
+                    {% endif %}
+                </div>
+                <div class="flex-grow-1 min-w-0">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <span class="fw-semibold text-dark" style="font-size:0.9rem;">{{ review.patient.user.name if review.patient and review.patient.user else 'Patient' }}</span>
+                        <span class="review-stars-inline" aria-hidden="true">
+                            {% for i in range(1, 6) %}
+                            {% if i <= review.rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif %}
+                            {% endfor %}
+                        </span>
+                        <span class="text-muted small">{{ review.created_at.strftime('%b %d, %Y') }}</span>
+                    </div>
+                    {% if review.comment %}
+                    <p class="review-comment mb-0">{{ review.comment }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="text-muted small mb-0">No reviews yet. Book a visit and share your experience.</p>
+            {% endif %}
+        </section>
+
+        <!-- ════════════ D. PRACTICE LOCATIONS + MAPS ════════════ -->
+        {% if is_approved and practices %}
+        <section class="content-section" id="practices">
+            <h2 class="section-title">Practice Address and Timings</h2>
+
+            {% for practice_name, practice_data in practices.items() %}
+
+            {% if practice_data.get('physical_price') %}
+            <!-- Physical Practice — Full Card with Map -->
+            <div class="practice-block">
+                <div class="practice-header-bar">
+                    <a class="practice-name-link" href="#practices">{{ practice_name }}</a>
+                    <div class="practice-area">
+                        <i class="fas fa-map-marker-alt" style="color:#10b981;"></i>
+                        Area: {% if practice_data.get('location') %}{{ practice_data.location }}{% else %}{{ doctor.city|title if doctor.city else 'N/A' }}{% endif %}{% if doctor.city %}, {{ doctor.city|title }}{% endif %}
+                    </div>
+                    <div class="practice-fee">Rs. {{ "%.0f"|format(practice_data.physical_price) }}</div>
+                </div>
+                <div class="practice-body">
+                    <!-- Left: Timings -->
+                    <div class="practice-timings-col">
+                        <div class="practice-timings-title">Available Timings</div>
+                        {% if practice_data.days %}
+                        {% for day_name, day_data in practice_data.days.items() %}
+                        <div class="timing-row">
+                            <span class="timing-day">{{ day_name[:3]|title }}</span>
+                            <span class="timing-time">{{ day_data.start_time }} - {{ day_data.end_time }}</span>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="timing-row">
+                            <span class="timing-day">Mon-Sun</span>
+                            <span class="timing-time">Check with clinic</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <!-- Right: Map -->
+                    <div class="practice-map-col">
+                        <div id="map-{{ loop.index }}" class="practice-map-container"
+                            data-location="{{ practice_name }}, {% if practice_data.get('location') %}{{ practice_data.location }}{% endif %}{% if doctor.city %}, {{ doctor.city }}{% endif %}"
+                            style="width:100%; height:100%; min-height:250px;"></div>
+                    </div>
+                </div>
+                <div class="practice-footer">
+                    {% if session.user_id %}
+                    <a href="{{ url_for('patients.book_appointment', doctor_id=doctor.id) }}?type=physical&practice={{ practice_name|urlencode }}"
+                        class="practice-footer-btn practice-book-btn">
+                        <i class="fas fa-calendar-plus me-1"></i> Book Appointment
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="practice-footer-btn practice-book-btn">
+                        <i class="fas fa-sign-in-alt me-1"></i> Login to Book
+                    </a>
+                    {% endif %}
+                    <a href="https://www.google.com/maps/search/{{ (practice_name + ', ' + practice_data.get('location', '') + ' ' + (doctor.city or ''))|urlencode }}"
+                        target="_blank" class="practice-footer-btn practice-address-btn">
+                        <i class="fas fa-directions me-1"></i> Get Address
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if practice_data.get('video_price') %}
+            <!-- Video Practice — Simpler Card -->
+            <div class="video-practice-block">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <div style="font-size:1.05rem; font-weight:700; color:#004D71;">Video Consultation</div>
+                        <div style="font-size:0.85rem; color:#888;">Online</div>
+                    </div>
+                    <div class="practice-fee">Rs. {{ "%.0f"|format(practice_data.video_price) }}</div>
+                </div>
+                {% if practice_data.days %}
+                <div style="margin-top:0.5rem;">
+                    {% for day_name, day_data in practice_data.days.items() %}
+                    <div class="timing-row">
+                        <span class="timing-day">{{ day_name[:3]|title }}</span>
+                        <span class="timing-time">{{ day_data.start_time }} - {{ day_data.end_time }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div style="margin-top:1rem;">
+                    {% if session.user_id %}
+                    <a href="{{ url_for('patients.book_appointment', doctor_id=doctor.id) }}?type=video&practice={{ practice_name|urlencode }}"
+                        class="hero-btn hero-btn-primary" style="width:100%; justify-content:center;">
+                        <i class="fas fa-video"></i> Video Call
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('auth.login') }}"
+                        class="hero-btn hero-btn-primary" style="width:100%; justify-content:center;">
+                        <i class="fas fa-sign-in-alt"></i> Login to Book
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% endfor %}
+
+            <p style="font-size:0.8rem; color:#999; margin-top:0.5rem;">No extra charges for booking appointment online.</p>
+            {% if practices %}
+            <p class="practice-map-attribution mb-0">
+                Map © <a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a>
+                · Data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
+                {% if maps_geocoding_enabled %}
+                · <a href="https://www.geoapify.com/" target="_blank" rel="noopener">Powered by Geoapify</a>
+                {% endif %}
+            </p>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        <!-- ════════════ F. EDUCATION & EXPERIENCE ════════════ -->
+        <section class="content-section">
+            <h2 class="section-title">Education & Experience</h2>
+
+            {% if doctor.education %}
+            <h6 style="font-size:0.92rem; font-weight:700; color:#333; margin-bottom:0.75rem;">Education</h6>
+            <table class="info-table">
+                <thead>
+                    <tr><th style="width:60%;">Degree</th><th>Details</th></tr>
+                </thead>
+                <tbody>
+                    {% for degree in doctor.education.split(',') %}
+                    <tr>
+                        <td><i class="fas fa-graduation-cap me-2" style="color:#10b981;"></i>{{ degree.strip() }}</td>
+                        <td>—</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+
+            <div style="margin-top:1.25rem;">
+                <h6 style="font-size:0.92rem; font-weight:700; color:#333; margin-bottom:0.75rem;">Experience</h6>
+                <table class="info-table">
+                    <thead>
+                        <tr><th>Specialization</th><th>Experience</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i class="fas fa-stethoscope me-2" style="color:#10b981;"></i>{{ doctor.specialization or doctor.category }}</td>
+                            <td>{{ doctor.experience|int }} Years</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ════════════ PATIENT QUESTIONS ════════════ -->
+        {% if doctor_questions %}
+        <section class="content-section">
+            <h2 class="section-title">Patient Questions from {{ doctor.user.name }}</h2>
+            {% for answer in doctor_questions %}
+            {% if answer.question %}
+            <div class="individual-review" style="margin-bottom:0.75rem;">
+                <div style="font-size:0.78rem; color:#888; margin-bottom:0.3rem;">
+                    {{ answer.question.asking_for }}, {{ answer.question.gender }}, {{ answer.question.age }} Years old
+                </div>
+                <div style="font-weight:600; color:#333; margin-bottom:0.3rem;">{{ answer.question.title }}</div>
+                <div style="font-size:0.85rem; color:#555; line-height:1.6;">
+                    {{ answer.question.content[:200] }}{% if answer.question.content|length > 200 %}...{% endif %}
+                </div>
+                <a href="{{ url_for('qa.view_question', question_id=answer.question.id) }}" 
+                    style="color:#10b981; font-weight:600; font-size:0.85rem; text-decoration:none;">
+                    Read Answer <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            {% endif %}
+            {% endfor %}
+            <div class="text-center mt-3">
+                <a href="{{ url_for('patients.ask_question', doctor_id=doctor.id) }}"
+                    class="hero-btn hero-btn-outline" style="color:#004D71; border-color:#004D71; display:inline-flex;">
+                    <i class="fas fa-question-circle"></i> Ask your Question
+                </a>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- ════════════ PUBLISHED ARTICLES (up to 3) ════════════ -->
+        {% if published_blogs %}
+        <section class="content-section">
+            <h2 class="section-title">Articles by {{ doctor.user.name }}</h2>
+            <p class="text-muted small mb-3">Recent published articles.</p>
+            <div class="row g-3">
+                {% for blog in published_blogs[:3] %}
+                <div class="col-md-6 col-lg-4">
+                    <a href="{{ url_for('blogs.view_blog', blog_id=blog.id) }}" class="text-decoration-none text-dark">
+                        <div class="card h-100 shadow-sm border-0" style="border-radius:12px; overflow:hidden; border:1px solid #e5e7eb !important;">
+                            {% set hero_path = blog_static_image_path(blog) %}
+                            {% if hero_path %}
+                            <img src="{{ url_for('static', filename=hero_path) }}" class="w-100" alt=""
+                                style="height:130px; object-fit:cover;">
+                            {% endif %}
+                            <div class="card-body">
+                                <h6 class="card-title mb-2" style="font-weight:700; color:#111;">{{ blog.title }}</h6>
+                                <p class="card-text small text-muted mb-2">{{ (blog.excerpt or blog.content)|striptags|truncate(120) }}</p>
+                                <span class="small" style="color:#10b981; font-weight:600;">Read article <i class="fas fa-arrow-right ms-1"></i></span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- ════════════ FAQS ════════════ -->
+        <section class="content-section">
+            <h2 class="section-title">FAQs</h2>
+            <div class="accordion faq-accordion" id="faqAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            What is {{ doctor.user.name }}'s contact number?
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            You can contact the {{ doctor.category|title }} through Quick Care Connect's helpline and we'll connect you with {{ doctor.user.name }}.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            What is the Qualification of {{ doctor.user.name }}?
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            {{ doctor.user.name }} has the following degrees: {{ doctor.education if doctor.education else 'Information not available' }}
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            What is {{ doctor.user.name }}'s speciality & area of expertise?
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            {{ doctor.user.name }} is specialist {{ doctor.category|title }}.
+                            {% if doctor.bio %}<br><br>{{ doctor.bio[:300] }}{% if doctor.bio|length > 300 %}...{% endif %}{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                            What are the practice timings of {{ doctor.user.name }}?
+                        </button>
+                    </h2>
+                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            {% if is_approved and practices %}
+                            Practice timings for {{ doctor.user.name }} are listed above in the "Practice Address and Timings" section.
+                            {% else %}
+                            Practice timings will be available after the doctor's profile is approved.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div><!-- /.profile-main -->
+
+    <!-- ════════════ B. STICKY SIDEBAR ════════════ -->
+    <aside class="profile-sidebar">
+        {% if is_approved and practices %}
+        <div class="sidebar-card">
+            {% set lowest_fee = namespace(val=None) %}
+            {% for p_name, p_data in practices.items() %}
+            {% if p_data.get('physical_price') %}
+            {% if lowest_fee.val is none or p_data.physical_price < lowest_fee.val %}
+            {% set lowest_fee.val = p_data.physical_price %}
+            {% endif %}
+            {% endif %}
+            {% if p_data.get('video_price') %}
+            {% if lowest_fee.val is none or p_data.video_price < lowest_fee.val %}
+            {% set lowest_fee.val = p_data.video_price %}
+            {% endif %}
+            {% endif %}
+            {% endfor %}
+
+            {% if lowest_fee.val %}
+            <div class="sidebar-fee">Rs. {{ "%.0f"|format(lowest_fee.val) }}</div>
+            <div class="sidebar-fee-label">Starting consultation fee</div>
+            {% endif %}
+
+            {% if session.user_id %}
+            <a href="#practices" class="sidebar-btn sidebar-btn-green">
+                <i class="fas fa-calendar-check me-1"></i> Book Appointment
+            </a>
+            {% set has_vid = false %}
+            {% for p_name, p_data in practices.items() %}
+            {% if p_data.get('video_price') %}{% set has_vid = true %}{% endif %}
+            {% endfor %}
+            {% if has_vid %}
+            <a href="#practices" class="sidebar-btn sidebar-btn-outline">
+                <i class="fas fa-video me-1"></i> Video Call
+            </a>
+            {% endif %}
+            {% else %}
+            <a href="{{ url_for('auth.login') }}" class="sidebar-btn sidebar-btn-green">
+                <i class="fas fa-sign-in-alt me-1"></i> Login to Book
+            </a>
+            {% endif %}
+
+            <div class="sidebar-info">
+                <i class="fas fa-redo"></i>
+                <span>Free follow-up within 3 days</span>
+            </div>
+            <div class="sidebar-info">
+                <i class="fas fa-shield-alt"></i>
+                <span>No extra charges for online booking</span>
+            </div>
+        </div>
+        {% endif %}
+    </aside>
+</div><!-- /.profile-layout -->
+
+<!-- ════════════ SIMILAR SPECIALISTS (full width, no outer card) ════════════ -->
+{% if similar_doctors %}
+<div class="similar-doctors-section">
+    <h2 class="section-title">More {{ doctor.category|replace('_', ' ')|title }} doctors</h2>
+    <div class="similar-grid">
+        {% for sim in similar_doctors %}
+        <a href="{{ url_for('patients.doctor_profile', doctor_id=sim.id) }}" class="similar-card">
+            <div class="similar-avatar">
+                {% if sim.user.profile_picture %}
+                <img src="{{ url_for('static', filename='uploads/' + sim.user.profile_picture) }}"
+                    alt="{{ sim.user.name }}"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <span class="initial" style="display:none;">{{ sim.user.name[0].upper() }}</span>
+                {% else %}
+                <span class="initial">{{ sim.user.name[0].upper() }}</span>
+                {% endif %}
+            </div>
+            <div class="similar-name">{{ sim.user.name }}</div>
+            <div class="similar-spec">{{ sim.specialization or sim.category }}</div>
+            <div class="similar-exp">{{ sim.experience|int }} Yrs Experience</div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- MapLibre GL + OpenFreeMap -->
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mapStyleUrl = {{ openfreemap_style_url|tojson }};
+    const geocodeUrl = {{ geocode_api_url()|tojson }};
+    const mapsGeocodingEnabled = {{ maps_geocoding_enabled|tojson }};
+    const defaultCenter = [74.3587, 31.5204]; // Lahore [lng, lat]
+
+    const mapContainers = document.querySelectorAll('.practice-map-container');
+    mapContainers.forEach(function(container) {
+        const locationText = container.getAttribute('data-location');
+        if (!locationText || locationText.trim() === ',' || locationText.trim() === '') {
+            container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#999;font-size:0.85rem;"><i class="fas fa-map-marker-alt me-2"></i>Location not specified</div>';
+            return;
+        }
+
+        const map = new maplibregl.Map({
+            container: container.id,
+            style: mapStyleUrl,
+            center: defaultCenter,
+            zoom: 12,
+            attributionControl: true,
+        });
+
+        map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+
+        function placeMarker(lng, lat, label) {
+            map.setCenter([lng, lat]);
+            map.setZoom(15);
+            new maplibregl.Marker({ color: '#10b981' })
+                .setLngLat([lng, lat])
+                .setPopup(new maplibregl.Popup({ offset: 24 }).setHTML(
+                    '<strong>' + (label || locationText.trim()).replace(/</g, '&lt;') + '</strong>'
+                ))
+                .addTo(map);
+        }
+
+        function showFallback(message) {
+            new maplibregl.Marker({ color: '#94a3b8' })
+                .setLngLat(defaultCenter)
+                .setPopup(new maplibregl.Popup({ offset: 24 }).setHTML(message))
+                .addTo(map);
+        }
+
+        map.on('load', function() {
+            if (!mapsGeocodingEnabled) {
+                showFallback('Map geocoding is not configured yet.');
+                return;
+            }
+
+            const query = encodeURIComponent(locationText.trim());
+            fetch(geocodeUrl + '?q=' + query)
+                .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
+                .then(function(result) {
+                    if (result.ok && result.data.success) {
+                        placeMarker(result.data.lon, result.data.lat, result.data.label);
+                    } else {
+                        showFallback('Approximate location');
+                    }
+                })
+                .catch(function() {
+                    showFallback('Map loading error');
+                });
+        });
+
+        setTimeout(function() { map.resize(); }, 300);
+        setTimeout(function() { map.resize(); }, 800);
+    });
+});
+</script>
+{% endblock %}

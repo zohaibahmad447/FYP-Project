@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy - Quick Care Connect{% endblock %}
+
+{% block page_breadcrumb %}
+<div class="container">
+    <div class="page-breadcrumb">
+        <a href="{{ url_for('home.index') }}">Home</a>
+        <span class="separator"><i class="fas fa-chevron-right"></i></span>
+        <span class="current">Privacy Policy</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/info-pages.css') }}">
+<div class="container py-4">
+    <div class="info-hero">
+        <h1>Privacy Policy</h1>
+        <p>How Quick Care Connect collects, uses, and protects your personal and health information.</p>
+        <p class="small text-muted mt-2 mb-0">Last updated: June 2026</p>
+    </div>
+    <div class="row">
+        <div class="col-lg-10 mx-auto legal-doc">
+            <h2>Information we collect</h2>
+            <p>We collect information you provide when you register, book appointments, complete consultations, upload documents, post in Q&amp;A, or contact support. This may include name, email, phone, medical history you choose to share, appointment details, and payment references.</p>
+
+            <h2>How we use your information</h2>
+            <p>We use your data to operate the platform: matching you with doctors, processing appointments and payments, enabling video consultations, delivering prescriptions, sending service notifications, and improving security and support.</p>
+
+            <h2>Sharing of information</h2>
+            <p>Your clinical information is shared with your treating doctors and authorized administrators when required for care or dispute resolution. We do not sell your personal data. Payment processors may receive billing data necessary to complete transactions.</p>
+
+            <h2>Video consultations &amp; recordings</h2>
+            <p>Video calls may be recorded for quality, safety, and dispute review where enabled. Recordings are stored securely and accessed only by authorized personnel.</p>
+
+            <h2>Reviews &amp; trust safety</h2>
+            <p>When you submit a doctor review after a completed appointment, we may collect a <strong>hashed network fingerprint</strong> (we do not store your raw IP address) and an approximate city or region. We use this only to detect suspicious or duplicate review patterns and protect doctor credibility. Flagged reviews may be held for administrator review before they appear publicly.</p>
+
+            <h2>Data security</h2>
+            <p>We use industry-standard measures including encrypted connections (HTTPS), access controls, and secure storage. No method of transmission over the internet is 100% secure; we continuously work to protect your information.</p>
+
+            <h2>Your rights</h2>
+            <p>You may request access to or correction of your profile information through your account settings or by contacting us. You may close your account subject to legal and medical record retention requirements.</p>
+
+            <h2>Contact</h2>
+            <p>Questions about this policy: <a href="mailto:support@quickcares.me">support@quickcares.me</a> or our <a href="{{ url_for('home.contact') }}">contact page</a>.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

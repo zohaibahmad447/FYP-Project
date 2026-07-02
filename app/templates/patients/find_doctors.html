@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Find Doctors - Quick Care Connect{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Harmonized Banner ────────────────────────────────────────── */
+    .fd-banner {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-radius: 12px;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        color: #ffffff;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    /* Subtle decorative element matching Blogs */
+    .fd-banner::before {
+        content: '';
+        position: absolute;
+        top: -40px;
+        right: -40px;
+        width: 180px;
+        height: 180px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .fd-badge {
+        display: none; /* Removed as it was 'toomuch' */
+    }
+    .fd-banner h1 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        color: #ffffff;
+        line-height: 1.2;
+    }
+    .fd-banner h1 span {
+        color: inherit;
+        background: none;
+        -webkit-text-fill-color: initial;
+    }
+    .fd-banner p {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        max-width: 580px;
+        margin: 0 auto 1.5rem;
+        line-height: 1.5;
+    }
+
+    /* ── Compact Integrated Search ────────────────────────────────── */
+    .fd-search-container {
+        max-width: 500px;
+        margin: 1rem auto 0;
+        position: relative;
+        z-index: 5;
+    }
+    .fd-search {
+        width: 100%;
+        padding: 0.85rem 1rem 0.85rem 3rem;
+        border: none;
+        border-radius: 50px;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.2s ease;
+        background: #ffffff;
+    }
+    .fd-search:focus {
+        outline: none;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    .fd-search-icon {
+        position: absolute;
+        left: 1.15rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #10b981;
+        font-size: 1rem;
+        pointer-events: none;
+    }
+
+    /* ── Grid ──────────────────────────────────────────────────────────── */
+    .fd-grid-section {
+        padding: 3rem 0 4rem;
+    }
+    .fd-grid-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #1f2937;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .fd-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 1rem;
+    }
+
+    /* ── Card ──────────────────────────────────────────────────────────── */
+    .fd-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 1.25rem 0.5rem 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        text-decoration: none;
+        color: #1f2937;
+        border: 1px solid #f0f0f0;
+        transition: all 0.25s ease;
+        cursor: pointer;
+    }
+    .fd-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 28px rgba(16,185,129,0.13);
+        border-color: rgba(16,185,129,0.35);
+        color: #059669;
+    }
+
+    /* ── Icon — no bubble, icon floats directly on card ─────────────── */
+    .fd-icon {
+        width: 72px;
+        height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.65rem;
+        transition: transform 0.25s ease;
+        flex-shrink: 0;
+    }
+    .fd-card:hover .fd-icon {
+        transform: scale(1.12);
+    }
+
+    /* PNG icons — fill the full icon area */
+    .fd-icon img {
+        width: 72px;
+        height: 72px;
+        object-fit: contain;
+        mix-blend-mode: multiply;
+    }
+
+    /* FA fallback icons — larger, themed green */
+    .fd-icon i {
+        font-size: 2.5rem;
+        color: #10b981;
+    }
+
+    /* ── Name ──────────────────────────────────────────────────────────── */
+    .fd-name {
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-align: center;
+        line-height: 1.25;
+        word-wrap: break-word;
+        max-width: 100%;
+    }
+
+    /* ── No-results message ───────────────────────────────────────────── */
+    .fd-no-results {
+        display: none;
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #9ca3af;
+        font-size: 1.05rem;
+        grid-column: 1 / -1;
+    }
+    .fd-no-results i {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+        display: block;
+        color: #d1d5db;
+    }
+
+    /* ── Responsive ───────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+        .fd-banner h1 { font-size: 1.6rem; }
+        .fd-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.75rem; }
+        .fd-icon { width: 56px; height: 56px; }
+        .fd-icon img { width: 56px; height: 56px; }
+        .fd-icon i { font-size: 1.9rem; }
+        .fd-name { font-size: 0.78rem; }
+    }
+    @media (max-width: 480px) {
+        .fd-grid { grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+        .fd-card { padding: 1rem 0.4rem 0.75rem; }
+        .fd-icon { width: 48px; height: 48px; }
+        .fd-icon img { width: 48px; height: 48px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="find-doctors-container container" style="margin-top: 20px;">
+    <!-- Harmonized Header -->
+    <div class="fd-banner">
+        <h1>Connect with Top Specialists</h1>
+        <p>Book appointments with verified doctors across 30+ specialties.</p>
+        
+        <!-- Integrated Search -->
+        <div class="fd-search-container">
+            <i class="fas fa-search fd-search-icon"></i>
+            <input type="text" id="specialtySearch" class="fd-search" placeholder="Search specialties (e.g. Skin, Heart)...">
+        </div>
+    </div>
+
+    <!-- Grid -->
+    <div class="container fd-grid-section">
+        <h2 class="fd-grid-title">Choose a Specialty</h2>
+        <div class="fd-grid" id="specialtiesGrid">
+            {% for category in categories %}
+            <a href="{{ url_for('patients.doctors_by_category', category=category.slug) }}"
+               class="fd-card" data-name="{{ category.display.lower() }}">
+                <div class="fd-icon">
+                    {% if category.png %}
+                        <img src="{{ url_for('static', filename='images/icons/' + category.png) }}" alt="{{ category.display }}">
+                    {% else %}
+                        <i class="{{ category.fa }}"></i>
+                    {% endif %}
+                </div>
+                <div class="fd-name">{{ category.display }}</div>
+            </a>
+            {% endfor %}
+            <div class="fd-no-results" id="noResults">
+                <i class="fas fa-search"></i>
+                No specialties found matching your search.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('specialtySearch');
+    const cards = document.querySelectorAll('.fd-card');
+    const noResults = document.getElementById('noResults');
+
+    searchInput.addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase().trim();
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+            const name = card.getAttribute('data-name') || '';
+            const text = card.querySelector('.fd-name').textContent.toLowerCase();
+            const match = name.includes(term) || text.includes(term);
+            card.style.display = match ? '' : 'none';
+            if (match) visibleCount++;
+        });
+
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    });
+});
+</script>
+{% endblock %}

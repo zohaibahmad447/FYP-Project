@@ -1,0 +1,500 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Q&A - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --qa-ink: #0f172a;
+        --qa-muted: #64748b;
+    }
+
+    .qa-status-badge {
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        padding: 0.3rem 0.6rem;
+        border-radius: 999px;
+        background: rgba(16, 185, 129, 0.12);
+        color: #047857;
+    }
+
+    .qa-status-badge.is-pending {
+        background: rgba(245, 158, 11, 0.14);
+        color: #b45309;
+    }
+
+    .patient-ava {
+        width: 52px; height: 52px;
+        border-radius: 16px;
+        background: #f1f5f9;
+        color: #0f766e;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem; font-weight: 800;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    .doctor-ava {
+        width: 44px; height: 44px;
+        border-radius: 12px;
+        background: #ecfeff;
+        color: #0f766e;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; font-weight: 800;
+        border: 1px solid rgba(14, 116, 144, 0.12);
+    }
+
+    .answer-row-premium {
+        background: #ffffff;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-left: 4px solid rgba(16, 185, 129, 0.5);
+        border-radius: 16px;
+        margin: 0 1.5rem 1.5rem;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .answer-row-premium:hover {
+        border-left-color: rgba(16, 185, 129, 0.8);
+        box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+    }
+
+    .qa-meta-line {
+        color: var(--qa-muted);
+        font-size: 0.82rem;
+    }
+
+    .qa-meta-stack {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .qa-pill-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        background: #f8fafc;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #475569;
+    }
+
+    .qa-pill-group.is-status {
+        border-color: rgba(16, 185, 129, 0.3);
+        background: rgba(16, 185, 129, 0.1);
+        color: #047857;
+    }
+
+    .qa-pill-group.is-status.pending {
+        border-color: rgba(245, 158, 11, 0.3);
+        background: rgba(245, 158, 11, 0.12);
+        color: #b45309;
+    }
+
+    .admin-sticky {
+        position: sticky;
+        top: 1rem;
+    }
+
+    .qa-index-pill {
+        min-width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        border: 1px solid rgba(16, 185, 129, 0.35);
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: #ffffff;
+        font-weight: 900;
+        font-size: 0.82rem;
+        box-shadow: 0 8px 18px rgba(16, 185, 129, 0.25);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .qa-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: inherit;
+    }
+
+    .qc-admin-qa-row .qa-question-title {
+        font-weight: 800;
+        color: var(--qa-ink);
+        font-size: 1.18rem;
+    }
+
+    .qa-answer-title {
+        font-weight: 700;
+        color: var(--qa-ink);
+        font-size: 0.92rem;
+    }
+
+    .qa-pmc-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #047857;
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.35);
+        padding: 0.2rem 0.45rem;
+        border-radius: 999px;
+    }
+
+    /* Interactive Q&A summary filters — neutral tiles; selected = green glass + single green border only */
+    a.qa-filter-tile-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        height: 100%;
+        border-radius: 20px;
+    }
+
+    a.qa-filter-tile-link:focus-visible {
+        outline: 2px solid rgba(16, 185, 129, 0.65);
+        outline-offset: 3px;
+    }
+
+    .qc-admin-stat-tile.qa-filter-tile {
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease, transform 0.22s ease;
+        /* Allow icon chip glow to extend past the tile edge */
+        overflow: visible;
+    }
+
+    /* Override global stat-tile hover green rim for inactive filter tiles */
+    .qc-admin-stat-tile.qa-filter-tile:not(.qa-filter-tile--active):hover {
+        transform: translateY(-3px);
+        border-color: rgba(203, 213, 225, 0.95) !important;
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08) !important;
+    }
+
+    /* Selected: one green edge (border only) + frosted glass — no second outline via box-shadow */
+    .qc-admin-stat-tile.qa-filter-tile--active {
+        border: 2px solid rgba(16, 185, 129, 0.5) !important;
+        background:
+            linear-gradient(165deg, rgba(255, 255, 255, 0.93), rgba(232, 251, 243, 0.86)),
+            rgba(236, 253, 245, 0.48) !important;
+        backdrop-filter: blur(10px) saturate(142%);
+        -webkit-backdrop-filter: blur(10px) saturate(142%);
+        box-shadow:
+            0 10px 28px rgba(15, 23, 42, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+    }
+
+    .qc-admin-stat-tile.qa-filter-tile--active:hover {
+        border-color: rgba(16, 185, 129, 0.55) !important;
+        box-shadow:
+            0 12px 30px rgba(15, 23, 42, 0.09),
+            inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+    }
+
+    /* Icon chips: soft color-matched glow (icons only — no card halos) */
+    @keyframes qa-icon-glow-sky {
+        0%, 100% {
+            box-shadow:
+                0 0 0 1px rgba(56, 189, 248, 0.38),
+                0 3px 12px rgba(14, 165, 233, 0.2),
+                0 0 18px rgba(56, 189, 248, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+        50% {
+            box-shadow:
+                0 0 0 1px rgba(125, 211, 252, 0.62),
+                0 5px 16px rgba(14, 165, 233, 0.28),
+                0 0 26px rgba(56, 189, 248, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.68);
+        }
+    }
+
+    @keyframes qa-icon-glow-emerald {
+        0%, 100% {
+            box-shadow:
+                0 0 0 1px rgba(52, 211, 153, 0.4),
+                0 3px 12px rgba(16, 185, 129, 0.22),
+                0 0 18px rgba(52, 211, 153, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        50% {
+            box-shadow:
+                0 0 0 1px rgba(167, 243, 208, 0.65),
+                0 5px 16px rgba(16, 185, 129, 0.3),
+                0 0 26px rgba(52, 211, 153, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.62);
+        }
+    }
+
+    @keyframes qa-icon-glow-amber {
+        0%, 100% {
+            box-shadow:
+                0 0 0 1px rgba(251, 191, 36, 0.42),
+                0 3px 12px rgba(245, 158, 11, 0.22),
+                0 0 18px rgba(251, 191, 36, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        }
+        50% {
+            box-shadow:
+                0 0 0 1px rgba(253, 224, 71, 0.58),
+                0 5px 16px rgba(245, 158, 11, 0.3),
+                0 0 26px rgba(251, 191, 36, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+    }
+
+    .qa-filter-tile .qc-admin-stat-tile__icon {
+        position: relative;
+    }
+
+    .qa-filter-tile .qc-admin-stat-tile__icon--sky {
+        border: 1px solid rgba(14, 165, 233, 0.28);
+        animation: qa-icon-glow-sky 3.2s ease-in-out infinite;
+    }
+
+    .qa-filter-tile .qc-admin-stat-tile__icon--emerald {
+        border: 1px solid rgba(16, 185, 129, 0.28);
+        animation: qa-icon-glow-emerald 3.2s ease-in-out infinite 0.35s;
+    }
+
+    .qa-filter-tile .qc-admin-stat-tile__icon--amber {
+        border: 1px solid rgba(217, 119, 6, 0.28);
+        animation: qa-icon-glow-amber 3.2s ease-in-out infinite 0.7s;
+    }
+
+    a.qa-filter-tile-link:hover .qa-filter-tile .qc-admin-stat-tile__icon--sky,
+    a.qa-filter-tile-link:hover .qa-filter-tile .qc-admin-stat-tile__icon--emerald,
+    a.qa-filter-tile-link:hover .qa-filter-tile .qc-admin-stat-tile__icon--amber {
+        animation-duration: 2.5s;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .qa-filter-tile .qc-admin-stat-tile__icon--sky,
+        .qa-filter-tile .qc-admin-stat-tile__icon--emerald,
+        .qa-filter-tile .qc-admin-stat-tile__icon--amber {
+            animation: none;
+        }
+
+        .qa-filter-tile .qc-admin-stat-tile__icon--sky {
+            box-shadow:
+                0 0 0 1px rgba(56, 189, 248, 0.45),
+                0 3px 14px rgba(14, 165, 233, 0.22),
+                0 0 20px rgba(56, 189, 248, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+
+        .qa-filter-tile .qc-admin-stat-tile__icon--emerald {
+            box-shadow:
+                0 0 0 1px rgba(52, 211, 153, 0.48),
+                0 3px 14px rgba(16, 185, 129, 0.24),
+                0 0 20px rgba(52, 211, 153, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        .qa-filter-tile .qc-admin-stat-tile__icon--amber {
+            box-shadow:
+                0 0 0 1px rgba(251, 191, 36, 0.48),
+                0 3px 14px rgba(245, 158, 11, 0.24),
+                0 0 20px rgba(251, 191, 36, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-3 py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-xl-2 col-lg-3 col-md-4 mb-4 admin-sidebar-col">
+            <div class="admin-sticky">
+                <div class="card qc-admin-card border-0 shadow-sm rounded-4">
+                    <div class="card-body text-center p-4">
+                        <div class="admin-avatar mb-3 mx-auto" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 2.2rem;">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <h5 class="card-title fw-bold mb-1">Admin Panel</h5>
+                        <p class="text-muted small mb-0">{{ get_current_user().name }}</p>
+                    </div>
+                </div>
+                <div class="card qc-admin-card border-0 shadow-sm mt-3 rounded-4 overflow-hidden">
+                    <div class="card-header bg-white border-0 pt-3">
+                        <h6 class="mb-0 text-uppercase text-muted fw-bold small" style="letter-spacing:1px;"><i class="fas fa-cogs me-2"></i>Management</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        {% include 'admin/_management_sidebar.html' %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-xl-10 col-lg-9 col-md-8 admin-main-col">
+            <div class="d-flex justify-content-between align-items-center mb-4 qa-hero p-4">
+                <div>
+                    <h3 class="mb-0 fw-bold"><i class="fas fa-comments me-2 text-primary"></i>Q&A Moderation</h3>
+                    <p class="text-muted mb-0 small">Monitor medical discussions and ensure quality responses</p>
+                </div>
+            </div>
+
+            <!-- Stats Overview — interactive filters -->
+            {% set qf = qa_filter|default('all') %}
+
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <a href="{{ url_for('admin.qa', filter='all') }}"
+                       class="qa-filter-tile-link"
+                       {% if qf == 'all' %}aria-current="page"{% endif %}>
+                        <div class="qc-admin-stat-tile shadow-sm h-100 qa-filter-tile {% if qf == 'all' %}qa-filter-tile--active{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="qc-admin-stat-tile__icon qc-admin-stat-tile__icon--sky"><i class="fas fa-question-circle"></i></div>
+                            </div>
+                            <div class="qc-admin-stat-tile__value">{{ total_questions }}</div>
+                            <div class="qc-admin-stat-tile__kicker">Total Inquiries</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ url_for('admin.qa', filter='answered') }}"
+                       class="qa-filter-tile-link"
+                       {% if qf == 'answered' %}aria-current="page"{% endif %}>
+                        <div class="qc-admin-stat-tile shadow-sm h-100 qa-filter-tile {% if qf == 'answered' %}qa-filter-tile--active{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="qc-admin-stat-tile__icon qc-admin-stat-tile__icon--emerald"><i class="fas fa-check-double"></i></div>
+                            </div>
+                            <div class="qc-admin-stat-tile__value">{{ answered_count }}</div>
+                            <div class="qc-admin-stat-tile__kicker">Answered</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ url_for('admin.qa', filter='pending') }}"
+                       class="qa-filter-tile-link"
+                       {% if qf == 'pending' %}aria-current="page"{% endif %}>
+                        <div class="qc-admin-stat-tile shadow-sm h-100 qa-filter-tile {% if qf == 'pending' %}qa-filter-tile--active{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="qc-admin-stat-tile__icon qc-admin-stat-tile__icon--amber"><i class="fas fa-clock"></i></div>
+                            </div>
+                            <div class="qc-admin-stat-tile__value">{{ unanswered_count }}</div>
+                            <div class="qc-admin-stat-tile__kicker">Awaiting Doctor</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Enhanced Questions List -->
+            {% if questions %}
+                {% for question in questions %}
+                {% set ans_list = question.answers.filter_by(is_deleted=False).all() %}
+                {% set item_index = (pagination.page - 1) * pagination.per_page + loop.index %}
+                <div class="qc-admin-qa-row shadow-sm mb-4">
+                    <div class="p-3 bg-white">
+                        <div class="d-flex gap-3">
+                            <div class="qa-index-pill">{{ item_index }}</div>
+                            <div class="patient-ava flex-shrink-0">
+                                {% if question.patient.user.profile_picture %}
+                                <img src="{{ url_for('static', filename='uploads/' + question.patient.user.profile_picture) }}" alt="{{ question.patient.user.name }}" class="qa-avatar-img">
+                                {% else %}
+                                {{ question.patient.user.name[0].upper() }}
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h5 class="qa-question-title mb-0">{{ question.title }}</h5>
+                                    <div class="d-flex align-items-center gap-2">
+                                        {% if ans_list %}
+                                            <span class="qa-pill-group is-status"><i class="fas fa-check-circle"></i>Answered</span>
+                                        {% else %}
+                                            <span class="qa-pill-group is-status pending"><i class="fas fa-hourglass-half"></i>Pending</span>
+                                        {% endif %}
+                                        <a class="btn btn-sm btn-outline-primary rounded-pill" href="{{ url_for('qa.view_question', question_id=question.id) }}">View Details</a>
+                                    </div>
+                                </div>
+                                <div class="qa-meta-stack mt-2">
+                                    <span class="qa-pill-group"><i class="fas fa-user"></i>{{ question.patient.user.name }}</span>
+                                </div>
+                                <div class="qa-meta-stack mt-2">
+                                    <span class="qa-pill-group"><i class="fas fa-tag"></i>{{ question.category|upper }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Expert Answers Area -->
+                    {% if ans_list %}
+                        <div class="bg-light bg-opacity-50 pt-2 pb-1">
+                            <div class="px-4 py-2"><h6 class="text-uppercase text-muted fw-bold small mb-2" style="letter-spacing:1px;">Medical Responses</h6></div>
+                            {% for answer in ans_list %}
+                            <div class="answer-row-premium p-3 d-flex gap-3 mb-3 mx-4">
+                                <div class="doctor-ava flex-shrink-0">
+                                    {% if answer.doctor.user.profile_picture %}
+                                    <img src="{{ url_for('static', filename='uploads/' + answer.doctor.user.profile_picture) }}" alt="{{ answer.doctor.user.name }}" class="qa-avatar-img">
+                                    {% else %}
+                                    {{ answer.doctor.user.name[0].upper() }}
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <div>
+                                            <div class="qa-answer-title">{{ answer.doctor.user.name }}</div>
+                                            <div class="mt-1">
+                                                <span class="qa-pmc-badge"><i class="fas fa-check-circle"></i>PMC Verified</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                {% if pagination.pages > 1 %}
+                <nav class="mt-4" aria-label="Q&A pagination">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('admin.qa', page=pagination.prev_num, filter=qf) }}" tabindex="-1">Previous</a>
+                        </li>
+                        {% for p in range(1, pagination.pages + 1) %}
+                        <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('admin.qa', page=p, filter=qf) }}">{{ p }}</a>
+                        </li>
+                        {% endfor %}
+                        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('admin.qa', page=pagination.next_num, filter=qf) }}">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+                    <div class="mb-4">
+                        <i class="fas fa-comments fa-4x text-muted opacity-25"></i>
+                    </div>
+                    {% if qf != 'all' %}
+                    <h5 class="text-muted fw-bold">No inquiries in this view</h5>
+                    <p class="text-muted small mb-3">Try another summary card above or switch back to all inquiries.</p>
+                    <a href="{{ url_for('admin.qa', filter='all') }}" class="btn btn-outline-success rounded-pill px-4">Show all inquiries</a>
+                    {% else %}
+                    <h5 class="text-muted fw-bold">No Questions Yet</h5>
+                    <p class="text-muted small">All patient inquiries will appear here for your review.</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}How It Works - Quick Care Connect{% endblock %}
+
+{% block page_breadcrumb %}
+<div class="container">
+    <div class="page-breadcrumb">
+        <a href="{{ url_for('home.index') }}">Home</a>
+        <span class="separator"><i class="fas fa-chevron-right"></i></span>
+        <span class="current">How It Works</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/info-pages.css') }}">
+<div class="container py-4">
+    <div class="info-hero">
+        <h1><i class="fas fa-route me-2 text-success"></i>How Quick Care Works</h1>
+        <p>From finding a doctor to receiving your prescription — here is the full journey on our platform.</p>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card info-card p-4">
+                <div class="icon-wrap"><i class="fas fa-user-plus"></i></div>
+                <h5 class="fw-bold">1. Create account</h5>
+                <p class="text-muted mb-0 small">Register as a patient or doctor. Doctors complete verification before accepting appointments.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card info-card p-4">
+                <div class="icon-wrap"><i class="fas fa-calendar-check"></i></div>
+                <h5 class="fw-bold">2. Book &amp; pay</h5>
+                <p class="text-muted mb-0 small">Choose a specialist, pick a slot, and complete secure payment. Doctor approves your request.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card info-card p-4">
+                <div class="icon-wrap"><i class="fas fa-video"></i></div>
+                <h5 class="fw-bold">3. Consult</h5>
+                <p class="text-muted mb-0 small">Join a video call or in-person visit, chat with your doctor, and receive a digital prescription.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm p-4 p-lg-5 mb-5">
+        <h2 class="fw-bold mb-4" style="color:#065f46;">Patient journey</h2>
+        <div class="info-step-row">
+            <span class="info-step-num">1</span>
+            <div><strong>Search doctors</strong><br><span class="text-muted">Filter by specialty, city, and video or in-clinic visits.</span></div>
+        </div>
+        <div class="info-step-row">
+            <span class="info-step-num">2</span>
+            <div><strong>Request appointment</strong><br><span class="text-muted">Submit your concern; the doctor reviews and approves.</span></div>
+        </div>
+        <div class="info-step-row">
+            <span class="info-step-num">3</span>
+            <div><strong>Pay securely</strong><br><span class="text-muted">Complete payment via Safepay or approved manual transfer.</span></div>
+        </div>
+        <div class="info-step-row">
+            <span class="info-step-num">4</span>
+            <div><strong>Attend consultation</strong><br><span class="text-muted">Join the video room at your scheduled time or visit the clinic.</span></div>
+        </div>
+        <div class="info-step-row">
+            <span class="info-step-num">5</span>
+            <div><strong>Review &amp; close visit</strong><br><span class="text-muted">Rate your experience, confirm satisfaction, or raise a dispute within 24 hours on the appointment page.</span></div>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a href="{{ url_for('patients.find_doctors') }}" class="btn btn-success btn-lg px-5 me-2">Find a doctor</a>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-outline-success btn-lg px-4">Create account</a>
+    </div>
+</div>
+{% endblock %}

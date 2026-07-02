@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block title %}Ask a Question - Quick Care Connect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="mb-4">
+                <h2 class="mb-2">
+                    <i class="fas fa-question-circle me-2" style="color: #10b981;"></i>Ask a Question
+                </h2>
+                <p class="text-muted mb-0">Get expert medical advice from qualified doctors in our Q&A forum</p>
+            </div>
+
+            <!-- Question Form -->
+            <div class="card" style="border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div class="card-header" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border-bottom: 2px solid #10b981; border-radius: 16px 16px 0 0;">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2" style="color: #10b981;"></i>Post Your Question
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-4">
+                            {{ form.category.label(class="form-label fw-bold") }}
+                            <small class="text-muted d-block mb-2">Type or select the medical category that best matches your question. Doctors from that category will be able to answer it.</small>
+                            <div class="position-relative">
+                                {{ form.category(class="form-control form-control-lg") }}
+                                <!-- Datalist for HTML5 autocomplete -->
+                                <datalist id="category-suggestions"></datalist>
+                                <!-- Suggestions dropdown (shown on focus/typing) -->
+                                <div id="category-suggestions-dropdown" class="category-suggestions-dropdown" style="display: none;"></div>
+                            </div>
+                            {% if form.category.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.category.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            {{ form.title.label(class="form-label fw-bold") }}
+                            <small class="text-muted d-block mb-2">Write a clear, concise title for your question</small>
+                            {{ form.title(class="form-control form-control-lg", placeholder="e.g., What are the symptoms of high blood pressure?") }}
+                            {% if form.title.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.title.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            {{ form.content.label(class="form-label fw-bold") }}
+                            <small class="text-muted d-block mb-2">Provide detailed information about your question. Include symptoms, duration, and any relevant medical history.</small>
+                            {{ form.content(class="form-control", rows="8", placeholder="Describe your question in detail. The more information you provide, the better doctors can help you.") }}
+                            {% if form.content.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.content.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-check mb-4">
+                            {{ form.is_anonymous(class="form-check-input") }}
+                            {{ form.is_anonymous.label(class="form-check-label fw-semibold") }}
+                            <small class="text-muted d-block mt-1">Your name will be hidden and shown as Anonymous Patient on public Q&A pages.</small>
+                        </div>
+
+                        <!-- Tips Card -->
+                        <div class="alert alert-info mb-4" style="background-color: rgba(13, 202, 240, 0.1); border-color: #0dcaf0;">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-lightbulb me-2"></i>Tips for Better Answers:
+                            </h6>
+                            <ul class="mb-0 small">
+                                <li>Be specific about your symptoms and concerns</li>
+                                <li>Include duration of the problem (e.g., "for 3 weeks")</li>
+                                <li>Mention any medications you're currently taking</li>
+                                <li>Share relevant medical history if applicable</li>
+                                <li>Choose the correct medical category for faster response</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('qa.index') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            {{ form.submit(class="btn btn-success", style="background: rgba(16, 185, 129, 0.8); border: 1px solid rgba(16, 185, 129, 0.5); padding: 0.75rem 2rem; font-weight: 600;") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryInput = document.getElementById('category-input');
+    const categoryDatalist = document.getElementById('category-suggestions');
+    const categoryDropdown = document.getElementById('category-suggestions-dropdown');
+    
+    // Get all medical categories from the backend (passed from route)
+    const medicalCategories = [
+        {% for category in all_categories %}
+        "{{ category }}"{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    // Populate datalist with all categories
+    medicalCategories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        categoryDatalist.appendChild(option);
+    });
+    
+    let selectedIndex = -1;
+    let filteredCategories = [];
+    
+    // Filter categories as user types
+    categoryInput.addEventListener('input', function(e) {
+        const value = e.target.value.toLowerCase().trim();
+        filteredCategories = medicalCategories.filter(cat => 
+            cat.toLowerCase().includes(value)
+        );
+        
+        updateDropdown();
+    });
+    
+    // Show dropdown on focus
+    categoryInput.addEventListener('focus', function() {
+        if (categoryInput.value.trim() === '') {
+            filteredCategories = medicalCategories;
+        } else {
+            const value = categoryInput.value.toLowerCase().trim();
+            filteredCategories = medicalCategories.filter(cat => 
+                cat.toLowerCase().includes(value)
+            );
+        }
+        updateDropdown();
+    });
+    
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!categoryInput.contains(e.target) && !categoryDropdown.contains(e.target)) {
+            categoryDropdown.style.display = 'none';
+            selectedIndex = -1;
+        }
+    });
+    
+    // Handle keyboard navigation
+    categoryInput.addEventListener('keydown', function(e) {
+        if (categoryDropdown.style.display === 'none') {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                const value = categoryInput.value.toLowerCase().trim();
+                filteredCategories = value === '' ? 
+                    medicalCategories : 
+                    medicalCategories.filter(cat => cat.toLowerCase().includes(value));
+                updateDropdown();
+                return;
+            }
+        }
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedIndex = Math.min(selectedIndex + 1, filteredCategories.length - 1);
+            highlightItem();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedIndex = Math.max(selectedIndex - 1, -1);
+            highlightItem();
+        } else if (e.key === 'Enter' && selectedIndex >= 0) {
+            e.preventDefault();
+            categoryInput.value = filteredCategories[selectedIndex];
+            categoryDropdown.style.display = 'none';
+            selectedIndex = -1;
+        } else if (e.key === 'Escape') {
+            categoryDropdown.style.display = 'none';
+            selectedIndex = -1;
+        }
+    });
+    
+    function updateDropdown() {
+        if (filteredCategories.length === 0) {
+            categoryDropdown.style.display = 'none';
+            return;
+        }
+        
+        // Limit to 10 suggestions for better UX
+        const displayCategories = filteredCategories.slice(0, 10);
+        
+        categoryDropdown.innerHTML = displayCategories.map((cat, index) => {
+            const isSelected = index === selectedIndex ? 'suggestion-item-selected' : '';
+            return `<div class="suggestion-item ${isSelected}" data-index="${index}" data-value="${cat}">
+                        <i class="fas fa-tag me-2" style="color: #10b981;"></i>${cat}
+                    </div>`;
+        }).join('');
+        
+        categoryDropdown.style.display = 'block';
+        selectedIndex = -1;
+        
+        // Add click handlers
+        categoryDropdown.querySelectorAll('.suggestion-item').forEach(item => {
+            item.addEventListener('click', function() {
+                categoryInput.value = this.getAttribute('data-value');
+                categoryDropdown.style.display = 'none';
+                categoryInput.focus();
+            });
+            
+            item.addEventListener('mouseenter', function() {
+                selectedIndex = parseInt(this.getAttribute('data-index'));
+                highlightItem();
+            });
+        });
+    }
+    
+    function highlightItem() {
+        categoryDropdown.querySelectorAll('.suggestion-item').forEach((item, index) => {
+            if (index === selectedIndex) {
+                item.classList.add('suggestion-item-selected');
+                item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            } else {
+                item.classList.remove('suggestion-item-selected');
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.category-suggestions-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    margin-top: 4px;
+}
+
+.suggestion-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover,
+.suggestion-item-selected {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    font-weight: 500;
+}
+
+.suggestion-item i {
+    width: 16px;
+    text-align: center;
+}
+
+/* Scrollbar styling */
+.category-suggestions-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.category-suggestions-dropdown::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.category-suggestions-dropdown::-webkit-scrollbar-thumb {
+    background: #10b981;
+    border-radius: 4px;
+}
+
+.category-suggestions-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #059669;
+}
+
+.position-relative {
+    position: relative;
+}
+</style>
+{% endblock %}
+

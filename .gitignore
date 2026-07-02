@@ -1,0 +1,35 @@
+# Environment & secrets
+.env
+.env.local
+.env.production
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+
+# Database (local / server SQLite — never commit)
+*.db
+instance/
+
+# Logs & runtime
+logs/
+*.log
+
+# TLS dev certs (local only)
+*.pem
+
+# User uploads (runtime data)
+app/static/uploads/*
+!app/static/uploads/.gitkeep
+app/static/prescriptions/*.pdf
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

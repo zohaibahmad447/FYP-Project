@@ -1,0 +1,2270 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Quick Care Connect{% endblock %}
+
+{% block extra_css %}
+<!-- Prevent browser caching of registration form -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<style>
+.form-label {
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.form-control, .form-select {
+    border-radius: 12px;
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+    font-size: 15px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #2bc17b;
+    box-shadow: 0 0 0 4px rgba(43, 193, 123, 0.1);
+    background-color: #ffffff;
+}
+
+/* Auth Custom Container Styling */
+.auth-wrapper {
+    background: #ffffff;
+    min-height: calc(100vh - 80px); /* Account for navbar */
+    display: flex;
+}
+
+.auth-form-side {
+    padding: 60px 40px;
+}
+
+.auth-info-side {
+    background: #f8fafc; /* Very light cool gray instead of solid green */
+    color: #1f2937;
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: sticky;
+    top: 80px;
+    height: calc(100vh - 80px); /* Stick to viewport height minus navbar */
+    border-radius: 40px 0 0 40px; /* Curve the left edge nicely */
+    border-left: 1px solid #e5e7eb;
+}
+
+@media (max-width: 991.98px) {
+    .auth-info-side {
+        position: static;
+        height: auto;
+        border-radius: 0;
+        margin-top: 40px;
+        border-left: none;
+        border-top: 1px solid #e5e7eb;
+    }
+}
+
+.auth-title {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: #1f2937;
+    margin-bottom: 30px;
+}
+
+.auth-btn-primary {
+    background: #2bc17b !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 30px !important;
+    padding: 14px 24px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+    width: 100%;
+}
+.auth-btn-primary:hover {
+    background: #229c63 !important;
+    transform: translateY(-1px);
+}
+
+/* City Autocomplete Styles */
+.city-autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    margin-top: 2px;
+}
+
+.city-autocomplete-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+}
+
+.city-autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.city-autocomplete-item:hover,
+.city-autocomplete-item.active {
+    background-color: #e3f2fd;
+    color: var(--primary-color);
+}
+
+.city-autocomplete-item:first-child {
+    border-radius: 8px 8px 0 0;
+}
+
+.city-autocomplete-item:last-child {
+    border-radius: 0 0 8px 8px;
+}
+
+.city-autocomplete-empty {
+    padding: 10px 15px;
+    color: #999;
+    font-style: italic;
+}
+
+.card {
+    border-radius: 12px;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+/* Hide specific fields by default */
+.patient-fields, .doctor-fields {
+    display: none;
+}
+
+.role-section {
+    background: var(--gray-50);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.role-section h5 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+/* Role Select Field Styling */
+.role-select-field {
+    position: relative;
+}
+
+/* Placeholder option styling (only when selected) */
+.role-select-field option.placeholder-option {
+    color: #999;
+    background-color: #f8f9fa;
+    font-style: italic;
+    display: none; /* Hide placeholder when not selected */
+}
+
+/* Actual options styling */
+.role-select-field option:not(.placeholder-option) {
+    color: #000;
+    background-color: #fff;
+    font-style: normal;
+}
+
+/* When no value selected, show gray text */
+.role-select-field:invalid,
+.role-select-field[value=""] {
+    color: #999;
+}
+
+/* When value selected, show black text */
+.role-select-field:valid:not([value=""]) {
+    color: #000;
+}
+
+/* Hide placeholder option in dropdown when a value is selected */
+.role-select-field:not([value=""]) option.placeholder-option {
+    display: none;
+}
+
+/* Password Toggle Icon Styling */
+.password-input-wrapper {
+    position: relative;
+}
+
+.password-requirements {
+    font-size: 0.875rem;
+    padding: 12px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    margin-top: 8px;
+}
+
+.requirement-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+}
+
+.requirement-item:last-child {
+    margin-bottom: 0;
+}
+
+.requirement-item i {
+    margin-right: 10px;
+    width: 18px;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+}
+
+.requirement-item span {
+    transition: color 0.3s ease;
+}
+
+/* Invalid state (default - red) */
+.requirement-item.invalid {
+    color: #dc3545;
+}
+
+.requirement-item.invalid i {
+    color: #dc3545;
+}
+
+.requirement-item.invalid span {
+    color: #495057;
+}
+
+/* Valid state (green with checkmark) */
+.requirement-item.valid {
+    color: #28a745;
+}
+
+.requirement-item.valid i {
+    color: #28a745;
+}
+
+.requirement-item.valid span {
+    color: #28a745;
+    font-weight: 500;
+}
+
+.password-field {
+    padding-right: 50px !important; /* Space for eye icon + validation icon */
+}
+
+.password-field.is-invalid {
+    padding-right: 55px !important; /* Space when validation icon is present */
+}
+
+.password-toggle-icon {
+    position: absolute;
+    right: 25px; /* Closer to error icon */
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6c757d;
+    user-select: none;
+    transition: color 0.2s, right 0.2s;
+    z-index: 11; /* Above validation icon */
+    pointer-events: auto;
+    background-color: white; /* Background to prevent overlap visual issues */
+    padding: 0 3px; /* Small padding for better click area */
+}
+
+/* When field has validation error, move icon slightly left but still close to error icon */
+.password-input-wrapper .password-field.is-invalid ~ .password-toggle-icon,
+.password-input-wrapper:has(.is-invalid) .password-toggle-icon {
+    right: 30px !important; /* Still close to error icon */
+}
+
+/* Alternative approach using JavaScript to dynamically adjust */
+.password-input-wrapper.has-error .password-toggle-icon {
+    right: 30px !important;
+}
+
+.password-toggle-icon:hover {
+    color: var(--primary-color);
+}
+
+.password-toggle-icon.active {
+    color: var(--primary-color);
+}
+
+/* Phone Number Input Group Styling */
+.input-group-text {
+    background-color: #e9ecef;
+    border-right: none;
+    font-weight: 500;
+    color: #495057;
+}
+
+#phone-input {
+    border-left: none;
+}
+
+.input-group:focus-within .input-group-text {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.input-group:focus-within #phone-input {
+    border-left: 1px solid #dee2e6;
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Date Input Calendar Icon Styling */
+.date-input-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.date-input-wrapper input[type="date"] {
+    padding-right: 45px !important; /* Space for calendar icon */
+    width: 100%;
+}
+
+/* Custom Calendar Icon */
+.date-calendar-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #6c757d;
+    font-size: 1.1rem;
+    z-index: 2;
+}
+
+.date-input-wrapper:hover .date-calendar-icon {
+    color: #495057;
+}
+
+.date-input-wrapper input[type="date"]:focus + .date-calendar-icon {
+    color: var(--primary-color);
+}
+
+/* WebKit browsers (Chrome, Safari, Edge) - Hide native icon and use custom */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    opacity: 0;
+    z-index: 3;
+}
+
+/* Firefox - Ensure native icon doesn't conflict */
+@-moz-document url-prefix() {
+    .date-input-wrapper input[type="date"] {
+        padding-right: 45px !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <!-- Left Side: Form -->
+            <div class="col-lg-7 col-xl-8">
+                <div class="container pb-5 pt-4">
+                    <div class="row justify-content-center">
+                        <div class="col-md-10 col-xl-9 pt-4">
+                            <h2 class="auth-title">
+                                <i class="fas fa-user-plus me-2 text-primary" style="color: #2bc17b !important;"></i>Create Your Account
+                            </h2>
+                            <p class="text-muted mb-4">Join Quick Care Connect carefully.</p>
+                            
+                            <!-- Form content goes here -->
+                    <form method="POST" id="unified-registration-form" enctype="multipart/form-data" autocomplete="off" novalidate>
+                        {{ form.hidden_tag() }}
+
+                        <!-- Role Selection -->
+                        <div class="role-section">
+                            <h5><i class="fas fa-user-tag me-2"></i>Select Your Role</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form.role.label(class="form-label") }}
+                                    <select name="{{ form.role.name }}" id="{{ form.role.id }}" class="form-select role-select-field" required>
+                                        <option value="" disabled selected class="placeholder-option">Select your role</option>
+                                        <option value="patient">Patient</option>
+                                        <option value="doctor">Doctor</option>
+                                    </select>
+                                    {% if form.role.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.role.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Common Fields -->
+                        <div class="mb-4">
+                            <h4 class="mb-3">Personal Information</h4>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    {{ form.name.label(class="form-label") }}
+                                    {{ form.name(class="form-control", autocomplete="off", autofill="off") }}
+                                    {% if form.name.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.name.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.email.label(class="form-label") }}
+                                    {{ form.email(class="form-control", autocomplete="off", autofill="off", id="register-email") }}
+                                    {% if form.email.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.email.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.phone.label(class="form-label") }}
+                                    <div class="input-group">
+                                        <span class="input-group-text" id="phone-prefix">+92</span>
+                                        {{ form.phone(class="form-control", id="phone-input", autocomplete="off", autofill="off", placeholder="3001234567", maxlength="10") }}
+                                    </div>
+                                    {% if form.phone.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.phone.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.cnic.label(class="form-label") }}
+                                    {{ form.cnic(class="form-control", autocomplete="off", autofill="off") }}
+                                    {% if form.cnic.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.cnic.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                    <small class="text-muted">Enter 13-digit CNIC number (e.g., 1234512345671)</small>
+                                </div>
+                                <!-- These fields will be shown conditionally - hidden for patients during registration -->
+                                <div class="col-md-6 patient-hide doctor-fields">
+                                    {{ form.date_of_birth.label(class="form-label") }}
+                                    <div class="date-input-wrapper">
+                                        {{ form.date_of_birth(class="form-control", id="date-of-birth-input", type="date", autocomplete="off", autofill="off") }}
+                                        <i class="fas fa-calendar-alt date-calendar-icon" id="date-calendar-icon"></i>
+                                    </div>
+                                    {% if form.date_of_birth.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.date_of_birth.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                    <small class="text-muted">Click to select your date of birth</small>
+                                </div>
+                                <div class="col-md-6 patient-hide doctor-fields">
+                                    {{ form.gender.label(class="form-label") }}
+                                    {{ form.gender(class="form-select", autocomplete="off", autofill="off") }}
+                                    {% if form.gender.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.gender.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-12 patient-hide doctor-fields">
+                                    {{ form.profile_picture.label(class="form-label") }}
+                                    {{ form.profile_picture(class="form-control", accept="image/jpeg,image/jpg,image/png") }}
+                                    {% if form.profile_picture.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.profile_picture.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                    <small class="text-muted">Upload your profile picture (JPG, PNG - Optional)</small>
+                                    <div id="profile-picture-preview" class="mt-2" style="display: none;">
+                                        <img id="preview-image" src="" alt="Profile Preview" class="img-thumbnail" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
+                                    </div>
+                                </div>
+                                <!-- City Field (for doctors) - Personal Information -->
+                                <div class="col-md-6 patient-hide doctor-fields">
+                                    {{ form.city.label(class="form-label") }}
+                                    <div class="position-relative">
+                                        {{ form.city(class="form-control", id="city-input", autocomplete="off", autofill="off") }}
+                                        <div id="city-suggestions" class="city-autocomplete-list" style="display: none;"></div>
+                                    </div>
+                                    {% if form.city.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.city.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.password.label(class="form-label") }}
+                                    <div class="password-input-wrapper position-relative">
+                                        {{ form.password(class="form-control password-field", id="password-input", autocomplete="new-password", autofill="off") }}
+                                        <i class="fas fa-eye password-toggle-icon" id="password-toggle" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #6c757d; user-select: none;"></i>
+                                    </div>
+                                    {% if form.password.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.password.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                    <div id="password-requirements" class="password-requirements mt-2" style="display: none;">
+                                        <div class="requirement-item invalid" id="req-length">
+                                            <i class="fas fa-times text-danger"></i> <span>At least 8 characters</span>
+                                        </div>
+                                        <div class="requirement-item invalid" id="req-lowercase">
+                                            <i class="fas fa-times text-danger"></i> <span>One lowercase letter (a-z)</span>
+                                        </div>
+                                        <div class="requirement-item invalid" id="req-uppercase">
+                                            <i class="fas fa-times text-danger"></i> <span>One uppercase letter (A-Z)</span>
+                                        </div>
+                                        <div class="requirement-item invalid" id="req-number">
+                                            <i class="fas fa-times text-danger"></i> <span>One number (0-9)</span>
+                                        </div>
+                                        <div class="requirement-item invalid" id="req-special">
+                                            <i class="fas fa-times text-danger"></i> <span>One special character (!@#$%^&*()_+-=[]{}|;:,.<>?)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.password2.label(class="form-label") }}
+                                    <div class="password-input-wrapper position-relative">
+                                        {{ form.password2(class="form-control password-field", id="password2-input", autocomplete="new-password", autofill="off") }}
+                                        <i class="fas fa-eye password-toggle-icon" id="password2-toggle"></i>
+                                    </div>
+                                    {% if form.password2.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.password2.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Patient Specific Fields - Hidden during registration -->
+                        <div id="patient-specific-fields" class="patient-fields mb-4" style="display: none !important;">
+                            <!-- Patient-specific fields will be filled after registration during profile completion -->
+                            <p class="text-muted">Please complete your profile after registration to access all features.</p>
+                        </div>
+
+                        <!-- Doctor Specific Fields -->
+                        <div id="doctor-specific-fields" class="doctor-fields mb-4">
+                            <h4 class="mb-3">Professional Information</h4>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.specialization.id }}" class="form-label">
+                                        Medical Category
+                                    </label>
+                                    <div class="position-relative">
+                                        {{ form.specialization(class="form-control", id="specialization-input", autocomplete="off", autofill="off", required=True) }}
+                                        <div id="specialization-suggestions" class="city-autocomplete-list" style="display: none;"></div>
+                                    </div>
+                                    {% if form.specialization.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.specialization.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                </div>
+                                <!-- Hidden category field (will be populated by JavaScript from specialization) -->
+                                <input type="hidden" name="{{ form.category.name }}" id="{{ form.category.id }}" value="">
+                                <div class="col-md-6">
+                                    {{ form.experience.label(class="form-label") }}
+                                    {{ form.experience(class="form-control") }}
+                                    {% if form.experience.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.experience.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.pmc_code.label(class="form-label") }}
+                                    {{ form.pmc_code(class="form-control") }}
+                                    {% if form.pmc_code.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.pmc_code.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-12">
+                                    {{ form.qualifications.label(class="form-label") }}
+                                    <textarea name="{{ form.qualifications.name }}" id="{{ form.qualifications.id }}" class="form-control" rows="5" placeholder="List your degrees and qualifications (e.g., MBBS from ABC University, FCPS in Cardiology, etc.)"></textarea>
+                                    {% if form.qualifications.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.qualifications.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                    <small class="text-muted">Enter all your degrees, qualifications, and certifications</small>
+                                </div>
+                                <div class="col-md-12">
+                                    {{ form.bio.label(class="form-label") }}
+                                    {{ form.bio(class="form-control", rows="3") }}
+                                    {% if form.bio.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.bio.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Document Upload Section -->
+                        <div class="mb-4" id="document-section" style="display: none;">
+                            <h4 class="mb-3">Document Upload</h4>
+                            
+                            <!-- CNIC Upload (Doctor Only - Patients will upload during profile completion) -->
+                            <div class="row g-3 mb-4" id="cnic-upload-section" style="display: none;">
+                                <div class="col-md-6">
+                                    <label class="form-label">CNIC Front Image</label>
+                                    {{ form.cnic_front(class="form-control") }}
+                                    {% if form.cnic_front.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.cnic_front.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                    <small class="text-muted">Upload clear image of CNIC front side</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">CNIC Back Image</label>
+                                    {{ form.cnic_back(class="form-control") }}
+                                    {% if form.cnic_back.errors %}
+                                        <div class="text-danger small mt-1">{% for error in form.cnic_back.errors %}{{ error }}{% endfor %}</div>
+                                    {% endif %}
+                                    <small class="text-muted">Upload clear image of CNIC back side</small>
+                                </div>
+                            </div>
+
+                            <!-- Live Face Detection (Doctor Only) -->
+                            <div class="row g-3 mb-4" id="live-photo-section" style="display: none;">
+                                <div class="col-12">
+                                    <label class="form-label">Live Face Detection</label>
+                                    <div class="live-camera-container">
+                                        <div class="camera-preview mb-3" style="position: relative; width: 100%; max-width: 400px; height: 300px; margin: 0 auto;">
+                                            <video id="camera-video" autoplay muted style="width: 100%; height: 100%; border: 2px solid #ddd; border-radius: 8px; object-fit: cover; display: none;"></video>
+                                            <canvas id="camera-canvas" style="display: none;"></canvas>
+                                            <div id="camera-placeholder" class="text-center p-4 border border-dashed rounded" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: absolute; top: 0; left: 0;">
+                                                <div>
+                                                    <i class="fas fa-camera fa-3x text-muted mb-3"></i>
+                                                    <p class="text-muted">Click "Start Camera" to begin live face detection</p>
+                                                </div>
+                                            </div>
+                                            <div id="captured-photo-preview" style="display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; border: 2px solid #28a745; border-radius: 8px; overflow: hidden; background: #000;">
+                                                <img id="captured-image" src="" alt="Captured Photo" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                        </div>
+                                        <div class="camera-controls mb-3">
+                                            <button type="button" class="btn btn-primary me-2" id="start-camera-btn" onclick="startCamera()">
+                                                <i class="fas fa-video me-1"></i> Start Camera
+                                            </button>
+                                            <button type="button" class="btn btn-success me-2" id="capture-btn" onclick="capturePhoto()" disabled>
+                                                <i class="fas fa-camera me-1"></i> Capture Photo
+                                            </button>
+                                            <button type="button" class="btn btn-warning me-2" id="retake-btn" onclick="retakePhoto()" style="display: none;">
+                                                <i class="fas fa-redo me-1"></i> Retake
+                                            </button>
+                                            <button type="button" class="btn btn-danger" id="stop-camera-btn" onclick="stopCamera()" style="display: none;">
+                                                <i class="fas fa-stop me-1"></i> Stop Camera
+                                            </button>
+                                        </div>
+                                        <div id="capture-success-message" style="display: none;">
+                                            <p class="text-success mb-0"><i class="fas fa-check-circle me-1"></i> Photo captured successfully!</p>
+                                        </div>
+                                        {{ form.live_photo_data() }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dynamic Degree Upload (Doctor Only) -->
+                            <div class="row g-3" id="degree-upload-section" style="display: none;">
+                                <div class="col-12">
+                                    <label class="form-label">Degree Documents</label>
+                                    <div class="degree-upload-container">
+                                        <div class="input-group mb-2">
+                                            <input type="file" class="form-control degree-file" accept=".jpg,.jpeg,.png,.pdf" name="degree_files[]">
+                                            <button type="button" class="btn btn-outline-success" onclick="addDegreeField()">
+                                                <i class="fas fa-plus"></i> Add More
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> <!-- End degree-upload-section -->
+                        </div> <!-- End document-section -->
+
+                        <div class="d-grid mt-5">
+                            <button type="submit" class="auth-btn-primary py-3 fs-5" id="register-submit-btn">
+                                <i class="fas fa-user-plus me-2"></i>Create an Account
+                            </button>
+                            <div id="form-validation-error" class="text-danger text-center mt-2" style="display: none; font-size: 0.9rem; font-weight: 500;">
+                                <i class="fas fa-exclamation-circle me-1"></i>Please fill all the required fields
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <p class="text-muted mb-0" style="font-weight: 500;">Already have an account? <a style="color: #2bc17b; font-weight: 600; text-decoration: none;" href="{{ url_for('auth.login') }}">Sign In</a></p>
+                    </div>
+                </div> <!-- End col center -->
+            </div> <!-- End row center -->
+        </div> <!-- End container -->
+    </div> <!-- End left col -->
+
+    <!-- Right Side: Info Panel -->
+    <div class="col-lg-5 col-xl-4 d-none d-lg-block">
+        <div class="auth-info-side text-center">
+            
+            <div class="mb-4">
+                <!-- Using a large doctor/stethoscope icon combination -->
+                <span class="fa-stack fa-4x" style="color: #2bc17b;">
+                    <i class="fas fa-circle fa-stack-2x" style="opacity: 0.1;"></i>
+                    <i class="fas fa-user-md fa-stack-1x"></i>
+                </span>
+            </div>
+            
+            <h2 class="fw-bold mb-3" style="color: #1f2937;">Join Our Network</h2>
+            <p class="text-muted mb-5 px-3">Connect with top healthcare professionals and manage your health journey all in one place.</p>
+            
+            <div class="text-start w-100 px-4">
+                <div class="d-flex align-items-center mb-4 p-3 rounded" style="background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;">
+                    <div style="width: 45px; height: 45px; border-radius: 12px; background: rgba(43, 193, 123, 0.1); display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                        <i class="fas fa-calendar-check fs-5" style="color: #2bc17b;"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 fw-bold">Smart Scheduling</h6>
+                        <p class="mb-0 small text-muted">Book appointments easily</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center mb-4 p-3 rounded" style="background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;">
+                    <div style="width: 45px; height: 45px; border-radius: 12px; background: rgba(43, 193, 123, 0.1); display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                        <i class="fas fa-video fs-5" style="color: #2bc17b;"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 fw-bold">Telemedicine</h6>
+                        <p class="mb-0 small text-muted">Consult doctors online</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center p-3 rounded" style="background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;">
+                    <div style="width: 45px; height: 45px; border-radius: 12px; background: rgba(43, 193, 123, 0.1); display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                        <i class="fas fa-notes-medical fs-5" style="color: #2bc17b;"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 fw-bold">Health Records</h6>
+                        <p class="mb-0 small text-muted">Secure medical history</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-auto pt-5 text-center w-100">
+                 <p class="small text-muted mb-0">Trusted by 10,000+ Users</p>
+            </div>
+        </div>
+    </div> <!-- End right col -->
+</div> <!-- End row g-0 -->
+</div> <!-- End container-fluid -->
+</div> <!-- End auth-wrapper -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Phone Number Input Restriction - +92 prefix with 10 digits only
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('phone-input');
+    if (phoneInput) {
+        const PREFIX = '+92';
+        
+        // Restrict input to numbers only
+        phoneInput.addEventListener('input', function(e) {
+            // Remove any non-digit characters
+            let value = this.value.replace(/\D/g, '');
+            
+            // Limit to 10 digits
+            if (value.length > 10) {
+                value = value.substring(0, 10);
+            }
+            
+            // Update the field value (only numbers)
+            this.value = value;
+        });
+        
+        // Prevent non-numeric input on keypress
+        phoneInput.addEventListener('keypress', function(e) {
+            // Allow: backspace, delete, tab, escape, enter
+            if ([46, 8, 9, 27, 13, 110, 190].indexOf(e.keyCode) !== -1 ||
+                // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                (e.keyCode === 65 && e.ctrlKey === true) ||
+                (e.keyCode === 67 && e.ctrlKey === true) ||
+                (e.keyCode === 86 && e.ctrlKey === true) ||
+                (e.keyCode === 88 && e.ctrlKey === true) ||
+                // Allow: home, end, left, right
+                (e.keyCode >= 35 && e.keyCode <= 39)) {
+                return;
+            }
+            // Ensure that it is a number and stop the keypress
+            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                e.preventDefault();
+            }
+        });
+        
+        // On form submit, prepend +92 to the phone value
+        const form = phoneInput.closest('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const currentValue = phoneInput.value.trim();
+                if (currentValue && !currentValue.startsWith(PREFIX)) {
+                    // Prepend +92 if not already present
+                    phoneInput.value = PREFIX + currentValue;
+                }
+            });
+        }
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Clear all browser storage related to forms
+    try {
+        // Clear localStorage items that might contain form data
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key.toLowerCase().includes('form') || 
+                       key.toLowerCase().includes('register') || 
+                       key.toLowerCase().includes('registration') ||
+                       key.toLowerCase().includes('user_data') ||
+                       key.toLowerCase().includes('form_data'))) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        
+        // Clear sessionStorage items that might contain form data
+        const sessionKeysToRemove = [];
+        for (let i = 0; i < sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+            if (key && (key.toLowerCase().includes('form') || 
+                       key.toLowerCase().includes('register') || 
+                       key.toLowerCase().includes('registration') ||
+                       key.toLowerCase().includes('user_data') ||
+                       key.toLowerCase().includes('form_data'))) {
+                sessionKeysToRemove.push(key);
+            }
+        }
+        sessionKeysToRemove.forEach(key => sessionStorage.removeItem(key));
+    } catch (e) {
+        console.log('Could not clear browser storage:', e);
+    }
+    
+    const form = document.getElementById('unified-registration-form');
+    
+    if (!form) return;
+    
+    // Check if this is a POST response with validation errors
+    // Flask-WTF renders validation errors as .text-danger elements
+    const hasValidationErrors = form.querySelectorAll('.text-danger').length > 0;
+    
+    // On GET requests (page refresh), Flask-WTF doesn't populate form fields
+    // So if there are NO validation errors, this is a fresh GET request - clear the form
+    // On POST with validation errors, Flask-WTF populates fields AND shows errors - preserve the form
+    if (!hasValidationErrors) {
+        // This is a fresh GET request (page refresh) - clear all form data
+        // First, reset form completely
+        form.reset();
+        
+        // Clear all input fields except hidden CSRF token - aggressively clear email and password fields
+        const inputs = form.querySelectorAll('input:not([type="hidden"]), select, textarea');
+        inputs.forEach(input => {
+            if (input.type === 'file') {
+                input.value = '';
+            } else if (input.type === 'checkbox' || input.type === 'radio') {
+                input.checked = false;
+            } else if (input.tagName === 'SELECT') {
+                // For select elements, reset to first option (usually empty/placeholder)
+                if (input.options.length > 0 && input.options[0].value === '') {
+                    input.selectedIndex = 0;
+                } else {
+                    input.selectedIndex = -1;
+                }
+            } else {
+                // Forcefully clear value
+                input.value = '';
+                // Also clear any autocomplete cache
+                input.setAttribute('autocomplete', 'off');
+                input.removeAttribute('data-autocomplete');
+                
+                // For email and password fields, use readonly trick to prevent browser autofill
+                if (input.type === 'email' || input.type === 'password' || input.id === 'login-email' || input.id === 'login-password' || 
+                    input.name === 'email' || input.name === 'password' || input.name === 'password2') {
+                    input.setAttribute('readonly', true);
+                    // Remove readonly after a short delay to allow typing
+                    setTimeout(function() {
+                        input.removeAttribute('readonly');
+                    }, 100);
+                }
+            }
+        });
+        
+        // Specifically target email and password fields for extra clearing
+        const emailField = form.querySelector('input[name="email"]') || form.querySelector('input[type="email"]');
+        const passwordField = form.querySelector('input[name="password"]') || form.querySelector('input[type="password"]');
+        const password2Field = form.querySelector('input[name="password2"]');
+        
+        if (emailField) {
+            emailField.value = '';
+            emailField.setAttribute('autocomplete', 'off');
+            emailField.setAttribute('readonly', true);
+            setTimeout(function() {
+                emailField.removeAttribute('readonly');
+            }, 150);
+        }
+        
+        if (passwordField) {
+            passwordField.value = '';
+            passwordField.setAttribute('autocomplete', 'new-password');
+            passwordField.setAttribute('readonly', true);
+            setTimeout(function() {
+                passwordField.removeAttribute('readonly');
+            }, 150);
+        }
+        
+        if (password2Field) {
+            password2Field.value = '';
+            password2Field.setAttribute('autocomplete', 'new-password');
+            password2Field.setAttribute('readonly', true);
+            setTimeout(function() {
+                password2Field.removeAttribute('readonly');
+            }, 150);
+        }
+    }
+    
+    // City Autocomplete - QCompleter-like functionality
+    const cityInput = document.getElementById('city-input');
+    const citySuggestions = document.getElementById('city-suggestions');
+    
+    // Complete list of Pakistan cities with proper case - All Provinces and Territories
+    const pakistanCities = [
+        // Major Cities
+        'Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Faisalabad', 'Multan', 'Peshawar', 'Quetta',
+        
+        // Punjab Province
+        'Ahmedpur East', 'Ahmadpur East', 'Arifwala', 'Attock', 'Bahawalnagar', 'Bahawalpur', 
+        'Bhakkar', 'Bhalwal', 'Bhawana', 'Bhera', 'Burewala', 'Chakwal', 'Chiniot', 
+        'Chiniot City', 'Daska', 'Depalpur', 'Dera Ghazi Khan', 'Dera Ismail Khan', 
+        'Duniyapur', 'Faisalabad', 'Gojra', 'Gojra City', 'Gujar Khan', 'Gujranwala', 
+        'Gujranwala City', 'Gujrat', 'Hafizabad', 'Haroonabad', 'Havelian', 'Jaranwala', 
+        'Jatoi', 'Jauharabad', 'Jhang', 'Jhelum', 'Jhelum City', 'Kamalia', 'Kamoke', 
+        'Karor Lal Esan', 'Kasur', 'Khanewal', 'Khanpur', 'Khushab', 'Kot Momin', 
+        'Kot Radha Kishan', 'Lahore', 'Layyah', 'Lodhran', 'Mandi Bahauddin', 
+        'Mianwali', 'Mianwali City', 'Multan', 'Muridke', 'Nankana Sahib', 'Narowal', 
+        'Naushahro Firoz', 'Okara', 'Okara City', 'Pakpattan', 'Pakpattan City', 
+        'Pasrur', 'Pind Dadan Khan', 'Rahim Yar Khan', 'Rawalpindi', 'Renala Khurd', 
+        'Sahiwal', 'Sahiwal City', 'Sargodha', 'Sargodha City', 'Shahkot', 'Sheikhupura', 
+        'Sialkot', 'Sialkot City', 'Talagang', 'Toba Tek Singh', 'Tulamba', 'Vehari', 
+        'Vehari City', 'Wah Cantonment', 'Wazirabad', 'Zafarwal', 'Zahir Pir',
+        
+        // Sindh Province
+        'Badin', 'Chishtian', 'Dadu', 'Ghotki', 'Hyderabad', 'Jacobabad', 'Jamshoro', 
+        'Kandhkot', 'Karachi', 'Kashmore', 'Khairpur', 'Khairpur Nathan Shah', 'Kotri', 
+        'Larkana', 'Matiari', 'Mehar', 'Mirpur Khas', 'Nawabshah', 'Naushahro Firoz', 
+        'Qambar', 'Rohri', 'Sanghar', 'Shahdadkot', 'Shikarpur', 'Sukkur', 'Tando Adam', 
+        'Tando Allahyar', 'Tando Muhammad Khan', 'Thatta', 'Umerkot', 'Warah',
+        
+        // Khyber Pakhtunkhwa Province
+        'Abbottabad', 'Bannu', 'Battagram', 'Charsadda', 'Chitral', 'Dera Ismail Khan', 
+        'Hangu', 'Haripur', 'Hasan Abdal', 'Kohat', 'Kohistan', 'Mardan', 'Mansehra', 
+        'Mingaora', 'Nowshera', 'Peshawar', 'Swabi', 'Swat', 'Tank', 'Timergara', 
+        'Tordher', 'Upper Dir', 'Wah Cantonment',
+        
+        // Balochistan Province
+        'Chaman', 'Gwadar', 'Hub', 'Jaffarabad', 'Khuzdar', 'Loralai', 'Mastung', 
+        'Muslim Bagh', 'Naseerabad', 'Nushki', 'Quetta', 'Sibi', 'Turbat', 'Usta Muhammad', 
+        'Zhob', 'Ziarat',
+        
+        // Gilgit-Baltistan (GB)
+        'Aliabad', 'Chilas', 'Gakuch', 'Gilgit', 'Hunza', 'Khaplu', 'Skardu', 'Astore',
+        
+        // Azad Jammu and Kashmir (AJK)
+        'Bhimber', 'Bhimber City', 'Hattian Bala', 'Haveli', 'Kotli', 'Mirpur', 
+        'Muzaffarabad', 'Neelum', 'Pallandri', 'Rawalakot', 'Sudhnoti',
+        
+        // Additional Cities (Additional major towns and cities)
+        'Jalalpur Jattan', 'Kot Addu', 'Kot Diji', 'Kot Sultan', 'Kundian', 
+        'Lahri', 'Lakki Marwat', 'Lala Musa', 'Landi Kotal', 'Mian Channu', 
+        'Moro', 'Murree', 'Muzaffargarh', 'Nowshera Virkan', 'Pasni', 'Pattoki', 
+        'Phalia', 'Qila Saifullah', 'Rabwah', 'Raiwind', 'Rajanpur', 'Ratodero', 
+        'Sadiqabad', 'Sambrial', 'Samundri', 'Sarai Alamgir', 'Shahdadpur', 
+        'Shorkot', 'Sohawa', 'Tarbela', 'Taxila', 'Uch Sharif', 'Wana'
+    ];
+    
+    let selectedIndex = -1;
+    let filteredCities = [];
+    
+    // Function to filter cities case-insensitively
+    function filterCities(query) {
+        if (!query || query.trim().length < 1) {
+            return [];
+        }
+        
+        const queryLower = query.toLowerCase().trim();
+        const matches = [];
+        
+        // Find cities that start with the query (case-insensitive)
+        for (const city of pakistanCities) {
+            if (city.toLowerCase().startsWith(queryLower)) {
+                matches.push(city);
+            }
+        }
+        
+        // If no exact matches, find cities containing the query
+        if (matches.length === 0) {
+            for (const city of pakistanCities) {
+                if (city.toLowerCase().includes(queryLower)) {
+                    matches.push(city);
+                }
+            }
+        }
+        
+        // Return top 5-6 suggestions
+        return matches.slice(0, 6);
+    }
+    
+    // Function to display suggestions
+    function showSuggestions(cities) {
+        if (!cityInput || !citySuggestions) return;
+        
+        if (cities.length === 0) {
+            citySuggestions.innerHTML = '<div class="city-autocomplete-empty">No cities found</div>';
+            citySuggestions.style.display = 'block';
+            return;
+        }
+        
+        let html = '';
+        cities.forEach((city, index) => {
+            const activeClass = index === selectedIndex ? 'active' : '';
+            html += `<div class="city-autocomplete-item ${activeClass}" data-index="${index}" data-city="${city}">${city}</div>`;
+        });
+        
+        citySuggestions.innerHTML = html;
+        citySuggestions.style.display = 'block';
+        
+        // Add click handlers
+        citySuggestions.querySelectorAll('.city-autocomplete-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const cityName = this.getAttribute('data-city');
+                cityInput.value = cityName;
+                citySuggestions.style.display = 'none';
+                selectedIndex = -1;
+                filteredCities = [];
+            });
+        });
+    }
+    
+    // Event listeners for city input
+    if (cityInput && citySuggestions) {
+        cityInput.addEventListener('input', function(e) {
+            const query = this.value;
+            
+            if (query.length < 1) {
+                citySuggestions.style.display = 'none';
+                filteredCities = [];
+                selectedIndex = -1;
+                return;
+            }
+            
+            filteredCities = filterCities(query);
+            selectedIndex = -1;
+            showSuggestions(filteredCities);
+        });
+        
+        cityInput.addEventListener('keydown', function(e) {
+            if (!citySuggestions || citySuggestions.style.display === 'none') {
+                return;
+            }
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = (selectedIndex + 1) % filteredCities.length;
+                updateHighlight();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = selectedIndex <= 0 ? filteredCities.length - 1 : selectedIndex - 1;
+                updateHighlight();
+            } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                e.preventDefault();
+                cityInput.value = filteredCities[selectedIndex];
+                citySuggestions.style.display = 'none';
+                selectedIndex = -1;
+                filteredCities = [];
+            } else if (e.key === 'Escape') {
+                citySuggestions.style.display = 'none';
+                selectedIndex = -1;
+            }
+        });
+        
+        // Close suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (cityInput && citySuggestions && 
+                !cityInput.contains(e.target) && 
+                !citySuggestions.contains(e.target)) {
+                citySuggestions.style.display = 'none';
+            }
+        });
+        
+        // Update highlight when navigating with arrows
+        function updateHighlight() {
+            const items = citySuggestions.querySelectorAll('.city-autocomplete-item');
+            items.forEach((item, index) => {
+                if (index === selectedIndex) {
+                    item.classList.add('active');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+        
+        // Format city name on blur (when user leaves the field) - proper case
+        cityInput.addEventListener('blur', function() {
+            const value = this.value.trim();
+            if (value) {
+                // Check if it matches any city (case-insensitive)
+                for (const city of pakistanCities) {
+                    if (city.toLowerCase() === value.toLowerCase()) {
+                        this.value = city; // Set proper case
+                        break;
+                    }
+                }
+            }
+        });
+    }
+    
+    // Specialization Autocomplete - QCompleter-like functionality with all specializations from InstaCare.pk
+    const specializationInput = document.getElementById('specialization-input');
+    const specializationSuggestions = document.getElementById('specialization-suggestions');
+    const categoryHiddenField = document.getElementById('{{ form.category.id }}');
+    
+    // Complete list of medical categories only (no person names)
+    // Only category names are shown in autocomplete - the backend will normalize any person names entered
+    const medicalSpecializations = [
+        // Category names only
+        'Cardiology', 'Neurology', 'Dermatology', 'Gynecology', 'Pediatrics', 'Orthopedics',
+        'Gastroenterology', 'Psychiatry', 'General Medicine', 'Emergency Medicine', 'Oncology',
+        'Endocrinology', 'Urology', 'Ophthalmology', 'ENT', 'Pulmonology', 'Rheumatology',
+        'Nephrology', 'Hematology', 'Anesthesiology', 'Radiology', 'Pathology', 'Plastic Surgery',
+        'Cardiac Surgery', 'Neurosurgery', 'Orthopedic Surgery', 'General Surgery', 'Pediatric Surgery',
+        'Sports Medicine', 'Family Medicine', 'Internal Medicine', 'Physical Medicine',
+        'Rehabilitation Medicine', 'Occupational Therapy', 'Physiotherapy', 'Dentistry', 'Orthodontics',
+        'Periodontics', 'Endodontics', 'Prosthodontics', 'Oral and Maxillofacial Surgery',
+        'Cosmetic Dentistry', 'Dental Surgery', 'Veterinary Medicine', 'Homeopathy', 'Alternative Medicine',
+        'Nutrition', 'Dietetics', 'Psychology', 'Sexology', 'Andrology', 'Infertility',
+        'Maternal Fetal Medicine', 'Neonatology', 'Pediatric Gastroenterology', 'Pediatric Cardiology',
+        'Pediatric Neurology', 'Pediatric Orthopedics', 'Pediatric Radiology', 'Interventional Cardiology',
+        'Thoracic Surgery', 'Laparoscopic Surgery', 'Bariatric Surgery', 'Breast Surgery',
+        'Spinal Surgery', 'Trauma Surgery', 'Vascular Surgery', 'Liver Transplant Surgery',
+        'Hepatobiliary Surgery', 'Cosmetic Surgery', 'Aesthetic Medicine', 'Regenerative Medicine',
+        'Pain Management', 'Allergy and Immunology', 'Infectious Diseases', 'Reproductive Endocrinology',
+        'Hepatology', 'Diabetology', 'Audiology', 'Speech Therapy', 'Chiropractic', 'Acupuncture',
+        'Hypnotherapy', 'Hijama', 'Natural Medicine', 'Virology',
+        'Radiation Oncology', 'Medical Oncology', 'Surgical Oncology', 'Pediatric Oncology'
+    ];
+    
+    let specializationSelectedIndex = -1;
+    let filteredSpecializations = [];
+    
+    // Function to filter specializations case-insensitively
+    function filterSpecializations(query) {
+        if (!query || query.trim().length < 1) {
+            return [];
+        }
+        
+        const queryLower = query.toLowerCase().trim();
+        const matches = [];
+        
+        // Find specializations that start with the query (case-insensitive)
+        for (const spec of medicalSpecializations) {
+            if (spec.toLowerCase().startsWith(queryLower)) {
+                matches.push(spec);
+            }
+        }
+        
+        // If no exact matches, find specializations containing the query
+        if (matches.length === 0) {
+            for (const spec of medicalSpecializations) {
+                if (spec.toLowerCase().includes(queryLower)) {
+                    matches.push(spec);
+                }
+            }
+        }
+        
+        // Return top 6-8 suggestions
+        return matches.slice(0, 8);
+    }
+    
+    // Function to display specialization suggestions
+    function showSpecializationSuggestions(specializations) {
+        if (!specializationInput || !specializationSuggestions) return;
+        
+        if (specializations.length === 0) {
+            specializationSuggestions.innerHTML = '<div class="city-autocomplete-empty">No specializations found</div>';
+            specializationSuggestions.style.display = 'block';
+            return;
+        }
+        
+        let html = '';
+        specializations.forEach((spec, index) => {
+            const activeClass = index === specializationSelectedIndex ? 'active' : '';
+            html += `<div class="city-autocomplete-item ${activeClass}" data-index="${index}" data-spec="${spec}">${spec}</div>`;
+        });
+        
+        specializationSuggestions.innerHTML = html;
+        specializationSuggestions.style.display = 'block';
+        
+        // Add click handlers
+        specializationSuggestions.querySelectorAll('.city-autocomplete-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const specName = this.getAttribute('data-spec');
+                specializationInput.value = specName;
+                // Update hidden category field
+                if (categoryHiddenField) {
+                    categoryHiddenField.value = specName;
+                }
+                specializationSuggestions.style.display = 'none';
+                specializationSelectedIndex = -1;
+                filteredSpecializations = [];
+            });
+        });
+    }
+    
+    // Event listeners for specialization input
+    if (specializationInput && specializationSuggestions) {
+        specializationInput.addEventListener('input', function(e) {
+            const query = this.value;
+            
+            // Update hidden category field as user types
+            if (categoryHiddenField) {
+                categoryHiddenField.value = query;
+            }
+            
+            if (query.length < 1) {
+                specializationSuggestions.style.display = 'none';
+                filteredSpecializations = [];
+                specializationSelectedIndex = -1;
+                return;
+            }
+            
+            filteredSpecializations = filterSpecializations(query);
+            specializationSelectedIndex = -1;
+            showSpecializationSuggestions(filteredSpecializations);
+        });
+        
+        specializationInput.addEventListener('keydown', function(e) {
+            if (!specializationSuggestions || specializationSuggestions.style.display === 'none') {
+                return;
+            }
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                specializationSelectedIndex = (specializationSelectedIndex + 1) % filteredSpecializations.length;
+                updateSpecializationHighlight();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                specializationSelectedIndex = specializationSelectedIndex <= 0 ? filteredSpecializations.length - 1 : specializationSelectedIndex - 1;
+                updateSpecializationHighlight();
+            } else if (e.key === 'Enter' && specializationSelectedIndex >= 0) {
+                e.preventDefault();
+                const selectedSpec = filteredSpecializations[specializationSelectedIndex];
+                specializationInput.value = selectedSpec;
+                if (categoryHiddenField) {
+                    categoryHiddenField.value = selectedSpec;
+                }
+                specializationSuggestions.style.display = 'none';
+                specializationSelectedIndex = -1;
+                filteredSpecializations = [];
+            } else if (e.key === 'Escape') {
+                specializationSuggestions.style.display = 'none';
+                specializationSelectedIndex = -1;
+            }
+        });
+        
+        // Close suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (specializationInput && specializationSuggestions && 
+                !specializationInput.contains(e.target) && 
+                !specializationSuggestions.contains(e.target)) {
+                specializationSuggestions.style.display = 'none';
+            }
+        });
+        
+        // Update highlight when navigating with arrows
+        function updateSpecializationHighlight() {
+            const items = specializationSuggestions.querySelectorAll('.city-autocomplete-item');
+            items.forEach((item, index) => {
+                if (index === specializationSelectedIndex) {
+                    item.classList.add('active');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+        
+        // Format specialization name on blur (when user leaves the field) - proper case
+        specializationInput.addEventListener('blur', function() {
+            const value = this.value.trim();
+            if (value) {
+                // Check if it matches any specialization (case-insensitive)
+                for (const spec of medicalSpecializations) {
+                    if (spec.toLowerCase() === value.toLowerCase()) {
+                        this.value = spec; // Set proper case
+                        if (categoryHiddenField) {
+                            categoryHiddenField.value = spec;
+                        }
+                        break;
+                    }
+                }
+                // If no match found, still update category field
+                if (categoryHiddenField && !categoryHiddenField.value) {
+                    categoryHiddenField.value = value;
+                }
+            }
+        });
+    }
+    
+    const roleSelect = document.querySelector('select[name="role"]');
+    const patientFields = document.getElementById('patient-specific-fields');
+    const doctorFields = document.getElementById('doctor-specific-fields');
+    const documentSection = document.getElementById('document-section');
+    const degreeUploadSection = document.getElementById('degree-upload-section');
+    const livePhotoSection = document.getElementById('live-photo-section');
+    
+    // Camera variables
+    let cameraStream = null;
+    let capturedPhotoData = null;
+    
+    // Manual date input validation
+    // Date of Birth Input - Date picker validation
+    const dateOfBirthField = document.getElementById('date-of-birth-input') || document.querySelector('input[name="date_of_birth"]');
+    const dateCalendarIcon = document.getElementById('date-calendar-icon');
+    
+    // Make calendar icon clickable to open date picker
+    if (dateCalendarIcon && dateOfBirthField) {
+        dateCalendarIcon.style.pointerEvents = 'auto';
+        dateCalendarIcon.style.cursor = 'pointer';
+        dateCalendarIcon.addEventListener('click', function() {
+            dateOfBirthField.showPicker ? dateOfBirthField.showPicker() : dateOfBirthField.focus();
+        });
+    }
+    
+    if (dateOfBirthField && dateOfBirthField.type === 'date') {
+        // Set max date to today (prevent future dates)
+        const today = new Date();
+        const maxDate = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+        dateOfBirthField.setAttribute('max', maxDate);
+        
+        // Set a reasonable min date (e.g., 120 years ago)
+        const minDate = new Date();
+        minDate.setFullYear(today.getFullYear() - 120);
+        dateOfBirthField.setAttribute('min', minDate.toISOString().split('T')[0]);
+        
+        // Add validation on change
+        dateOfBirthField.addEventListener('change', function() {
+            if (this.value) {
+                const selectedDate = new Date(this.value);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (selectedDate > today) {
+                    this.setCustomValidity('Date of birth cannot be in the future');
+                } else {
+                    this.setCustomValidity('');
+                }
+            }
+        });
+        
+        // Validate on blur as well
+        dateOfBirthField.addEventListener('blur', function() {
+            if (this.value) {
+                const selectedDate = new Date(this.value);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (selectedDate > today) {
+                    this.setCustomValidity('Date of birth cannot be in the future');
+                } else {
+                    this.setCustomValidity('');
+                }
+            }
+        });
+    }
+
+
+    function setDoctorFieldsOptional(isOptional) {
+        const doctorFields = [
+            'experience', 'pmc_code', 'qualifications', 'bio',
+            'city'
+        ];
+        doctorFields.forEach(fieldName => {
+            const field = form.elements[fieldName];
+            if (field) {
+                if (isOptional) {
+                    field.removeAttribute('required');
+                } else {
+                    // Other fields can be required based on isOptional flag
+                }
+            }
+        });
+    }
+
+    // Function to remove placeholder option from role select
+    function removeRolePlaceholder() {
+        const placeholderOption = roleSelect.querySelector('option.placeholder-option');
+        if (placeholderOption && roleSelect.value) {
+            placeholderOption.remove();
+        }
+    }
+    
+    // Add event listener for role change
+    roleSelect.addEventListener('change', function() {
+        toggleFields();
+        // Update styling based on selection
+        if (this.value) {
+            this.classList.remove('is-invalid');
+            this.style.color = '#000';
+            // Remove placeholder option immediately when value is selected
+            removeRolePlaceholder();
+        } else {
+            this.style.color = '#999';
+        }
+    });
+    
+    // Remove placeholder before dropdown opens (mousedown fires before dropdown)
+    roleSelect.addEventListener('mousedown', function() {
+        if (this.value) {
+            removeRolePlaceholder();
+        }
+    });
+    
+    // Also handle on click and focus
+    roleSelect.addEventListener('click', function() {
+        if (this.value) {
+            removeRolePlaceholder();
+        }
+    });
+    
+    roleSelect.addEventListener('focus', function() {
+        if (this.value) {
+            removeRolePlaceholder();
+        }
+    });
+
+    // Handle specialization change to update category field (hidden)
+    const specializationSelect = document.getElementById('{{ form.specialization.id }}');
+    const categoryHidden = document.getElementById('{{ form.category.id }}');
+    if (specializationSelect && categoryHidden) {
+        specializationSelect.addEventListener('change', function() {
+            // Update hidden category field with specialization value
+            categoryHidden.value = this.value;
+        });
+    }
+
+    // Password Toggle Functionality
+    const passwordInput = document.getElementById('password-input');
+    const password2Input = document.getElementById('password2-input');
+    const passwordToggle = document.getElementById('password-toggle');
+    const password2Toggle = document.getElementById('password2-toggle');
+    const passwordRequirements = document.getElementById('password-requirements');
+    
+    // Password Validation Function - Real-time validation
+    function validatePassword(password) {
+        const requirements = {
+            length: password.length >= 8,
+            lowercase: /[a-z]/.test(password),
+            uppercase: /[A-Z]/.test(password),
+            number: /\d/.test(password),
+            special: /[!@#$%^&*()_+\-=\[\]{}|;:',.<>?]/.test(password)
+        };
+        
+        // Update UI for each requirement
+        const reqElements = {
+            length: document.getElementById('req-length'),
+            lowercase: document.getElementById('req-lowercase'),
+            uppercase: document.getElementById('req-uppercase'),
+            number: document.getElementById('req-number'),
+            special: document.getElementById('req-special')
+        };
+        
+        for (const [key, element] of Object.entries(reqElements)) {
+            if (element) {
+                const isValid = requirements[key];
+                const icon = element.querySelector('i');
+                
+                if (isValid) {
+                    // Requirement met - show green checkmark
+                    element.classList.remove('invalid');
+                    element.classList.add('valid');
+                    if (icon) {
+                        icon.classList.remove('fa-times', 'text-danger');
+                        icon.classList.add('fa-check', 'text-success');
+                    }
+                } else {
+                    // Requirement not met - show red X
+                    element.classList.remove('valid');
+                    element.classList.add('invalid');
+                    if (icon) {
+                        icon.classList.remove('fa-check', 'text-success');
+                        icon.classList.add('fa-times', 'text-danger');
+                    }
+                }
+            }
+        }
+        
+        const allValid = Object.values(requirements).every(req => req === true);
+        return allValid;
+    }
+    
+    // Variable to store timeout for auto-hide
+    let passwordRequirementsTimeout = null;
+    
+    // Initialize password requirements - show them when field is focused
+    if (passwordInput && passwordRequirements) {
+        // Show requirements on focus (click)
+        passwordInput.addEventListener('focus', function() {
+            // Clear any pending hide timeout
+            if (passwordRequirementsTimeout) {
+                clearTimeout(passwordRequirementsTimeout);
+                passwordRequirementsTimeout = null;
+            }
+            passwordRequirements.style.display = 'block';
+            // Validate current password value (if any)
+            validatePassword(this.value);
+        });
+        
+        // Real-time validation as user types
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            // Clear any pending hide timeout
+            if (passwordRequirementsTimeout) {
+                clearTimeout(passwordRequirementsTimeout);
+                passwordRequirementsTimeout = null;
+            }
+            
+            // Always show requirements when typing
+            passwordRequirements.style.display = 'block';
+            // Validate in real-time
+            const allValid = validatePassword(password);
+            
+            // If all requirements are met, hide the box after 2 seconds (gives time to see all green checkmarks)
+            if (allValid && password.length > 0) {
+                passwordRequirementsTimeout = setTimeout(function() {
+                    // Hide the requirements box smoothly
+                    passwordRequirements.style.display = 'none';
+                }, 2000); // Hide after 2 seconds of all requirements being met
+            }
+        });
+        
+        // Handle blur event (when user clicks away from field)
+        passwordInput.addEventListener('blur', function() {
+            const password = this.value;
+            const allValid = validatePassword(password);
+            
+            // Clear any pending timeout
+            if (passwordRequirementsTimeout) {
+                clearTimeout(passwordRequirementsTimeout);
+                passwordRequirementsTimeout = null;
+            }
+            
+            // Hide if password is empty
+            if (password.length === 0) {
+                passwordRequirements.style.display = 'none';
+            } 
+            // Hide immediately if all requirements are met
+            else if (allValid) {
+                passwordRequirements.style.display = 'none';
+            } 
+            // Keep visible if password has value but requirements not met
+            else {
+                passwordRequirements.style.display = 'block';
+            }
+        });
+    }
+
+    // Function to adjust eye icon position based on validation state
+    function adjustEyeIconPosition(input, toggleIcon) {
+        if (input && toggleIcon) {
+            if (input.classList.contains('is-invalid')) {
+                toggleIcon.style.right = '30px'; /* Close to error icon */
+            } else {
+                toggleIcon.style.right = '25px'; /* Default position */
+            }
+        }
+    }
+    
+    // Adjust eye icon positions initially
+    if (passwordInput && passwordToggle) {
+        adjustEyeIconPosition(passwordInput, passwordToggle);
+        // Watch for class changes (validation state)
+        const observer1 = new MutationObserver(function() {
+            adjustEyeIconPosition(passwordInput, passwordToggle);
+        });
+        observer1.observe(passwordInput, { attributes: true, attributeFilter: ['class'] });
+    }
+    if (password2Input && password2Toggle) {
+        adjustEyeIconPosition(password2Input, password2Toggle);
+        // Watch for class changes (validation state)
+        const observer2 = new MutationObserver(function() {
+            adjustEyeIconPosition(password2Input, password2Toggle);
+        });
+        observer2.observe(password2Input, { attributes: true, attributeFilter: ['class'] });
+    }
+    
+    // Function to toggle password visibility
+    function togglePasswordVisibility(input, toggleIcon, isVisible) {
+        if (isVisible) {
+            input.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+            toggleIcon.classList.add('active');
+        } else {
+            input.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+            toggleIcon.classList.remove('active');
+        }
+        // Adjust position after toggle
+        adjustEyeIconPosition(input, toggleIcon);
+    }
+
+    // Password field toggle
+    if (passwordToggle && passwordInput) {
+        let passwordVisible = false;
+        let passwordMouseDown = false;
+
+        // Mouse down - show password
+        passwordToggle.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            passwordMouseDown = true;
+            passwordVisible = true;
+            togglePasswordVisibility(passwordInput, passwordToggle, true);
+        });
+
+        // Mouse up - hide password
+        document.addEventListener('mouseup', function() {
+            if (passwordMouseDown) {
+                passwordMouseDown = false;
+                passwordVisible = false;
+                togglePasswordVisibility(passwordInput, passwordToggle, false);
+            }
+        });
+
+        // Touch events for mobile
+        passwordToggle.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            passwordVisible = true;
+            togglePasswordVisibility(passwordInput, passwordToggle, true);
+        });
+
+        passwordToggle.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            passwordVisible = false;
+            togglePasswordVisibility(passwordInput, passwordToggle, false);
+        });
+    }
+
+    // Password2 (Confirm Password) field toggle
+    if (password2Toggle && password2Input) {
+        let password2Visible = false;
+        let password2MouseDown = false;
+
+        // Mouse down - show password
+        password2Toggle.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            password2MouseDown = true;
+            password2Visible = true;
+            togglePasswordVisibility(password2Input, password2Toggle, true);
+        });
+
+        // Mouse up - hide password
+        document.addEventListener('mouseup', function() {
+            if (password2MouseDown) {
+                password2MouseDown = false;
+                password2Visible = false;
+                togglePasswordVisibility(password2Input, password2Toggle, false);
+            }
+        });
+
+        // Touch events for mobile
+        password2Toggle.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            password2Visible = true;
+            togglePasswordVisibility(password2Input, password2Toggle, true);
+        });
+
+        password2Toggle.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            password2Visible = false;
+            togglePasswordVisibility(password2Input, password2Toggle, false);
+        });
+    }
+
+    // CNIC Upload Section visibility
+    const cnicUploadSection = document.getElementById('cnic-upload-section');
+    
+    function toggleFields() {
+        const selectedRole = roleSelect.value;
+        
+        // Hide all role-specific fields first
+        patientFields.style.display = 'none';
+        doctorFields.style.display = 'none';
+        documentSection.style.display = 'none';
+        degreeUploadSection.style.display = 'none';
+        if (cnicUploadSection) {
+            cnicUploadSection.style.display = 'none';
+        }
+        
+        // Toggle patient-hide doctor-fields (fields that are hidden for patients but shown for doctors)
+        const patientHideDoctorFields = document.querySelectorAll('.patient-hide.doctor-fields');
+        patientHideDoctorFields.forEach(function(field) {
+            field.style.display = 'none';
+        });
+        
+        // Show relevant fields based on selection
+        if (selectedRole === 'patient') {
+            patientFields.style.display = 'block';
+            // Hide document section for patients during registration
+            documentSection.style.display = 'none';
+            livePhotoSection.style.display = 'none';
+            degreeUploadSection.style.display = 'none';
+            if (cnicUploadSection) {
+                cnicUploadSection.style.display = 'none'; // Hide CNIC upload for patients
+            }
+            // Hide patient-hide doctor-fields for patients
+            patientHideDoctorFields.forEach(function(field) {
+                field.style.display = 'none';
+            });
+            setDoctorFieldsOptional(true);
+        } else if (selectedRole === 'doctor') {
+            doctorFields.style.display = 'block';
+            documentSection.style.display = 'block';
+            livePhotoSection.style.display = 'block';
+            degreeUploadSection.style.display = 'block';
+            if (cnicUploadSection) {
+                cnicUploadSection.style.display = 'block'; // Show CNIC upload for doctors
+            }
+            // Show patient-hide doctor-fields for doctors (like profile picture, date_of_birth, etc.)
+            patientHideDoctorFields.forEach(function(field) {
+                field.style.display = 'block';
+            });
+            setDoctorFieldsOptional(false);
+        } else {
+            livePhotoSection.style.display = 'none';
+            degreeUploadSection.style.display = 'none';
+            if (cnicUploadSection) {
+                cnicUploadSection.style.display = 'none';
+            }
+            // Hide patient-hide doctor-fields when no role selected
+            patientHideDoctorFields.forEach(function(field) {
+                field.style.display = 'none';
+            });
+            setDoctorFieldsOptional(true);
+        }
+    }
+
+    // Initial state: no role selected, all fields hidden
+    toggleFields();
+    setDoctorFieldsOptional(true);
+    
+    // Update role select styling on load and remove placeholder if value exists
+    if (!roleSelect.value || roleSelect.value === '') {
+        roleSelect.style.color = '#999';
+    } else {
+        // If a value is already selected, remove placeholder option immediately
+        roleSelect.style.color = '#000';
+        removeRolePlaceholder();
+    }
+
+    // Profile Picture Preview - Added here to avoid duplicate event listeners
+    const profilePictureInput = document.querySelector('input[name="profile_picture"]');
+    const previewDiv = document.getElementById('profile-picture-preview');
+    const previewImage = document.getElementById('preview-image');
+    
+    if (profilePictureInput && previewDiv && previewImage) {
+        // Remove any existing event listeners by cloning the input
+        const newInput = profilePictureInput.cloneNode(true);
+        profilePictureInput.parentNode.replaceChild(newInput, profilePictureInput);
+        
+        // Flag to prevent multiple FileReader operations
+        let isReadingFile = false;
+        
+        // Add single event listener
+        newInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            
+            // Prevent multiple simultaneous reads
+            if (isReadingFile) {
+                return;
+            }
+            
+            if (file) {
+                // Check file type
+                if (!file.type.match('image.*')) {
+                    showMessage('Please select a valid image file.', 'error');
+                    e.target.value = '';
+                    previewDiv.style.display = 'none';
+                    previewImage.src = '';
+                    return;
+                }
+                
+                // Check file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    showMessage('Image size should be less than 5MB.', 'error');
+                    e.target.value = '';
+                    previewDiv.style.display = 'none';
+                    previewImage.src = '';
+                    return;
+                }
+                
+                // Clear any existing preview before showing new one
+                previewImage.src = '';
+                previewDiv.style.display = 'none';
+                
+                // Set flag to prevent duplicate reads
+                isReadingFile = true;
+                
+                // Create FileReader to preview image
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    // Reset flag
+                    isReadingFile = false;
+                    
+                    // Ensure we're working with the correct elements
+                    const currentPreviewDiv = document.getElementById('profile-picture-preview');
+                    const currentPreviewImage = document.getElementById('preview-image');
+                    
+                    if (currentPreviewImage && currentPreviewDiv) {
+                        // Set image source only once
+                        currentPreviewImage.src = event.target.result;
+                        currentPreviewDiv.style.display = 'block';
+                    }
+                };
+                
+                reader.onerror = function() {
+                    isReadingFile = false;
+                    showMessage('Error reading image file.', 'error');
+                    previewDiv.style.display = 'none';
+                    previewImage.src = '';
+                };
+                
+                reader.readAsDataURL(file);
+            } else {
+                previewDiv.style.display = 'none';
+                previewImage.src = '';
+            }
+        });
+    }
+
+    // Form submission validation and duplicate prevention
+    let formSubmitted = false;
+    let originalButtonHTML = null;
+    const validationErrorDiv = document.getElementById('form-validation-error');
+    
+    // Function to show validation error
+    function showValidationError(message) {
+        if (validationErrorDiv) {
+            validationErrorDiv.textContent = message;
+            validationErrorDiv.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>' + message;
+            validationErrorDiv.style.display = 'block';
+            // Scroll to error message
+            validationErrorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+    
+    // Function to hide validation error
+    function hideValidationError() {
+        if (validationErrorDiv) {
+            validationErrorDiv.style.display = 'none';
+        }
+    }
+    
+    form.addEventListener('submit', function(event) {
+        // Hide previous error
+        hideValidationError();
+        
+        // Prevent double submission
+        if (formSubmitted) {
+            event.preventDefault();
+            return false;
+        }
+        
+        const selectedRole = roleSelect.value;
+        let hasErrors = false;
+        let errorMessage = '';
+        
+        // Check all required fields
+        const requiredFields = form.querySelectorAll('[required]');
+        const emptyRequiredFields = [];
+        
+        requiredFields.forEach(field => {
+            // Skip hidden fields
+            if (field.offsetParent === null && field.type !== 'hidden') {
+                return;
+            }
+            
+            // Check if field is visible based on role
+            if (selectedRole === 'doctor' && field.closest('.patient-fields')) {
+                return; // Skip patient fields when doctor is selected
+            }
+            if (selectedRole === 'patient' && field.closest('.doctor-fields')) {
+                return; // Skip doctor fields when patient is selected
+            }
+            
+            if (!field.value || !field.value.trim()) {
+                emptyRequiredFields.push(field);
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+            // Adjust eye icon position for password fields
+            if (field.id === 'password-input' && passwordToggle) {
+                adjustEyeIconPosition(field, passwordToggle);
+            } else if (field.id === 'password2-input' && password2Toggle) {
+                adjustEyeIconPosition(field, password2Toggle);
+            }
+        });
+        
+        // Validate CNIC manually
+        const cnicField = document.querySelector('input[name="cnic"]');
+        if (cnicField && cnicField.value) {
+            const cnic = cnicField.value;
+            if (!/^\d{13}$/.test(cnic)) {
+                hasErrors = true;
+                errorMessage = 'CNIC must be exactly 13 digits and contain only numbers.';
+                cnicField.classList.add('is-invalid');
+                cnicField.focus();
+            }
+        }
+        
+        // Validate date of birth manually
+        const dateOfBirth = dateOfBirthField.value;
+        if (dateOfBirth) {
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!dateRegex.test(dateOfBirth)) {
+                hasErrors = true;
+                errorMessage = 'Please enter date in YYYY-MM-DD format.';
+                dateOfBirthField.classList.add('is-invalid');
+                dateOfBirthField.focus();
+            } else {
+                const selectedDate = new Date(dateOfBirth);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (selectedDate > today) {
+                    hasErrors = true;
+                    errorMessage = 'Date of birth cannot be in the future.';
+                    dateOfBirthField.classList.add('is-invalid');
+                    dateOfBirthField.focus();
+                }
+            }
+        }
+        
+        // Check for empty required fields
+        if (emptyRequiredFields.length > 0) {
+            hasErrors = true;
+            errorMessage = 'Please fill all the required fields';
+            emptyRequiredFields[0].focus();
+        }
+        
+        // If there are errors, prevent submission and show error
+        if (hasErrors) {
+            event.preventDefault();
+            event.stopPropagation();
+            showValidationError(errorMessage);
+            
+            // Reset button state to ensure it's not in processing state
+            resetSubmitButton();
+            
+            return false;
+        }
+        
+        // Mark form as submitted
+        formSubmitted = true;
+        
+        // Disable submit button to prevent double clicks
+        const submitButton = form.querySelector('button[type="submit"], input[type="submit"]');
+        if (submitButton) {
+            originalButtonHTML = submitButton.innerHTML || submitButton.value;
+            submitButton.disabled = true;
+            if (submitButton.tagName === 'BUTTON') {
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Registering...';
+            }
+        }
+    });
+    
+    // Function to reset submit button to normal state
+    function resetSubmitButton() {
+        const submitButton = document.getElementById('register-submit-btn') || form.querySelector('button[type="submit"], input[type="submit"]');
+        if (submitButton) {
+            submitButton.disabled = false;
+            // Restore original button text if we have it, otherwise use default
+            if (submitButton.tagName === 'BUTTON') {
+                if (originalButtonHTML) {
+                    submitButton.innerHTML = originalButtonHTML;
+                } else {
+                    submitButton.innerHTML = '<i class="fas fa-user-plus me-2"></i>Register';
+                }
+            }
+        }
+        formSubmitted = false; // Reset form submitted flag
+    }
+    
+    // Hide error when user starts typing in any field
+    const allInputs = form.querySelectorAll('input, select, textarea');
+    allInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+            hideValidationError();
+            // Reset button state when user starts typing (in case form was in error state)
+            resetSubmitButton();
+        });
+        input.addEventListener('change', function() {
+            this.classList.remove('is-invalid');
+            hideValidationError();
+            // Reset button state when user changes field (in case form was in error state)
+            resetSubmitButton();
+        });
+    });
+});
+
+// Dynamic Degree Upload Functions
+function addDegreeField() {
+    const container = document.querySelector('.degree-upload-container');
+    const newField = document.createElement('div');
+    newField.className = 'input-group mb-2';
+    newField.innerHTML = `
+        <input type="file" class="form-control degree-file" accept=".jpg,.jpeg,.png,.pdf" name="degree_files[]">
+        <button type="button" class="btn btn-outline-danger" onclick="removeDegreeField(this)">
+            <i class="fas fa-trash"></i> Remove
+        </button>
+    `;
+    container.appendChild(newField);
+}
+
+function removeDegreeField(button) {
+    const fieldGroup = button.parentElement;
+    fieldGroup.remove();
+}
+
+// CNIC Validation
+document.addEventListener('DOMContentLoaded', function() {
+    const cnicField = document.querySelector('input[name="cnic"]');
+    if (cnicField) {
+        cnicField.addEventListener('input', function() {
+            const value = this.value;
+            // Remove any non-digit characters
+            const digitsOnly = value.replace(/\D/g, '');
+            this.value = digitsOnly;
+            
+            // Limit to 13 digits
+            if (digitsOnly.length > 13) {
+                this.value = digitsOnly.substring(0, 13);
+            }
+        });
+    }
+});
+
+// Live Camera Functions
+async function startCamera() {
+    try {
+        const video = document.getElementById('camera-video');
+        const placeholder = document.getElementById('camera-placeholder');
+        const startBtn = document.getElementById('start-camera-btn');
+        const captureBtn = document.getElementById('capture-btn');
+        const stopBtn = document.getElementById('stop-camera-btn');
+        
+        // Request camera access
+        cameraStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                width: { ideal: 640 },
+                height: { ideal: 480 },
+                facingMode: 'user' // Front camera
+            } 
+        });
+        
+        const preview = document.getElementById('captured-photo-preview');
+        const successMessage = document.getElementById('capture-success-message');
+        const retakeBtn = document.getElementById('retake-btn');
+        
+        video.srcObject = cameraStream;
+        video.style.display = 'block';
+        if (placeholder) {
+            placeholder.style.display = 'none';
+        }
+        if (preview) {
+            preview.style.display = 'none';
+        }
+        if (successMessage) {
+            successMessage.style.display = 'none';
+        }
+        startBtn.style.display = 'none';
+        captureBtn.disabled = false;
+        captureBtn.style.display = 'inline-block';
+        stopBtn.style.display = 'inline-block';
+        if (retakeBtn) {
+            retakeBtn.style.display = 'none';
+        }
+        
+        // Show success message
+        showMessage('Camera started successfully!', 'success');
+        
+    } catch (error) {
+        console.error('Error accessing camera:', error);
+        showMessage('Error accessing camera. Please check permissions.', 'error');
+    }
+}
+
+function capturePhoto() {
+    const video = document.getElementById('camera-video');
+    const canvas = document.getElementById('camera-canvas');
+    const capturedImage = document.getElementById('captured-image');
+    const preview = document.getElementById('captured-photo-preview');
+    const captureBtn = document.getElementById('capture-btn');
+    const retakeBtn = document.getElementById('retake-btn');
+    const stopBtn = document.getElementById('stop-camera-btn');
+    const placeholder = document.getElementById('camera-placeholder');
+    const successMessage = document.getElementById('capture-success-message');
+    const livePhotoData = document.querySelector('input[name="live_photo_data"]');
+    
+    // Set canvas dimensions to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    // Draw video frame to canvas
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Convert canvas to base64 image data
+    capturedPhotoData = canvas.toDataURL('image/jpeg', 0.8);
+    
+    // Stop camera stream immediately after capturing
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+    
+    // Clear video source
+    video.srcObject = null;
+    
+    // Hide video and placeholder, show captured image in the same box
+    video.style.display = 'none';
+    if (placeholder) {
+        placeholder.style.display = 'none';
+    }
+    
+    // Show captured image in the preview box (same position as video/placeholder)
+    capturedImage.src = capturedPhotoData;
+    preview.style.display = 'block';
+    
+    // Update button states
+    captureBtn.style.display = 'none';
+    retakeBtn.style.display = 'inline-block';
+    stopBtn.style.display = 'none';
+    
+    // Show success message below controls
+    if (successMessage) {
+        successMessage.style.display = 'block';
+    }
+    
+    // Set hidden field value
+    livePhotoData.value = capturedPhotoData;
+    
+    showMessage('Photo captured successfully! Camera stopped.', 'success');
+}
+
+function retakePhoto() {
+    const video = document.getElementById('camera-video');
+    const preview = document.getElementById('captured-photo-preview');
+    const captureBtn = document.getElementById('capture-btn');
+    const retakeBtn = document.getElementById('retake-btn');
+    const stopBtn = document.getElementById('stop-camera-btn');
+    const startBtn = document.getElementById('start-camera-btn');
+    const placeholder = document.getElementById('camera-placeholder');
+    const successMessage = document.getElementById('capture-success-message');
+    const livePhotoData = document.querySelector('input[name="live_photo_data"]');
+    
+    // Make sure camera is stopped if it was running
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+    video.srcObject = null;
+    
+    // Hide captured image and show placeholder
+    preview.style.display = 'none';
+    video.style.display = 'none';
+    if (placeholder) {
+        placeholder.style.display = 'flex';
+    }
+    
+    // Hide success message
+    if (successMessage) {
+        successMessage.style.display = 'none';
+    }
+    
+    // Reset UI
+    captureBtn.style.display = 'inline-block';
+    captureBtn.disabled = true; // Disable until camera is started again
+    retakeBtn.style.display = 'none';
+    stopBtn.style.display = 'none';
+    startBtn.style.display = 'inline-block';
+    
+    // Clear captured data
+    capturedPhotoData = null;
+    livePhotoData.value = '';
+    
+    showMessage('Ready to capture new photo. Please start camera again.', 'info');
+}
+
+function stopCamera() {
+    const video = document.getElementById('camera-video');
+    const placeholder = document.getElementById('camera-placeholder');
+    const startBtn = document.getElementById('start-camera-btn');
+    const captureBtn = document.getElementById('capture-btn');
+    const retakeBtn = document.getElementById('retake-btn');
+    const stopBtn = document.getElementById('stop-camera-btn');
+    const preview = document.getElementById('captured-photo-preview');
+    const livePhotoData = document.querySelector('input[name="live_photo_data"]');
+    
+    const successMessage = document.getElementById('capture-success-message');
+    
+    // Stop camera stream
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+    
+    video.srcObject = null;
+    
+    // Reset UI
+    video.style.display = 'none';
+    if (preview) {
+        preview.style.display = 'none';
+    }
+    if (placeholder) {
+        placeholder.style.display = 'flex';
+    }
+    if (successMessage) {
+        successMessage.style.display = 'none';
+    }
+    startBtn.style.display = 'inline-block';
+    captureBtn.disabled = true;
+    captureBtn.style.display = 'inline-block';
+    if (retakeBtn) {
+        retakeBtn.style.display = 'none';
+    }
+    stopBtn.style.display = 'none';
+    
+    // Clear captured data
+    capturedPhotoData = null;
+    if (livePhotoData) {
+        livePhotoData.value = '';
+    }
+    
+    showMessage('Camera stopped', 'info');
+}
+
+function showMessage(message, type) {
+    // Create temporary message element
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    messageDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    messageDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(messageDiv);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        if (messageDiv.parentNode) {
+            messageDiv.parentNode.removeChild(messageDiv);
+        }
+    }, 3000);
+}
+
+// Profile Picture Preview - Moved inside main DOMContentLoaded to avoid duplication
+// This code is now part of the main DOMContentLoaded listener above
+</script>
+{% endblock %}

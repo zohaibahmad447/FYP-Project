@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}Staff Management - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Playfair+Display:wght@600&display=swap');
+
+    .staff-hero {
+        background:
+            radial-gradient(circle at 0% 0%, rgba(16,185,129,0.14), transparent 42%),
+            radial-gradient(circle at 100% 0%, rgba(139,92,246,0.12), transparent 45%),
+            linear-gradient(135deg, #ffffff, #f8fafc);
+        border: 1px solid rgba(148,163,184,0.22);
+        border-radius: 24px;
+        padding: 1.75rem 2rem;
+        box-shadow: 0 14px 34px rgba(15,23,42,0.07);
+    }
+    .staff-title { font-family: 'Playfair Display', serif; font-weight: 600; color: #0f172a; }
+    .staff-subtitle { font-family: 'Manrope', sans-serif; color: #64748b; max-width: 42rem; }
+    .staff-eyebrow {
+        display: inline-flex; align-items: center; gap: 0.4rem;
+        font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 800;
+        color: #0f766e; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.16);
+        padding: 0.4rem 0.85rem; border-radius: 999px; margin-bottom: 0.75rem;
+    }
+    .staff-metrics {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem; margin-top: 1.25rem;
+    }
+    .staff-metric {
+        background: #fff; border: 1px solid rgba(148,163,184,0.18); border-radius: 18px;
+        padding: 0.9rem 1rem; display: flex; align-items: center; gap: 0.75rem;
+        box-shadow: 0 8px 18px rgba(15,23,42,0.04);
+    }
+    .staff-metric-icon {
+        width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+        background: rgba(16,185,129,0.12); color: #0f766e; font-size: 1rem;
+    }
+    .staff-metric-val { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 1.35rem; line-height: 1; color: #0f172a; }
+    .staff-metric-lbl { font-family: 'Manrope', sans-serif; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; font-weight: 700; }
+
+    .staff-card {
+        border: 1px solid rgba(148,163,184,0.18);
+        border-radius: 20px;
+        background: #fff;
+        padding: 0;
+        height: 100%;
+        box-shadow: 0 10px 24px rgba(15,23,42,0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        overflow: hidden;
+    }
+    .staff-card:hover { transform: translateY(-2px); box-shadow: 0 16px 30px rgba(15,23,42,0.08); }
+    .staff-card.inactive { opacity: 0.72; }
+    .staff-card-accent { height: 4px; }
+    .staff-card-body { padding: 1.25rem 1.35rem 1.35rem; }
+    .staff-role-icon {
+        width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center;
+        font-size: 1.25rem; color: #fff; flex-shrink: 0;
+    }
+    .staff-role-name { font-family: 'Manrope', sans-serif; font-weight: 800; color: #0f172a; font-size: 1.1rem; }
+    .staff-role-email { font-family: 'Manrope', sans-serif; font-size: 0.82rem; color: #64748b; word-break: break-all; }
+    .staff-role-tag {
+        font-family: 'Manrope', sans-serif; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+        letter-spacing: 0.08em; color: #64748b; background: #f1f5f9; padding: 0.2rem 0.5rem; border-radius: 6px;
+    }
+    .panel-pill {
+        display: inline-flex; align-items: center; gap: 0.25rem;
+        font-family: 'Manrope', sans-serif; font-size: 0.68rem; font-weight: 700;
+        padding: 0.28rem 0.55rem; border-radius: 999px;
+        background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; margin: 0 0.35rem 0.35rem 0;
+    }
+    .perm-badge {
+        font-family: 'Manrope', sans-serif; font-size: 0.62rem; font-weight: 700;
+        padding: 0.15rem 0.4rem; border-radius: 4px; margin-left: 0.2rem;
+    }
+    .perm-badge.approve { background: #dcfce7; color: #166534; }
+    .perm-badge.readonly { background: #e0f2fe; color: #0369a1; }
+    .perm-badge.edit { background: #fef3c7; color: #b45309; }
+
+    .role-catalog {
+        border: 1px solid rgba(148,163,184,0.18); border-radius: 20px; background: #fafbfc;
+        padding: 1.5rem; margin-top: 2rem;
+    }
+    .role-catalog-title { font-family: 'Playfair Display', serif; font-weight: 600; color: #0f172a; }
+    .role-catalog-grid {
+        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin-top: 1rem;
+    }
+    @media (max-width: 991.98px) {
+        .role-catalog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 575.98px) {
+        .role-catalog-grid { grid-template-columns: 1fr; }
+    }
+    .role-catalog-item {
+        background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.85rem;
+        display: flex; gap: 0.65rem; align-items: flex-start;
+    }
+    .role-catalog-icon {
+        width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+        color: #fff; font-size: 0.8rem; flex-shrink: 0;
+    }
+    .role-catalog-name { font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 0.8rem; color: #0f172a; }
+    .role-catalog-desc { font-family: 'Manrope', sans-serif; font-size: 0.7rem; color: #94a3b8; line-height: 1.35; }
+
+    .staff-empty {
+        text-align: center; padding: 3.5rem 1.5rem;
+        border: 2px dashed rgba(148,163,184,0.35); border-radius: 24px; background: #fafbfc;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-3 py-4">
+    <div class="row">
+        <div class="col-xl-2 col-lg-3 col-md-4 mb-4 admin-sidebar-col">
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body text-center p-4">
+                    <div class="admin-avatar mb-3 mx-auto" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 2.2rem;">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h5 class="card-title fw-bold mb-1">Admin Panel</h5>
+                    <p class="text-muted small mb-0">{{ admin_display_name() }}</p>
+                </div>
+            </div>
+            <div class="card qc-admin-card border-0 shadow-sm mt-3 rounded-4 overflow-hidden">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h6 class="mb-0 text-uppercase text-muted fw-bold small" style="letter-spacing:1px;"><i class="fas fa-rocket me-2"></i>Quick Navigation</h6>
+                </div>
+                <div class="card-body p-0">
+                    {% include 'admin/_management_sidebar.html' %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-10 col-lg-9 col-md-8 admin-main-col">
+            <div class="staff-hero mb-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                    <div>
+                        <div class="staff-eyebrow"><i class="fas fa-users-cog"></i> Super Admin Only</div>
+                        <h2 class="staff-title mb-2">Staff & Role Management</h2>
+                        <p class="staff-subtitle mb-0">
+                            Create <strong>role-based accounts</strong> — such as <em>Accountant</em> or <em>Doctors Manager</em>.
+                            Each role has its own login email. Whoever works in that role signs in with that email on the main login page.
+                        </p>
+                    </div>
+                    <a href="{{ url_for('admin.staff_create') }}" class="btn btn-success rounded-pill px-4 py-2 fw-bold shadow-sm align-self-center">
+                        <i class="fas fa-plus me-2"></i>Create role account
+                    </a>
+                </div>
+                <div class="staff-metrics">
+                    <div class="staff-metric">
+                        <div class="staff-metric-icon"><i class="fas fa-id-badge"></i></div>
+                        <div>
+                            <div class="staff-metric-val">{{ stats.total }}</div>
+                            <div class="staff-metric-lbl">Role accounts</div>
+                        </div>
+                    </div>
+                    <div class="staff-metric">
+                        <div class="staff-metric-icon" style="background:rgba(34,197,94,0.12);color:#15803d;"><i class="fas fa-check-circle"></i></div>
+                        <div>
+                            <div class="staff-metric-val">{{ stats.active }}</div>
+                            <div class="staff-metric-lbl">Active</div>
+                        </div>
+                    </div>
+                    <div class="staff-metric">
+                        <div class="staff-metric-icon" style="background:rgba(100,116,139,0.12);color:#475569;"><i class="fas fa-pause-circle"></i></div>
+                        <div>
+                            <div class="staff-metric-val">{{ stats.inactive }}</div>
+                            <div class="staff-metric-lbl">Inactive</div>
+                        </div>
+                    </div>
+                    <div class="staff-metric">
+                        <div class="staff-metric-icon" style="background:rgba(139,92,246,0.12);color:#7c3aed;"><i class="fas fa-layer-group"></i></div>
+                        <div>
+                            <div class="staff-metric-val">{{ staff_roles|length }}</div>
+                            <div class="staff-metric-lbl">Role types</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if staff_rows %}
+            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-users me-2 text-success"></i>Active role accounts</h5>
+            <div class="row g-4 mb-4">
+                {% for admin_row in staff_rows %}
+                {% set u = admin_row.user %}
+                {% set role_key = admin_row.staff_role or '' %}
+                {% set role_meta = staff_roles.get(role_key, {}) %}
+                {% set accent = role_meta.get('accent', '#10b981') %}
+                <div class="col-xl-6">
+                    <div class="staff-card {% if not u.is_active %}inactive{% endif %}">
+                        <div class="staff-card-accent" style="background: {{ accent }};"></div>
+                        <div class="staff-card-body">
+                            <div class="d-flex gap-3 align-items-start mb-3">
+                                <div class="staff-role-icon" style="background: {{ accent }};">
+                                    <i class="fas {{ role_meta.get('icon', 'fa-user-tie') }}"></i>
+                                </div>
+                                <div class="flex-grow-1 min-width-0">
+                                    <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+                                        <div>
+                                            <div class="staff-role-name">{{ get_staff_role_label(admin_row) }}</div>
+                                            <div class="mt-1"><span class="staff-role-tag">Job role</span></div>
+                                        </div>
+                                        {% if u.is_active %}
+                                        <span class="badge bg-success-subtle text-success rounded-pill">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary rounded-pill">Inactive</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="staff-role-email mt-2"><i class="fas fa-sign-in-alt me-1"></i>{{ u.email }}</div>
+                                    {% if role_meta.get('description') %}
+                                    <p class="text-muted small mb-0 mt-2">{{ role_meta.description }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="text-uppercase text-muted fw-bold mb-2" style="font-size:0.68rem;letter-spacing:0.12em;">Panel access</div>
+                                {% set ns = namespace(any=false) %}
+                                {% for grant in admin_row.panel_grants %}
+                                {% if grant.can_view %}
+                                {% set ns.any = true %}
+                                <span class="panel-pill">
+                                    <i class="fas {{ panels.get(grant.panel_key, {}).get('icon', 'fa-circle') }}"></i>
+                                    {{ panels.get(grant.panel_key, {}).get('label', grant.panel_key) }}
+                                    {% if grant.can_approve %}<span class="perm-badge approve">approve</span>
+                                    {% elif not grant.can_create and not grant.can_edit and not grant.can_delete %}<span class="perm-badge readonly">view</span>
+                                    {% else %}<span class="perm-badge edit">edit</span>{% endif %}
+                                </span>
+                                {% endif %}
+                                {% endfor %}
+                                {% if not ns.any %}
+                                <span class="text-muted small">No panels assigned</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2 pt-2 border-top">
+                                <a href="{{ url_for('admin.staff_edit', admin_id=admin_row.id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    <i class="fas fa-sliders-h me-1"></i> Edit access
+                                </a>
+                                <form method="post" action="{{ url_for('admin.staff_toggle_active', admin_id=admin_row.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                        {% if u.is_active %}<i class="fas fa-ban me-1"></i> Deactivate{% else %}<i class="fas fa-play me-1"></i> Activate{% endif %}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="staff-empty mb-4">
+                <i class="fas fa-user-tag fa-3x text-muted mb-3"></i>
+                <h4 class="fw-bold text-dark">No role accounts yet</h4>
+                <p class="text-muted mb-4">Create your first role account — for example, an <strong>Accountant</strong> with a dedicated email and access to Accounts and Payments panels only.</p>
+                <a href="{{ url_for('admin.staff_create') }}" class="btn btn-success rounded-pill px-4">Create first role account</a>
+            </div>
+            {% endif %}
+
+            <div class="role-catalog">
+                <h5 class="role-catalog-title mb-1">Available job roles</h5>
+                <p class="text-muted small mb-0">Select any of these when creating a new account. Recommended panel access is suggested automatically for each role.</p>
+                <div class="role-catalog-grid">
+                    {% for key, meta in staff_roles.items() %}
+                    <div class="role-catalog-item">
+                        <div class="role-catalog-icon" style="background: {{ meta.accent }};">
+                            <i class="fas {{ meta.icon }}"></i>
+                        </div>
+                        <div>
+                            <div class="role-catalog-name">{{ meta.label }}</div>
+                            <div class="role-catalog-desc">{{ meta.description }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,235 @@
+<div class="practice-card card mb-4 border" data-practice-index="{{ practice_index }}" data-practice-id="{{ practice_name }}" data-edit-mode="false">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <div class="flex-grow-1">
+            <strong style="font-size: 1.25rem;">
+                {% if appointment_type == 'video' %}
+                    Video Consultation
+                {% else %}
+                    {{ practice_name if practice_name else 'Physical Practice' }}
+                {% endif %}
+            </strong>
+        </div>
+        <button type="button" class="btn btn-light btn-sm ms-2" onclick="removePractice(this)">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
+    <!-- View Mode (Read-only table) -->
+    <div class="card-body practice-view-mode" {% if practice_data.days %}style="display: block;"{% else %}style="display: none;"{% endif %}>
+        <div class="row mb-3">
+            {% if appointment_type == 'video' %}
+            <div class="col-md-12">
+                <div class="d-flex align-items-center">
+                    <strong class="me-2">Consultation Fee:</strong>
+                    <span class="fs-5 text-primary">Rs. {{ practice_data.video_price if practice_data.video_price else 'Not set' }}</span>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-md-6">
+                <div class="mb-2">
+                    <strong>Hospital/Institute:</strong>
+                    <div class="text-muted">{{ practice_name if practice_name else 'Not set' }}</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-2">
+                    <strong>Location/Area:</strong>
+                    <div class="text-muted">{{ practice_data.location if practice_data.location else 'Not set' }}</div>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="d-flex align-items-center">
+                    <strong class="me-2">Consultation Fee:</strong>
+                    <span class="fs-5 text-primary">Rs. {{ practice_data.physical_price if practice_data.physical_price else 'Not set' }}</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <hr>
+        
+        <h6 class="mb-3">Available Timings</h6>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Day</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        {% if appointment_type == 'physical' %}
+                        <th>Duration</th>
+                        <th>Slots</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] %}
+                    {% set day_names = {'monday': 'Monday', 'tuesday': 'Tuesday', 'wednesday': 'Wednesday', 'thursday': 'Thursday', 'friday': 'Friday', 'saturday': 'Saturday', 'sunday': 'Sunday'} %}
+                    {% for day in days %}
+                    {% set day_config = practice_data.days.get(day, {}) if (practice_data.days if practice_data else {}) else {} %}
+                    {% if day_config %}
+                    <tr>
+                        <td><strong>{{ day_names[day] }}</strong></td>
+                        <td>
+                            {% if day_config.start_time %}
+                                {% set start_parts = day_config.start_time.split(':') %}
+                                {% set start_hour = start_parts[0]|int %}
+                                {% set start_min = start_parts[1] %}
+                                {% set start_display_hour = (start_hour % 12) if (start_hour % 12) != 0 else 12 %}
+                                {{ start_display_hour }}:{{ start_min }} {{ 'AM' if start_hour < 12 else 'PM' }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if day_config.end_time %}
+                                {% set end_parts = day_config.end_time.split(':') %}
+                                {% set end_hour = end_parts[0]|int %}
+                                {% set end_min = end_parts[1] %}
+                                {% set end_display_hour = (end_hour % 12) if (end_hour % 12) != 0 else 12 %}
+                                {{ end_display_hour }}:{{ end_min }} {{ 'AM' if end_hour < 12 else 'PM' }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        {% if appointment_type == 'physical' %}
+                        <td>{{ day_config.duration if day_config.duration else 30 }} minutes</td>
+                        <td>
+                            {% if day_config.start_time and day_config.end_time and day_config.duration %}
+                                <span class="badge bg-success">
+                                    {{ ((day_config.end_time|string|replace(':', '')|int - day_config.start_time|string|replace(':', '')|int) / 100 / (day_config.duration / 60))|round|int }} slots
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary">N/A</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                    {% if not practice_data.days or practice_data.days|length == 0 %}
+                    <tr>
+                        <td colspan="{% if appointment_type == 'video' %}3{% else %}5{% endif %}" class="text-center text-muted">No timings set. Click Edit to add timings.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="d-flex justify-content-end mt-3">
+            <button type="button" class="btn btn-primary" onclick="editPractice('{{ practice_index }}')">
+                <i class="fas fa-edit me-2"></i>Edit
+            </button>
+        </div>
+    </div>
+    
+    <!-- Edit Mode (Editable form) -->
+    <div class="card-body practice-edit-mode" {% if not practice_data.days %}style="display: block;"{% else %}style="display: none;"{% endif %}>
+        <div class="row g-3 mb-3">
+            {% if appointment_type == 'video' %}
+            <div class="col-md-12">
+                <label class="form-label">Video Consultation Fee (PKR)</label>
+                <input type="number" class="form-control" 
+                       name="practice_video_price" 
+                       value="{{ practice_data.video_price if practice_data.video_price else '' }}" 
+                       step="0.01" min="0" placeholder="e.g., 1200">
+                <input type="hidden" name="practice_physical_price" value="">
+                <input type="hidden" name="practice_location" value="Online">
+            </div>
+            {% else %}
+            <div class="col-md-12">
+                <label class="form-label">Hospital/Institute Name</label>
+                <input type="text" class="form-control" 
+                       name="practice_name" 
+                       value="{{ practice_name if practice_name else '' }}" 
+                       placeholder="e.g., Al-Shifa Pain Control Centre">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Location/Area</label>
+                <input type="text" class="form-control" 
+                       name="practice_location" 
+                       id="practice_location_{{ practice_index }}"
+                       value="{{ practice_data.location if practice_data.location else (doctor.city if doctor.city else '') }}" 
+                       placeholder="e.g., Cantt, Gujranwala"
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Physical Appointment Fee (PKR)</label>
+                <input type="number" class="form-control" 
+                       name="practice_physical_price" 
+                       value="{{ practice_data.physical_price if practice_data.physical_price else '' }}" 
+                       step="0.01" min="0" placeholder="e.g., 1500">
+                <input type="hidden" name="practice_video_price" value="">
+            </div>
+            {% endif %}
+        </div>
+        
+        <hr>
+        
+        <h6 class="mb-3">Available Timings</h6>
+        {% set days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] %}
+        <div class="row g-2">
+            {% for day in days %}
+            {% set day_config = practice_data.days.get(day, {}) if (practice_data.days if practice_data else {}) else {} %}
+            <div class="col-md-12 mb-2">
+                <div class="border rounded p-2">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" 
+                               name="practice_{{ practice_index }}_{{ day }}_enabled" 
+                               id="practice_{{ practice_index }}_{{ day }}_enabled"
+                               {% if day_config %}checked{% endif %}
+                               onchange="toggleDayInPractice('{{ practice_index }}', '{{ day }}', '{{ appointment_type }}')">
+                        <label class="form-check-label fw-bold" for="practice_{{ practice_index }}_{{ day }}_enabled" style="cursor: pointer;">
+                            {{ day|title }}
+                        </label>
+                    </div>
+                    
+                    <div id="practice_{{ practice_index }}_{{ day }}_settings" {% if not day_config %}style="display: none;"{% endif %}>
+                        <div class="mb-2">
+                            <label class="form-label small fw-bold">Start Time</label>
+                            <input type="time" class="form-control" 
+                                   name="practice_{{ practice_index }}_{{ day }}_start_time" 
+                                   value="{{ day_config.start_time if day_config.start_time else '' }}" 
+                                   onchange="updatePracticeDayPreview('{{ practice_index }}', '{{ day }}', '{{ appointment_type }}')">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small fw-bold">End Time</label>
+                            <input type="time" class="form-control" 
+                                   name="practice_{{ practice_index }}_{{ day }}_end_time" 
+                                   value="{{ day_config.end_time if day_config.end_time else '' }}" 
+                                   onchange="updatePracticeDayPreview('{{ practice_index }}', '{{ day }}', '{{ appointment_type }}')">
+                        </div>
+                        {% if appointment_type == 'physical' %}
+                        <div class="mb-2">
+                            <label class="form-label small fw-bold">Appointment Duration (minutes)</label>
+                            <input type="number" class="form-control" 
+                                   name="practice_{{ practice_index }}_{{ day }}_duration" 
+                                   value="{{ day_config.duration if day_config.duration else 30 }}" 
+                                   min="15" max="120" step="15" 
+                                   placeholder="e.g., 30"
+                                   onchange="updatePracticeDayPreview('{{ practice_index }}', '{{ day }}', '{{ appointment_type }}')">
+                        </div>
+                        {% else %}
+                        <input type="hidden" name="practice_{{ practice_index }}_{{ day }}_duration" value="30">
+                        {% endif %}
+                        {% if appointment_type == 'physical' %}
+                        <div class="mt-2">
+                            <div id="practice_{{ practice_index }}_{{ day }}_preview" class="small text-muted"></div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <hr class="my-3">
+        
+        <div class="d-flex justify-content-end">
+            <button type="button" class="btn btn-primary" onclick="savePractice('{{ practice_index }}', '{{ appointment_type }}')">
+                <i class="fas fa-save me-2"></i>Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+

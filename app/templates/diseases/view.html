@@ -1,0 +1,586 @@
+{% extends "base.html" %}
+
+{% block title %}{{ disease.name }} - Health Library{% endblock %}
+
+{% block extra_meta %}
+<meta name="description" content="Learn about {{ disease.name }}: symptoms, causes, prevention, and treatment options.">
+{% endblock %}
+
+{% block page_breadcrumb %}
+<div class="container" style="padding-top: 15px;">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0" style="font-size: 12px; font-weight: 500;">
+            <li class="breadcrumb-item"><a href="{{ url_for('home.index') }}" style="color: #10b981; text-decoration: none;">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('diseases.index') }}" style="color: #10b981; text-decoration: none;">Health Library</a></li>
+            <li class="breadcrumb-item active" style="color: #64748b;">{{ disease.name }}</li>
+        </ol>
+    </nav>
+</div>
+{% endblock %}
+
+{% block content %}
+{% macro render_rich_content(text) -%}
+    {% if text %}
+        {% set ns = namespace(in_list=false) %}
+        {% for raw_line in text.split('\n') %}
+            {% set line = raw_line.strip() %}
+            {% if line.startswith('- ') %}
+                {% if not ns.in_list %}
+                    <ul class="dv-rich-list">
+                    {% set ns.in_list = true %}
+                {% endif %}
+                <li>{{ line[2:] }}</li>
+            {% else %}
+                {% if ns.in_list %}
+                    </ul>
+                    {% set ns.in_list = false %}
+                {% endif %}
+                {% if line %}
+                    <p>{{ line }}</p>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+        {% if ns.in_list %}
+            </ul>
+        {% endif %}
+    {% endif %}
+{%- endmacro %}
+
+<div class="dv-page-wrapper">
+    <div class="container">
+        <!-- Disease Hero -->
+        <section class="dv-hero-banner">
+            <div class="dv-hero-inner">
+                <div class="dv-hero-badges">
+                    <span class="dv-hero-badge category"><i class="fas fa-tag me-1"></i>{{ disease.category.title() }}</span>
+                    {% if disease.severity_level %}
+                    {% set sev_map = {'mild': ('success', '16, 185, 129'), 'moderate': ('warning', '245, 158, 11'), 'severe': ('danger', '239, 68, 68'), 'critical': ('danger', '220, 38, 38')} %}
+                    {% set raw_sev = disease.severity_level|string|lower %}
+                    {% set sev_data = sev_map[raw_sev] if raw_sev in sev_map else ('info', '59, 130, 246') %}
+                    {% set badge_bg = "rgba(" ~ sev_data[1] ~ ", 0.2)" %}
+                    {% set badge_text = "rgb(" ~ sev_data[1] ~ ")" %}
+                    {% set badge_border = "1px solid rgba(" ~ sev_data[1] ~ ", 0.4)" %}
+                    {% set badge_style = 'style="background-color: ' ~ badge_bg ~ '; color: ' ~ badge_text ~ '; border: ' ~ badge_border ~ ';"' %}
+                    <span class="dv-hero-badge severity" {{ badge_style | safe }}>
+                        {{ disease.severity_level.title() }} Severity
+                    </span>
+                    {% endif %}
+                </div>
+                <h1 class="dv-hero-title">{{ disease.name }}</h1>
+                <div class="dv-hero-meta">
+                    {% if disease.age_group %}
+                    <span><i class="fas fa-users me-1"></i>{{ disease.age_group.title() }}</span>
+                    {% endif %}
+                    {% if disease.gender_preference %}
+                    <span><i class="fas fa-venus-mars me-1"></i>{{ disease.gender_preference.title() }}</span>
+                    {% endif %}
+                    <span><i class="fas fa-shield-alt me-1"></i>Reviewed by Quick Care Medical Team</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+<div class="container pb-4">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <!-- Navigation Anchors -->
+            <div class="dv-nav-bar">
+                <a href="#overview" class="dv-nav-item active">Overview</a>
+                <a href="#symptoms" class="dv-nav-item">Symptoms</a>
+                {% if disease.causes %}<a href="#causes" class="dv-nav-item">Causes</a>{% endif %}
+                {% if disease.prevention %}<a href="#prevention" class="dv-nav-item">Prevention</a>{% endif %}
+                {% if disease.treatment %}<a href="#treatment" class="dv-nav-item">Treatment</a>{% endif %}
+            </div>
+
+            <!-- Overview -->
+            <div id="overview" class="dv-section">
+                <h2 class="dv-section-title">
+                    <span class="dv-section-icon" style="background: #dbeafe; color: #3b82f6;"><i class="fas fa-info-circle"></i></span>
+                    Overview
+                </h2>
+                <div class="dv-section-content">
+                    {{ render_rich_content(disease.description) }}
+                </div>
+            </div>
+
+            <!-- Symptoms -->
+            <div id="symptoms" class="dv-section">
+                <h2 class="dv-section-title">
+                    <span class="dv-section-icon" style="background: #fef3c7; color: #f59e0b;"><i class="fas fa-stethoscope"></i></span>
+                    Symptoms
+                </h2>
+                <div class="dv-section-content dv-symptoms-box">
+                    {{ render_rich_content(disease.symptoms) }}
+                </div>
+            </div>
+
+            <!-- Causes -->
+            {% if disease.causes %}
+            <div id="causes" class="dv-section">
+                <h2 class="dv-section-title">
+                    <span class="dv-section-icon" style="background: #f3e8ff; color: #8b5cf6;"><i class="fas fa-search-plus"></i></span>
+                    Causes
+                </h2>
+                <div class="dv-section-content">
+                    {{ render_rich_content(disease.causes) }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Prevention -->
+            {% if disease.prevention %}
+            <div id="prevention" class="dv-section">
+                <h2 class="dv-section-title">
+                    <span class="dv-section-icon" style="background: #d1fae5; color: #10b981;"><i class="fas fa-shield-alt"></i></span>
+                    Prevention
+                </h2>
+                <div class="dv-section-content dv-prevention-box">
+                    {{ render_rich_content(disease.prevention) }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Treatment -->
+            {% if disease.treatment %}
+            <div id="treatment" class="dv-section">
+                <h2 class="dv-section-title">
+                    <span class="dv-section-icon" style="background: #dcfce7; color: #22c55e;"><i class="fas fa-pills"></i></span>
+                    Treatment
+                </h2>
+                <div class="dv-section-content dv-treatment-box">
+                    {{ render_rich_content(disease.treatment) }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Doctor Booking Funnel -->
+            {% if related_doctors %}
+            <div class="dv-doctors-funnel">
+                <h3 class="dv-funnel-title">
+                    <i class="fas fa-user-md me-2"></i>Consult Top Doctors for {{ disease.name }}
+                </h3>
+                <p class="dv-funnel-subtitle">Book a consultation with a verified specialist — available for video calls.</p>
+                <div class="row g-3">
+                    {% for doctor in related_doctors %}
+                    <div class="col-md-4">
+                        <div class="dv-doctor-card">
+                            <div class="dv-doc-avatar">
+                                <i class="fas fa-user-md"></i>
+                            </div>
+                            <h5 class="dv-doc-name">{{ doctor.user.name }}</h5>
+                            <span class="dv-doc-spec">{{ doctor.category.title() }}</span>
+                            <div class="dv-doc-details">
+                                <span><i class="fas fa-briefcase-medical me-1"></i>{{ doctor.experience|int }} yrs</span>
+                                <span><i class="fas fa-map-marker-alt me-1"></i>{{ doctor.city }}</span>
+                            </div>
+                            {% if doctor.average_rating %}
+                            <div class="dv-doc-rating">
+                                <i class="fas fa-star"></i> {{ doctor.average_rating }} ({{ doctor.review_count }})
+                            </div>
+                            {% endif %}
+                            <a href="{{ url_for('patients.find_doctors') }}?category={{ doctor.category }}"
+                               class="dv-doc-book-btn">
+                                <i class="fas fa-calendar-check me-1"></i>Book Now
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Info -->
+            <div class="dv-sidebar-card">
+                <h5 class="dv-sidebar-title"><i class="fas fa-clipboard-list me-2"></i>Quick Facts</h5>
+                <div class="dv-fact-row">
+                    <span class="dv-fact-label">Category</span>
+                    <span class="dv-fact-value" style="color: #3b82f6; font-weight: 600;">{{ disease.category.title() }}</span>
+                </div>
+                {% if disease.severity_level %}
+                <div class="dv-fact-row">
+                    <span class="dv-fact-label">Severity</span>
+                    <span class="dv-fact-value">{{ disease.severity_level.title() }}</span>
+                </div>
+                {% endif %}
+                {% if disease.age_group %}
+                <div class="dv-fact-row">
+                    <span class="dv-fact-label">Age Group</span>
+                    <span class="dv-fact-value">{{ disease.age_group.title() }}</span>
+                </div>
+                {% endif %}
+                {% if disease.gender_preference %}
+                <div class="dv-fact-row">
+                    <span class="dv-fact-label">Gender</span>
+                    <span class="dv-fact-value">{{ disease.gender_preference.title() }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Related Diseases -->
+            {% if related_diseases %}
+            <div class="dv-sidebar-card">
+                <h5 class="dv-sidebar-title"><i class="fas fa-link me-2"></i>Related Conditions</h5>
+                {% for related in related_diseases %}
+                <a href="{{ url_for('diseases.view_disease', disease_id=related.id) }}" class="dv-related-link">
+                    <i class="fas fa-chevron-right"></i>
+                    <span>{{ related.name }}</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Consultation CTA -->
+            <div class="dv-sidebar-card dv-sidebar-cta">
+                <div class="dv-cta-icon"><i class="fas fa-video"></i></div>
+                <h5>Get Expert Advice</h5>
+                <p>Consult a verified {{ disease.category.title() }} specialist online.</p>
+                <a href="{{ url_for('patients.find_doctors') }}?category={{ disease.category }}" class="dv-sidebar-cta-btn">
+                    Find a Doctor <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+            </div>
+
+            <!-- Emergency -->
+            <div class="dv-sidebar-card dv-emergency-card">
+                <h5><i class="fas fa-exclamation-triangle me-2"></i>Emergency?</h5>
+                <p>If you are experiencing a medical emergency, call <strong>1122</strong> immediately.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<style>
+/* Page wrapper aligned with blog layout */
+.dv-page-wrapper {
+    background: #f8fafc;
+    min-height: 100vh;
+    padding: 10px 0 80px;
+}
+
+/* === Disease View Hero === */
+.dv-hero-banner {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 12px;
+    padding: 24px 32px;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+}
+.dv-hero-badges { display: flex; gap: 8px; margin-bottom: 0.75rem; flex-wrap: wrap; }
+.dv-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 50px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.dv-hero-badge.category {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+.dv-hero-badge.severity { border: 1px solid; }
+.dv-hero-title {
+    color: #fff;
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+}
+.dv-hero-meta {
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.8);
+}
+
+/* === Nav Bar === */
+.dv-nav-bar {
+    display: flex;
+    gap: 4px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+}
+.dv-nav-item {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-decoration: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.dv-nav-item:hover { background: #f3f4f6; color: #1f2937; }
+.dv-nav-item.active { background: #10b981; color: #fff; }
+
+/* === Content Sections === */
+.dv-section {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+.dv-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+.dv-section-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    color: #10b981;
+    background: rgba(16,185,129,0.1);
+}
+.dv-section-content p {
+    line-height: 1.8;
+    font-size: 0.92rem;
+    color: #374151;
+    margin: 0 0 0.8rem;
+}
+.dv-section-content p:last-child {
+    margin-bottom: 0;
+}
+.dv-rich-list {
+    margin: 0.25rem 0 0.8rem 1.25rem;
+    padding: 0;
+    list-style: disc;
+}
+.dv-rich-list li {
+    line-height: 1.75;
+    font-size: 0.92rem;
+    color: #374151;
+    margin-bottom: 0.35rem;
+}
+.dv-rich-list li:last-child {
+    margin-bottom: 0;
+}
+.dv-symptoms-box {
+    background: #fffbeb;
+    border-radius: 10px;
+    padding: 1rem;
+    border-left: 3px solid #f59e0b;
+}
+.dv-prevention-box {
+    background: #ecfdf5;
+    border-radius: 10px;
+    padding: 1rem;
+    border-left: 3px solid #10b981;
+}
+.dv-treatment-box {
+    background: #f0fdf4;
+    border-radius: 10px;
+    padding: 1rem;
+    border-left: 3px solid #22c55e;
+}
+
+/* === Disclaimer === */
+/* === Doctor Funnel === */
+.dv-doctors-funnel {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border: 1px solid rgba(16,185,129,0.2);
+    border-radius: 16px;
+    padding: 1.75rem;
+}
+.dv-funnel-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #065f46;
+    margin-bottom: 0.25rem;
+}
+.dv-funnel-subtitle {
+    font-size: 0.85rem;
+    color: #047857;
+    margin-bottom: 1.25rem;
+}
+.dv-doctor-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: center;
+    transition: all 0.25s;
+}
+.dv-doctor-card:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+}
+.dv-doc-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981, #059669);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.25rem;
+    margin: 0 auto 0.75rem;
+}
+.dv-doc-name { font-size: 0.92rem; font-weight: 700; color: #1f2937; margin-bottom: 0.15rem; }
+.dv-doc-spec { font-size: 0.75rem; color: #10b981; font-weight: 600; display: block; margin-bottom: 0.5rem; }
+.dv-doc-details {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    font-size: 0.72rem;
+    color: #9ca3af;
+    margin-bottom: 0.5rem;
+}
+.dv-doc-rating {
+    font-size: 0.78rem;
+    color: #f59e0b;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+.dv-doc-book-btn {
+    display: inline-flex;
+    align-items: center;
+    background: #10b981;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 7px 18px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+.dv-doc-book-btn:hover { background: #059669; color: #fff; transform: translateY(-1px); }
+
+/* === Sidebar === */
+.dv-sidebar-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+.dv-sidebar-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+.dv-sidebar-title i { color: #10b981; }
+.dv-fact-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+.dv-fact-row:last-child { border-bottom: none; }
+.dv-fact-label { font-size: 0.82rem; color: #6b7280; }
+.dv-fact-value { font-size: 0.82rem; color: #1f2937; }
+
+.dv-related-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #374151;
+    text-decoration: none;
+    transition: all 0.2s;
+    margin-bottom: 2px;
+}
+.dv-related-link:hover { background: #f3f4f6; color: #10b981; }
+.dv-related-link i { color: #10b981; font-size: 0.65rem; }
+
+/* Sidebar CTA */
+.dv-sidebar-cta {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    border: none;
+    text-align: center;
+}
+.dv-sidebar-cta h5 { color: #fff; font-size: 1rem; font-weight: 700; }
+.dv-sidebar-cta p { color: rgba(255,255,255,0.75); font-size: 0.82rem; }
+.dv-cta-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.1rem;
+    margin: 0 auto 0.75rem;
+}
+.dv-sidebar-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    background: #fff;
+    color: #1e40af;
+    font-weight: 700;
+    font-size: 0.82rem;
+    padding: 10px 22px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+.dv-sidebar-cta-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    color: #1e3a8a;
+}
+
+/* Emergency */
+.dv-emergency-card {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-left: 4px solid #ef4444;
+}
+.dv-emergency-card h5 { color: #dc2626; font-size: 0.92rem; font-weight: 700; margin-bottom: 0.5rem; }
+.dv-emergency-card p { font-size: 0.82rem; color: #991b1b; margin: 0; }
+
+@media (max-width: 768px) {
+    .dv-hero-title { font-size: 1.3rem; }
+    .dv-nav-bar { gap: 2px; }
+    .dv-nav-item { padding: 6px 10px; font-size: 0.75rem; }
+}
+</style>
+
+<script>
+// Smooth scroll for nav anchors
+document.querySelectorAll('.dv-nav-item').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+        var hash = this.getAttribute('href');
+        if (hash && hash.startsWith('#')) {
+            e.preventDefault();
+            var target = document.querySelector(hash);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            // Update active state
+            document.querySelectorAll('.dv-nav-item').forEach(function(l) { l.classList.remove('active'); });
+            this.classList.add('active');
+        }
+    });
+});
+</script>
+{% endblock %}

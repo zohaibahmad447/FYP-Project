@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Suspended Doctors - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-0">
+                        <i class="fas fa-ban me-2"></i>Suspended Doctors
+                    </h2>
+                    <p class="text-muted mb-0">View doctors who have been permanently suspended after 3 failed appeals</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% if suspended_doctors %}
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                <div class="card-header bg-dark text-white border-0 py-3 px-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Suspended Doctors List
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Doctor</th>
+                                    <th>Specialization</th>
+                                    <th>PMC Code</th>
+                                    <th>Experience</th>
+                                    <th>Appeal Count</th>
+                                    <th>Final Rejection Reason</th>
+                                    <th>Suspended Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doctor in suspended_doctors %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="doctor-avatar-small me-3">
+                                                {{ doctor.user.name[0].upper() }}
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">{{ doctor.user.name }}</h6>
+                                                <small class="text-muted">{{ doctor.user.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ doctor.specialization }}</td>
+                                    <td>{{ doctor.pmc_code }}</td>
+                                    <td>{{ doctor.experience }} years</td>
+                                    <td><span class="badge bg-danger">{{ doctor.appeal_count }}</span></td>
+                                    <td>{{ doctor.rejection_reason or 'N/A' }}</td>
+                                    <td>
+                                        {% if doctor.rejection_date %}
+                                            {{ doctor.rejection_date.strftime('%B %d, %Y at %I:%M:%S %p') }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('admin.view_doctor_details', doctor_id=doctor.id) }}" class="btn btn-info btn-sm">
+                                                <i class="fas fa-eye me-1"></i>View Details
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center" role="alert">
+                <i class="fas fa-info-circle me-2"></i>No suspended doctors at the moment.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

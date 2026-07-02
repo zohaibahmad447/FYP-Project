@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+
+{% block title %}Diseases Information - Quick Care Connect{% endblock %}
+
+{% block extra_meta %}
+<meta name="description" content="Browse comprehensive medical information about diseases, symptoms, causes, and treatments on Quick Care Connect.">
+{% endblock %}
+
+{% block page_breadcrumb %}
+<div class="container" style="padding-top: 15px;">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0" style="font-size: 12px; font-weight: 500;">
+            <li class="breadcrumb-item"><a href="{{ url_for('home.index') }}" style="color: #10b981; text-decoration: none;">Home</a></li>
+            <li class="breadcrumb-item active" style="color: #64748b;">Diseases Information</li>
+        </ol>
+    </nav>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="di-page-wrapper">
+    <div class="container">
+        <!-- Premium Hero -->
+        <section class="di-hero-banner">
+            <div class="di-hero-inner">
+                <div class="di-hero-text">
+                    <h1><i class="fas fa-book-medical me-2"></i>Health Information Library</h1>
+                    <p>Medically reviewed information on diseases, symptoms, and treatments — trusted by patients across Pakistan.</p>
+                    <form method="GET" class="di-hero-search">
+                        <input type="text" name="search" placeholder="Search topics, diseases..." value="{{ search or '' }}">
+                        <button type="submit">Search</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+
+<div class="container pb-4">
+    <!-- Category Pills -->
+    <div class="di-category-bar">
+        <a href="{{ url_for('diseases.index') }}"
+           class="di-cat-pill {{ 'active' if current_category == 'all' }}">All</a>
+        {% for category in categories %}
+        <a href="{{ url_for('diseases.index', category=category[0]) }}"
+           class="di-cat-pill {{ 'active' if current_category == category[0] }}">
+            {{ category[0].title() }}
+            <span class="pill-count">{{ category[1] }}</span>
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if search %}
+    <div class="di-search-status">
+        Showing results for "<strong>{{ search }}</strong>"
+        <a href="{{ url_for('diseases.index') }}">Clear</a>
+    </div>
+    {% endif %}
+
+    <!-- Diseases Grid -->
+    {% if diseases.items %}
+    <div class="row g-3">
+        {% for disease in diseases.items %}
+        <div class="col-lg-4 col-md-6">
+            <a href="{{ url_for('diseases.view_disease', disease_id=disease.id) }}" class="di-card-link">
+                <div class="di-card">
+                    <div class="di-card-top">
+                        {% set severity_rgb = {
+                            'mild': '16, 185, 129',
+                            'moderate': '245, 158, 11',
+                            'severe': '239, 68, 68',
+                            'critical': '220, 38, 38'
+                        } %}
+                        {% set raw_sev = disease.severity_level|string|lower if disease.severity_level else 'mild' %}
+                        {% set sev_color = severity_rgb[raw_sev] if raw_sev in severity_rgb else '16, 185, 129' %}
+                        
+                        {% set icon_bg = "rgba(" ~ sev_color ~ ", 0.2)" %}
+                        {% set icon_text = "rgb(" ~ sev_color ~ ")" %}
+                        {% set icon_style = 'style="background-color: ' ~ icon_bg ~ '; color: ' ~ icon_text ~ ';"' %}
+                        <div class="di-card-icon" {{ icon_style | safe }}>
+                            <i class="fas fa-disease"></i>
+                        </div>
+                        
+                        {% if disease.severity_level %}
+                        {% set badge_bg = "rgba(" ~ sev_color ~ ", 0.15)" %}
+                        {% set badge_border = "1px solid rgba(" ~ sev_color ~ ", 0.3)" %}
+                        {% set badge_style = 'style="background-color: ' ~ badge_bg ~ '; color: ' ~ icon_text ~ '; border: ' ~ badge_border ~ ';"' %}
+                        <span class="di-severity" {{ badge_style | safe }}>
+                            {{ disease.severity_level.title() }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <h3 class="di-card-title">{{ disease.name }}</h3>
+                    <span class="di-card-category"><i class="fas fa-tag me-1"></i>{{ disease.category.title() }}</span>
+                    <p class="di-card-desc">{{ disease.description[:100] }}{% if disease.description|length > 100 %}…{% endif %}</p>
+                    <div class="di-card-symptoms">
+                        <i class="fas fa-stethoscope me-1"></i>
+                        <span>{{ disease.symptoms[:60] }}{% if disease.symptoms|length > 60 %}…{% endif %}</span>
+                    </div>
+                    <div class="di-card-arrow">
+                        Learn More <i class="fas fa-arrow-right ms-1"></i>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if diseases.pages > 1 %}
+    <nav aria-label="Diseases pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if diseases.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('diseases.index', page=diseases.prev_num, category=current_category, search=search) }}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            {% for page_num in diseases.iter_pages() %}
+                {% if page_num %}
+                    <li class="page-item {{ 'active' if page_num == diseases.page }}">
+                        <a class="page-link" href="{{ url_for('diseases.index', page=page_num, category=current_category, search=search) }}">{{ page_num }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+            {% endfor %}
+            {% if diseases.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('diseases.index', page=diseases.next_num, category=current_category, search=search) }}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="di-empty-state">
+        <i class="fas fa-microscope"></i>
+        <h4>No Diseases Found</h4>
+        <p>
+            {% if search or current_category != 'all' %}
+                No results match your criteria. Try a different search or category.
+            {% else %}
+                Disease information will be available soon.
+            {% endif %}
+        </p>
+        {% if search or current_category != 'all' %}
+        <a href="{{ url_for('diseases.index') }}" class="di-clear-btn">
+            <i class="fas fa-times me-1"></i>Clear Filters
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+</div>
+
+<!-- Bottom CTA -->
+<div class="container mb-5">
+    <div class="di-bottom-cta">
+        <div class="di-cta-text">
+            <h3>Concerned About Your Symptoms?</h3>
+            <p>Don't self-diagnose. Talk to a verified doctor online — it only takes a few minutes.</p>
+        </div>
+        <a href="{{ url_for('patients.find_doctors') }}" class="di-cta-btn">
+            <i class="fas fa-user-md me-2"></i>Find a Doctor Now
+        </a>
+    </div>
+</div>
+
+<style>
+/* Page wrapper aligned with blog layout */
+.di-page-wrapper {
+    background: #f8fafc;
+    min-height: 100vh;
+    padding: 10px 0 80px;
+}
+
+/* === Hero === */
+.di-hero-banner {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 12px;
+    padding: 24px 32px;
+    min-height: 220px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+}
+.di-hero-inner {
+    width: 100%;
+}
+.di-hero-text h1 {
+    color: #fff;
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+.di-hero-text p {
+    color: rgba(255,255,255,0.85);
+    font-size: 0.92rem;
+    margin-bottom: 0;
+    max-width: 460px;
+}
+.di-hero-search {
+    position: relative;
+    z-index: 1;
+    margin-top: 16px;
+    max-width: 400px;
+}
+.di-hero-search input {
+    border-radius: 50px;
+    border: none;
+    padding: 12px 20px;
+    font-size: 14px;
+    width: 100%;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    outline: none;
+    background: #fff;
+    color: #1f2937;
+}
+.di-hero-search input::placeholder {
+    color: #94a3b8;
+}
+.di-hero-search button {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 8px 18px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.di-hero-search button:hover { background: #059669; }
+
+/* === Category Bar === */
+.di-category-bar {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+.di-cat-pill {
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #4b5563;
+    background: #f3f4f6;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.di-cat-pill:hover { background: #e5e7eb; color: #1f2937; }
+.di-cat-pill.active { background: #10b981; color: #fff; }
+.pill-count {
+    font-size: 0.65rem;
+    background: rgba(0,0,0,0.08);
+    padding: 1px 5px;
+    border-radius: 50px;
+}
+.di-cat-pill.active .pill-count { background: rgba(255,255,255,0.25); }
+
+.di-search-status {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-bottom: 1rem;
+}
+.di-search-status a {
+    color: #10b981;
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+/* === Disease Card === */
+.di-card-link {
+    text-decoration: none !important;
+    color: inherit !important;
+    display: block;
+    height: 100%;
+}
+.di-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 1.25rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.25s cubic-bezier(0.25,0.8,0.25,1);
+}
+.di-card:hover {
+    border-color: rgba(16,185,129,0.4);
+    box-shadow: 0 8px 25px rgba(16,185,129,0.1);
+    transform: translateY(-3px);
+}
+.di-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+.di-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+.di-severity {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 50px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.di-card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.35rem;
+    line-height: 1.3;
+}
+.di-card-category {
+    font-size: 0.72rem;
+    color: #10b981;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+.di-card-desc {
+    font-size: 0.82rem;
+    color: #6b7280;
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+    flex: 1;
+}
+.di-card-symptoms {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    padding: 6px 10px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border-left: 3px solid #10b981;
+    margin-bottom: 0.75rem;
+}
+.di-card-arrow {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #10b981;
+    text-align: right;
+}
+
+/* === Empty State === */
+.di-empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: #fff;
+    border: 2px dashed #e5e7eb;
+    border-radius: 16px;
+}
+.di-empty-state i { font-size: 3rem; color: #d1d5db; margin-bottom: 1rem; display: block; }
+.di-empty-state h4 { font-weight: 700; color: #6b7280; }
+.di-empty-state p { color: #9ca3af; max-width: 360px; margin: 0 auto 1rem; }
+.di-clear-btn {
+    display: inline-flex;
+    align-items: center;
+    background: #10b981;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 8px 20px;
+    border-radius: 50px;
+    text-decoration: none;
+}
+
+/* === Bottom CTA === */
+.di-bottom-cta {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    border-radius: 20px;
+    padding: 2.5rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+.di-cta-text h3 { color: #fff; font-weight: 800; font-size: 1.25rem; margin-bottom: 0.25rem; }
+.di-cta-text p { color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0; }
+.di-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    background: #fff;
+    color: #059669;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 12px 28px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+.di-cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    color: #047857;
+}
+
+@media (max-width: 768px) {
+    .di-hero-inner { flex-direction: column; text-align: center; }
+    .di-hero-text p { margin: 0 auto; }
+    .di-hero-search { max-width: 100%; }
+    .di-bottom-cta { flex-direction: column; text-align: center; padding: 2rem; }
+}
+</style>
+{% endblock %}

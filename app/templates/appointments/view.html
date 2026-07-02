@@ -1,0 +1,2047 @@
+{% extends "base.html" %}
+
+{% block title %}Appointment Details - Quick Care Connect{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/video-call.css') }}">
+<style>
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        }
+
+        70% {
+            box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-appointment-id="{{ appointment.id }}">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-calendar-check me-2" style="color: #10b981;"></i>Appointment Details
+                </h2>
+                <a href="{% if get_current_user().role == 'doctor' %}{{ url_for('doctors.appointments') }}{% else %}{{ url_for('patients.appointments') }}{% endif %}"
+                    class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Appointments
+                </a>
+            </div>
+
+            <!-- Appointment Info Card -->
+            <div class="card mb-4"
+                style="border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div class="card-header"
+                    style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border-bottom: 2px solid #10b981; border-radius: 16px 16px 0 0;">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2" style="color: #10b981;"></i>Appointment Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="detail-item mb-4">
+                                <label class="text-muted small text-uppercase"
+                                    style="letter-spacing: 0.5px; font-weight: 600;">Appointment Status</label>
+                                <div class="detail-value" style="margin-top: 0.25rem;">
+                                    {% include 'partials/appointment_status_badge.html' %}
+                                </div>
+                            </div>
+                        </div>
+                        {% if appointment.status == 'approved' %}
+                        <div class="col-md-6">
+                            <div class="detail-item mb-4">
+                                <label class="text-muted small text-uppercase"
+                                    style="letter-spacing: 0.5px; font-weight: 600;">Payment Status</label>
+                                <div class="detail-value" style="margin-top: 0.25rem;">
+                                    {% if appointment.payment_status == 'pending' %}
+                                    <span class="badge badge-warning" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                                        Payment Pending
+                                    </span>
+                                    {% elif appointment.payment_status == 'submitted' %}
+                                    <span class="badge badge-info"
+                                        style="font-size: 0.9rem; padding: 0.5rem 1rem; background-color: #0dcaf0; color: #000; border: 1px solid #0dcaf0;">
+                                        Under Review
+                                    </span>
+                                    {% elif appointment.payment_status == 'approved' %}
+                                    <span class="badge badge-success" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                                        Payment Approved
+                                    </span>
+                                    {% elif appointment.payment_status == 'rejected' %}
+                                    <span class="badge badge-danger" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                                        Payment Rejected
+                                    </span>
+                                    {% else %}
+                                    <span class="badge badge-secondary"
+                                        style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                                        Pending
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="detail-item mb-4">
+                                <label class="text-muted small text-uppercase"
+                                    style="letter-spacing: 0.5px; font-weight: 600;">
+                                    <i class="fas fa-calendar me-1"></i>Appointment Date
+                                </label>
+                                <div class="detail-value" style="font-size: 1rem; color: #333; margin-top: 0.25rem;">
+                                    {{ appointment.appointment_date.strftime('%B %d, %Y') }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item mb-4">
+                                <label class="text-muted small text-uppercase"
+                                    style="letter-spacing: 0.5px; font-weight: 600;">
+                                    <i class="fas fa-clock me-1"></i>Appointment Time
+                                </label>
+                                <div class="detail-value" style="font-size: 1rem; color: #333; margin-top: 0.25rem;">
+                                    {{ appointment.appointment_time.strftime('%I:%M %p') }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="detail-item mb-4">
+                                <label class="text-muted small text-uppercase"
+                                    style="letter-spacing: 0.5px; font-weight: 600;">Appointment Type</label>
+                                <div class="detail-value" style="margin-top: 0.25rem;">
+                                    <span
+                                        class="badge badge-{% if appointment.appointment_type == 'video' %}success{% else %}primary{% endif %}"
+                                        style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                                        <i
+                                            class="fas fa-{% if appointment.appointment_type == 'video' %}video{% else %}hospital{% endif %} me-1"></i>
+                                        {{ appointment.appointment_type.title() }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item mb-4">
+                                <label class="text-muted small text-uppercase"
+                                    style="letter-spacing: 0.5px; font-weight: 600;">Charges</label>
+                                <div class="detail-value"
+                                    style="font-size: 1.1rem; font-weight: 600; color: #10b981; margin-top: 0.25rem;">
+                                    PKR {{ "%.0f"|format(appointment.charges) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if appointment.hospital %}
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <div class="detail-item mb-4">
+                                <label class="text-muted small text-uppercase"
+                                    style="letter-spacing: 0.5px; font-weight: 600;">
+                                    <i class="fas fa-map-marker-alt me-1"></i>Hospital/Clinic
+                                </label>
+                                <div class="detail-value" style="font-size: 1rem; color: #333; margin-top: 0.25rem;">
+                                    {{ appointment.hospital }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <div class="detail-item mb-4">
+                                <label class="text-muted small text-uppercase"
+                                    style="letter-spacing: 0.5px; font-weight: 600;">
+                                    <i class="fas fa-disease me-1"></i>Disease Category
+                                </label>
+                                <div class="detail-value" style="font-size: 1rem; color: #333; margin-top: 0.25rem;">
+                                    {{ appointment.disease_category }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if appointment.symptoms %}
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <div class="detail-item mb-4">
+                                <label class="text-muted small text-uppercase"
+                                    style="letter-spacing: 0.5px; font-weight: 600;">
+                                    <i class="fas fa-stethoscope me-1"></i>Symptoms
+                                </label>
+                                <div class="detail-value"
+                                    style="font-size: 1rem; color: #333; margin-top: 0.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; line-height: 1.6;">
+                                    {{ appointment.symptoms }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if appointment.notes %}
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <div class="detail-item mb-4">
+                                <label class="text-muted small text-uppercase"
+                                    style="letter-spacing: 0.5px; font-weight: 600;">
+                                    <i class="fas fa-notes-medical me-1"></i>Additional Notes
+                                </label>
+                                <div class="detail-value"
+                                    style="font-size: 1rem; color: #333; margin-top: 0.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; line-height: 1.6;">
+                                    {{ appointment.notes }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label class="text-muted small text-uppercase"
+                                    style="letter-spacing: 0.5px; font-weight: 600;">Requested On</label>
+                                <div class="detail-value" style="font-size: 0.9rem; color: #666; margin-top: 0.25rem;">
+                                    {{ appointment.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                                </div>
+                            </div>
+                        </div>
+                        {% if appointment.approved_at %}
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label class="text-muted small text-uppercase"
+                                    style="letter-spacing: 0.5px; font-weight: 600;">Approved On</label>
+                                <div class="detail-value" style="font-size: 0.9rem; color: #666; margin-top: 0.25rem;">
+                                    {{ appointment.approved_at.strftime('%B %d, %Y at %I:%M %p') }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Section (pay first, then doctor approval) -->
+            {% if get_current_user().role == 'patient' and appointment.status == 'pending' %}
+            <div class="card mb-4"
+                style="border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div class="card-header"
+                    style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border-bottom: 2px solid #10b981; border-radius: 16px 16px 0 0;">
+                    <h5 class="mb-0">
+                        <i class="fas fa-money-bill-wave me-2" style="color: #10b981;"></i>Payment Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if appointment.payment_status == 'pending' %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Complete your payment now. After payment is confirmed, your request will be sent to the doctor for approval.
+                    </div>
+
+                    <!-- Payment Deadline Countdown Timer -->
+                    {% if appointment.payment_deadline %}
+                    <div id="payment-timer-container" class="card mb-4"
+                        style="border: 2px solid #ffc107; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 16px rgba(255, 193, 7, 0.2);">
+                        <div class="card-body p-4"
+                            style="background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 152, 0, 0.05) 100%);">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1" style="color: #f59e0b; font-weight: 700;">
+                                        <i class="fas fa-clock me-2"></i>Payment Deadline
+                                    </h5>
+                                    <small class="text-muted">Complete payment before time expires</small>
+                                </div>
+                                <div class="text-end">
+                                    <div id="payment-countdown"
+                                        style="font-size: 2.5rem; font-weight: 800; color: #f59e0b; font-family: 'Courier New', monospace;">
+                                        --:--
+                                    </div>
+                                    <small class="text-muted" id="payment-deadline-text">
+                                        Due by {{ appointment.payment_deadline.strftime('%I:%M %p') }}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="progress mt-3" style="height: 8px; border-radius: 10px; overflow: hidden;">
+                                <div id="payment-progress-bar" class="progress-bar bg-warning" role="progressbar"
+                                    style="width: 100%; transition: width 1s linear;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+
+                    <!-- ── Marham-Style Checkout UI ────────── -->
+                    <div class="mb-4 text-center">
+                        <h4 style="font-weight:700; color:#1f2937;">Select Payment Method</h4>
+                    </div>
+
+                    <!-- Doctor Summary Card -->
+                    <div class="mb-4 p-3"
+                        style="background-color:#f4fbfa; border-radius:12px; border:1px solid #e1f0ef;">
+                        <div class="d-flex align-items-center mb-3">
+                            {% if appointment.doctor.user.profile_picture %}
+                            <img src="{{ url_for('static', filename='uploads/' + appointment.doctor.user.profile_picture) }}"
+                                alt="Doctor"
+                                style="width:50px; height:50px; border-radius:50%; object-fit:cover; margin-right:15px; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                            {% else %}
+                            <div
+                                style="width:50px; height:50px; border-radius:50%; background:#e0f2fe; color:#0284c7; display:flex; align-items:center; justify-content:center; margin-right:15px; font-size:1.5rem; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                                <i class="fas fa-user-md"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <h6 style="color:#005b8a; font-weight:700; margin:0;">
+                                    {{ appointment.doctor.user.name }}
+                                    <i class="fas fa-check-circle" style="color:#10b981; font-size:0.85rem;"
+                                        title="Verified Professional"></i>
+                                </h6>
+                                <p style="margin:0; font-size:0.85rem; color:#4b5563;">{{ appointment.doctor.category }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-end mt-2 pt-2"
+                            style="border-top:1px solid rgba(0,0,0,0.05);">
+                            <div
+                                style="color:#10b981; font-weight:600; font-size:0.85rem; display:flex; align-items:center;">
+                                <i class="fas fa-shield-alt me-1"></i> Security Guaranteed
+                            </div>
+                            <div class="text-end">
+                                <div style="font-size:0.8rem; color:#4b5563;">Online Consultation</div>
+                                <div style="font-weight:700; font-size:1.1rem; color:#1f2937;">Rs. {{
+                                    "%.0f"|format(appointment.charges) }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 style="color:#005b8a; font-weight:700; font-size:0.95rem; margin-bottom:1rem;">All Methods</h6>
+
+                    <!-- Styles for the new method items -->
+                    <style>
+                        .marham-method {
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            padding: 1rem 1.2rem;
+                            border: 1px solid #e5e7eb;
+                            border-radius: 8px;
+                            margin-bottom: 0.8rem;
+                            cursor: pointer;
+                            background: white;
+                            transition: all 0.2s ease;
+                        }
+
+                        .marham-method:hover {
+                            border-color: #10b981;
+                            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+                        }
+
+                        .marham-method.active-method {
+                            border-color: #005b8a;
+                            box-shadow: 0 0 0 1.5px #005b8a;
+                            background: #f8fafc;
+                        }
+
+                        .method-time-badge {
+                            font-size: 0.75rem;
+                            color: #64748b;
+                            display: flex;
+                            align-items: center;
+                            gap: 0.4rem;
+                        }
+
+                        .method-arrow {
+                            color: #cbd5e1;
+                            font-size: 1.2rem;
+                            transition: transform 0.2s;
+                        }
+
+                        .marham-method:hover .method-arrow {
+                            transform: translateX(3px);
+                            color: #94a3b8;
+                        }
+
+                        .marham-method.active-method .method-arrow {
+                            color: #005b8a;
+                        }
+                    </style>
+
+                    <!-- SafePay Checkout option (VISA / MC) -->
+                    <div class="marham-method" id="method-card" onclick="selectPaymentMethod('card')">
+                        <div class="d-flex flex-column">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span
+                                    style="color:#1a1f71; font-weight:800; font-style:italic; font-size:1.1rem;">VISA</span>
+                                <!-- Master card pure CSS circles -->
+                                <div style="position:relative; width:30px; height:18px;">
+                                    <div
+                                        style="position:absolute; width:18px; height:18px; border-radius:50%; background:#eb001b; left:0; mix-blend-mode: multiply;">
+                                    </div>
+                                    <div
+                                        style="position:absolute; width:18px; height:18px; border-radius:50%; background:#f79e1b; left:12px; mix-blend-mode: multiply;">
+                                    </div>
+                                </div>
+                            </div>
+                            <span style="font-size:0.75rem; color:#94a3b8;">Credit/Debit Card</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="method-time-badge">
+                                <i class="fas fa-bolt" style="color:#f97316;"></i> Instant (0-60 seconds)
+                            </div>
+                            <i class="fas fa-arrow-right method-arrow"></i>
+                        </div>
+                    </div>
+
+                    <!-- Bank Transfer -->
+                    <div class="marham-method" id="method-bank" onclick="selectPaymentMethod('bank')">
+                        <div class="d-flex flex-column">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <i class="fas fa-university text-primary" style="font-size:1.4rem;"></i>
+                                <div class="d-flex flex-column" style="line-height:0.9;">
+                                    <span style="font-weight:700; color:#0f172a; font-size:0.8rem;">BANK</span>
+                                    <span style="font-weight:800; color:#0f172a; font-size:0.85rem;">TRANSFER</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="method-time-badge">
+                                <i class="fas fa-hourglass-half" style="color:#eab308;"></i> Slow (1 - 6 hours) + Manual
+                                verification required
+                            </div>
+                            <i class="fas fa-arrow-right method-arrow"></i>
+                        </div>
+                    </div>
+
+                    <!-- EasyPaisa -->
+                    <div class="marham-method" id="method-easypaisa" onclick="selectPaymentMethod('easypaisa')">
+                        <div class="d-flex align-items-center">
+                            <span style="font-weight:800; font-size:1.2rem; letter-spacing:-0.5px;">
+                                <span style="color:#15803d;">easy</span><span style="color:#000;">paisa</span>
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="method-time-badge">
+                                <i class="fas fa-hourglass-half" style="color:#eab308;"></i> Slow (1 - 6 hours) + Manual
+                                verification required
+                            </div>
+                            <i class="fas fa-arrow-right method-arrow"></i>
+                        </div>
+                    </div>
+
+                    <!-- JazzCash -->
+                    <div class="marham-method" id="method-jazzcash" onclick="selectPaymentMethod('jazzcash')">
+                        <div class="d-flex align-items-center">
+                            <span style="font-weight:800; font-size:1.3rem; font-style:italic;">
+                                <span style="color:#dc2626;">Jazz</span><span style="color:#eab308;">Cash</span>
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="method-time-badge">
+                                <i class="fas fa-hourglass-half" style="color:#eab308;"></i> Slow (1 - 6 hours) + Manual
+                                verification required
+                            </div>
+                            <i class="fas fa-arrow-right method-arrow"></i>
+                        </div>
+                    </div>
+
+                    <!-- Main CTA Button (Removed for direct redirect) -->
+
+                    <!-- Hidden section that expands for Bank / Wallet Upload -->
+                    <div id="wallet-form-section"
+                        style="display:none; margin-top:1.5rem; padding:1.5rem; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
+
+                        <!-- Dynamic Account Details injected by JS -->
+                        <div id="dynamic-account-details" class="mb-3">
+                            <!-- Content injected via selectPaymentMethod -->
+                        </div>
+
+                        <!-- Screenshot Upload Form -->
+                        <form method="POST"
+                            action="{{ url_for('patients.upload_payment', appointment_id=appointment.id) }}"
+                            enctype="multipart/form-data">
+
+                            <input type="hidden" name="payment_method" id="selected-payment-method" value="">
+
+                            <div class="mb-3">
+                                <label class="form-label" style="color:#374151; font-weight:600; font-size:0.88rem;">
+                                    Upload Payment Screenshot
+                                </label>
+                                <input type="file" name="payment_screenshot" accept="image/*" class="form-control"
+                                    required
+                                    style="background:#ffffff; border:1px solid #cbd5e1; color:#1f2937; border-radius:8px;">
+                                <div class="form-text" style="color:#64748b; font-size:0.8rem;">
+                                    Your appointment will be approved after admin verification of this receipt.
+                                </div>
+                            </div>
+                            <button type="submit" class="btn w-100 py-2"
+                                style="border-radius:8px; font-weight:700; background-color:#10b981; color:white; border:none; box-shadow:0 4px 6px -1px rgba(16,185,129,0.3);">
+                                <i class="fas fa-paper-plane me-1"></i> Submit Payment Proof
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Optional spacer or empty div before scripts -->
+                    <div class="mb-5"></div>
+
+                    <script>
+                        const APPOINTMENT_ID = "{{ appointment.id }}";
+                        const CHECKOUT_URL = "{{ url_for('payments.safepay_checkout', appointment_id=appointment.id) }}";
+                        const STATUS_API_URL = "{{ url_for('payments.payment_status_api', appointment_id=appointment.id) }}";
+                        const PAGE_URL = "{{ url_for('appointments.view_appointment', appointment_id=appointment.id) }}";
+
+                        let pollInterval = null;
+                        let safepayTab = null;
+
+                        function safepayWindowFeatures() {
+                            var w = 640, h = 760;
+                            try {
+                                var sw = window.screen ? window.screen.availWidth : 1200;
+                                var sh = window.screen ? window.screen.availHeight : 900;
+                                var left = Math.max(0, Math.round((sw - w) / 2));
+                                var top = Math.max(0, Math.round((sh - h) / 5));
+                                return 'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top +
+                                    ',scrollbars=yes,resizable=yes';
+                            } catch (e) {
+                                return 'width=' + w + ',height=' + h + ',scrollbars=yes,resizable=yes';
+                            }
+                        }
+
+                        window.addEventListener('message', function (ev) {
+                            if (ev.origin !== window.location.origin) return;
+                            var d = ev.data;
+                            if (!d || d.type !== 'quickcare-safepay-return') return;
+                            if (String(d.appointmentId) !== String(APPOINTMENT_ID)) return;
+                            if (pollInterval) {
+                                clearInterval(pollInterval);
+                                pollInterval = null;
+                            }
+                            if (safepayTab && !safepayTab.closed) {
+                                try { safepayTab.close(); } catch (e) { /* ignore */ }
+                            }
+                            safepayTab = null;
+                            document.querySelectorAll('.marham-method').forEach(function (el) {
+                                el.style.opacity = '1';
+                                el.style.pointerEvents = 'auto';
+                                el.classList.remove('active-method');
+                            });
+                            window.location.reload();
+                        });
+
+                        function launchSafepayCheckout() {
+                            var name = 'safepay_checkout_' + APPOINTMENT_ID;
+                            safepayTab = window.open(CHECKOUT_URL, name, safepayWindowFeatures());
+                            document.querySelectorAll('.marham-method').forEach(el => {
+                                el.style.opacity = '0.5';
+                                el.style.pointerEvents = 'none';
+                            });
+                            // Poll faster (every 1 second) to feel instant
+                            pollInterval = setInterval(checkPaymentStatus, 1000);
+                        }
+
+                        function checkPaymentStatus() {
+                            fetch(STATUS_API_URL, { credentials: 'same-origin' })
+                                .then(r => r.json())
+                                .then(data => {
+                                    if (safepayTab && safepayTab.closed && data.status !== 'approved') {
+                                        // Tab was closed manually without finishing payment
+                                        clearInterval(pollInterval);
+                                        document.querySelectorAll('.marham-method').forEach(el => {
+                                            el.style.opacity = '1';
+                                            el.style.pointerEvents = 'auto';
+                                            el.classList.remove('active-method');
+                                        });
+                                        // Reset the safepayTab reference
+                                        safepayTab = null;
+                                        return;
+                                    }
+
+                                    if (data.status === 'approved') {
+                                        clearInterval(pollInterval);
+                                        if (safepayTab && !safepayTab.closed) {
+                                            safepayTab.close();
+                                        }
+                                        setTimeout(() => { window.location.reload(); }, 500);
+                                    }
+                                })
+                                .catch(err => console.log('[Safepay Poll] Error:', err));
+                        }
+
+                        const isPaymentPending = "{{ 'true' if (appointment.payment_screenshot and appointment.payment_screenshot.startswith('safepay_pending_')) else 'false' }}" === "true";
+
+                        if (isPaymentPending) {
+                            document.addEventListener('DOMContentLoaded', function () {
+                                checkPaymentStatus();
+                                pollInterval = setInterval(checkPaymentStatus, 1000);
+                                setTimeout(() => clearInterval(pollInterval), 600000);
+                            });
+                        }
+                    </script>
+
+                    <script>
+                        function selectPaymentMethod(type) {
+                            const allMethods = document.querySelectorAll('.marham-method');
+                            const walletSection = document.getElementById('wallet-form-section');
+                            const dynamicDetails = document.getElementById('dynamic-account-details');
+
+                            allMethods.forEach(el => el.classList.remove('active-method'));
+                            document.getElementById('method-' + type).classList.add('active-method');
+
+                            const methodInput = document.getElementById('selected-payment-method');
+                            if (methodInput) {
+                                methodInput.value = type;
+                            }
+
+                            if (type === 'card') {
+                                walletSection.style.display = 'none';
+                                launchSafepayCheckout();
+                            } else {
+                                walletSection.style.display = 'block';
+
+                                let detailsHtml = '';
+                                if (type === 'bank') {
+                                    detailsHtml = `
+                                        <div style="font-size:0.8rem; color:#6366f1; font-weight:700; margin-bottom:0.2rem;"><i class="fas fa-university me-1"></i> BANK TRANSFER DETAILS</div>
+                                        <div style="font-size:1.1rem; font-weight:700; color:#1f2937;">HBL: 1234567890123</div>
+                                        <div style="font-size:0.8rem; color:#64748b;">Account Title: Abdul Rehman (Quick Care)</div>
+                                    `;
+                                } else if (type === 'easypaisa') {
+                                    detailsHtml = `
+                                        <div style="font-size:0.8rem; color:#15803d; font-weight:700; margin-bottom:0.2rem;"><i class="fas fa-mobile-alt me-1"></i> EASYPAISA DETAILS</div>
+                                        <div style="font-size:1.1rem; font-weight:700; color:#1f2937;">0345-1234567</div>
+                                        <div style="font-size:0.8rem; color:#64748b;">Account Title: Quick Care Connect</div>
+                                    `;
+                                } else if (type === 'jazzcash') {
+                                    detailsHtml = `
+                                        <div style="font-size:0.8rem; color:#dc2626; font-weight:700; margin-bottom:0.2rem;"><i class="fas fa-mobile-alt me-1"></i> JAZZCASH DETAILS</div>
+                                        <div style="font-size:1.1rem; font-weight:700; color:#1f2937;">0321-9876543</div>
+                                        <div style="font-size:0.8rem; color:#64748b;">Account Title: Quick Care Connect</div>
+                                    `;
+                                }
+                                dynamicDetails.innerHTML = detailsHtml;
+                            }
+                        }
+                    </script>
+
+                    {% elif appointment.payment_status == 'submitted' %}
+                    <div class="alert alert-info"
+                        style="background-color: #0dcaf0; color: #000; border-color: #0dcaf0;">
+                        <i class="fas fa-clock me-2"></i>Your payment screenshot has been submitted and is under admin
+                        review.
+                    </div>
+                    {% if appointment.payment_screenshot %}
+                    <div class="mb-3">
+                        <label class="form-label">Uploaded Payment Screenshot:</label>
+                        <div class="d-flex gap-2 align-items-center">
+                            <a href="/static/uploads/{{ appointment.payment_screenshot }}" target="_blank"
+                                class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye me-2"></i>View Screenshot
+                            </a>
+                            <form method="POST"
+                                action="{{ url_for('patients.reset_payment', appointment_id=appointment.id) }}"
+                                class="d-inline"
+                                onsubmit="return confirm('Are you sure you want to remove this payment proof and upload a new one?');">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-times me-2"></i>Remove & Pay Again
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% elif appointment.payment_status == 'approved' %}
+                    {% if get_current_user().role == 'patient' %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>Your payment is confirmed. The doctor will review and approve your appointment shortly.
+                    </div>
+                    {% elif get_current_user().role == 'doctor' %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>Patient payment is confirmed. Please approve or reject this request.
+                    </div>
+                    {% endif %}
+                    {% if appointment.payment_screenshot and not appointment.payment_screenshot.startswith('safepay_') %}
+                    <div class="mb-3">
+                        <label class="form-label">Payment Screenshot:</label>
+                        <div>
+                            <a href="/static/uploads/{{ appointment.payment_screenshot }}" target="_blank"
+                                class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye me-2"></i>View Screenshot
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% elif appointment.payment_status == 'rejected' %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle me-2"></i>Your payment has been rejected by admin.
+                        {% if appointment.payment_rejection_reason %}
+                        <div class="mt-2">
+                            <strong>Rejection Reason:</strong>
+                            <p class="mb-0">{{ appointment.payment_rejection_reason }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Payment Methods (for re-upload) -->
+                    <div class="mb-4">
+                        <h5 class="mb-4" style="color: #10b981; font-weight: 600;">
+                            <i class="fas fa-credit-card me-2"></i>Payment Methods
+                        </h5>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="card payment-method-card h-100"
+                                    style="border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 16px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="payment-icon-wrapper me-3"
+                                                style="width: 60px; height: 60px; border-radius: 12px; background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(33, 150, 243, 0.05)); display: flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-mobile-alt text-primary" style="font-size: 2rem;"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="mb-0" style="font-weight: 600;">JazzCash</h5>
+                                                <small class="text-muted">Mobile Wallet</small>
+                                            </div>
+                                        </div>
+                                        <hr style="margin: 1rem 0; border-color: rgba(16, 185, 129, 0.2);">
+                                        <div class="mt-3">
+                                            <strong class="text-muted" style="font-size: 0.875rem;">Account
+                                                Number:</strong>
+                                            <p class="mb-0 font-monospace mt-1"
+                                                style="color: #10b981; font-size: 1.15rem; font-weight: 600; letter-spacing: 0.5px;">
+                                                0300-1234567</p>
+                                        </div>
+                                        <div class="mt-3">
+                                            <strong class="text-muted" style="font-size: 0.875rem;">Account
+                                                Name:</strong>
+                                            <p class="mb-0 mt-1" style="font-weight: 500;">Quick Care Connect</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card payment-method-card h-100"
+                                    style="border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 16px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="payment-icon-wrapper me-3"
+                                                style="width: 60px; height: 60px; border-radius: 12px; background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05)); display: flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-wallet text-success" style="font-size: 2rem;"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="mb-0" style="font-weight: 600;">EasyPaisa</h5>
+                                                <small class="text-muted">Mobile Wallet</small>
+                                            </div>
+                                        </div>
+                                        <hr style="margin: 1rem 0; border-color: rgba(16, 185, 129, 0.2);">
+                                        <div class="mt-3">
+                                            <strong class="text-muted" style="font-size: 0.875rem;">Account
+                                                Number:</strong>
+                                            <p class="mb-0 font-monospace mt-1"
+                                                style="color: #10b981; font-size: 1.15rem; font-weight: 600; letter-spacing: 0.5px;">
+                                                0345-1234567</p>
+                                        </div>
+                                        <div class="mt-3">
+                                            <strong class="text-muted" style="font-size: 0.875rem;">Account
+                                                Name:</strong>
+                                            <p class="mb-0 mt-1" style="font-weight: 500;">Quick Care Connect</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card payment-method-card h-100"
+                                    style="border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 16px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="payment-icon-wrapper me-3"
+                                                style="width: 60px; height: 60px; border-radius: 12px; background: linear-gradient(135deg, rgba(13, 202, 240, 0.1), rgba(13, 202, 240, 0.05)); display: flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-university text-info" style="font-size: 2rem;"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="mb-0" style="font-weight: 600;">Bank Account</h5>
+                                                <small class="text-muted">Bank Transfer</small>
+                                            </div>
+                                        </div>
+                                        <hr style="margin: 1rem 0; border-color: rgba(16, 185, 129, 0.2);">
+                                        <div class="mt-3">
+                                            <strong class="text-muted" style="font-size: 0.875rem;">Account Number
+                                                (IBAN):</strong>
+                                            <p class="mb-0 font-monospace mt-1"
+                                                style="color: #10b981; font-size: 1rem; font-weight: 600; word-break: break-all;">
+                                                PK12ABCL0000001234567890</p>
+                                        </div>
+                                        <div class="mt-3">
+                                            <strong class="text-muted" style="font-size: 0.875rem;">Bank Name:</strong>
+                                            <p class="mb-0 mt-1" style="font-weight: 500;">Allied Bank Limited</p>
+                                        </div>
+                                        <div class="mt-3">
+                                            <strong class="text-muted" style="font-size: 0.875rem;">Account
+                                                Title:</strong>
+                                            <p class="mb-0 mt-1" style="font-weight: 500;">Quick Care Connect</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card payment-method-card h-100"
+                                    style="border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 16px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="payment-icon-wrapper me-3"
+                                                style="width: 60px; height: 60px; border-radius: 12px; background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05)); display: flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-landmark text-warning" style="font-size: 2rem;"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="mb-0" style="font-weight: 600;">Bank Account (Alternative)
+                                                </h5>
+                                                <small class="text-muted">Bank Transfer</small>
+                                            </div>
+                                        </div>
+                                        <hr style="margin: 1rem 0; border-color: rgba(16, 185, 129, 0.2);">
+                                        <div class="mt-3">
+                                            <strong class="text-muted" style="font-size: 0.875rem;">Account Number
+                                                (IBAN):</strong>
+                                            <p class="mb-0 font-monospace mt-1"
+                                                style="color: #10b981; font-size: 1rem; font-weight: 600; word-break: break-all;">
+                                                PK12SCBL0000009876543210</p>
+                                        </div>
+                                        <div class="mt-3">
+                                            <strong class="text-muted" style="font-size: 0.875rem;">Bank Name:</strong>
+                                            <p class="mb-0 mt-1" style="font-weight: 500;">Standard Chartered Bank</p>
+                                        </div>
+                                        <div class="mt-3">
+                                            <strong class="text-muted" style="font-size: 0.875rem;">Account
+                                                Title:</strong>
+                                            <p class="mb-0 mt-1" style="font-weight: 500;">Quick Care Connect</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-warning mt-4"
+                            style="background: linear-gradient(135deg, rgba(255, 193, 7, 0.15), rgba(255, 193, 7, 0.08)); border: 2px solid #ffc107; border-radius: 12px; padding: 1.25rem;">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-exclamation-triangle me-3"
+                                    style="font-size: 1.5rem; color: #ff9800; margin-top: 0.125rem;"></i>
+                                <div>
+                                    <strong style="color: #856404; font-size: 1rem;">Important Instructions:</strong>
+                                    <ul class="mb-0 mt-2" style="color: #856404;">
+                                        <li>After making payment through any of the above methods, please upload a clear
+                                            screenshot or photo of the payment confirmation.</li>
+                                        <li>Ensure the screenshot clearly shows transaction details, amount, transaction
+                                            ID, and account number.</li>
+                                        <li>Payment confirmation will be reviewed by admin before approval.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('patients.upload_payment', appointment_id=appointment.id) }}"
+                        enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-upload me-2"></i>Upload New Payment
+                                Screenshot</label>
+                            <input type="file" name="payment_screenshot" class="form-control" accept="image/*,.pdf"
+                                required>
+                            <small class="text-muted">Accepted formats: PNG, JPG, JPEG, PDF (Max 16MB). Please ensure
+                                the screenshot clearly shows transaction details, amount, and account number.</small>
+                        </div>
+                        <button type="submit" class="btn btn-success"
+                            style="background: rgba(16, 185, 129, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(16, 185, 129, 0.5); padding: 0.75rem 2rem; font-weight: 600;">
+                            <i class="fas fa-upload me-2"></i>Resubmit Payment Proof
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Patient Medical History Section (For Doctors Only) -->
+            {% if get_current_user().role == 'doctor' %}
+            <div class="d-flex justify-content-center mb-4">
+                <a class="btn btn-primary"
+                    href="{{ url_for('doctors.patient_medical_history', patient_id=appointment.patient.id) }}"
+                    style="border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; color: #fff;">
+                    <i class="fas fa-notes-medical me-2"></i>View Medical History
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            {% if get_current_user().role == 'doctor' %}
+            <div class="card mb-4"
+                style="border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div class="card-body">
+                    {% if appointment.status == 'pending' and appointment.payment_status == 'approved' %}
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <form method="POST"
+                            action="{{ url_for('doctors.approve_appointment', appointment_id=appointment.id) }}"
+                            class="d-inline">
+                            <button type="submit" class="btn btn-success"
+                                style="background: rgba(16, 185, 129, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(16, 185, 129, 0.5); padding: 0.75rem 2rem; font-weight: 600;">
+                                <i class="fas fa-check me-2"></i>Approve Appointment
+                            </button>
+                        </form>
+                        <form method="POST"
+                            action="{{ url_for('doctors.reject_appointment', appointment_id=appointment.id) }}"
+                            class="d-inline">
+                            <button type="submit" class="btn btn-danger"
+                                style="padding: 0.75rem 2rem; font-weight: 600;"
+                                onclick="return confirm('Are you sure you want to reject this appointment?');">
+                                <i class="fas fa-times me-2"></i>Reject Appointment
+                            </button>
+                        </form>
+                    </div>
+                    {% elif appointment.status == 'pending' %}
+                    {% if appointment.payment_status == 'submitted' %}
+                    <div class="alert alert-info mb-0 text-center">
+                        <i class="fas fa-user-shield me-2"></i>Payment proof is with admin for review. You can approve or reject after admin confirms payment.
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning mb-0 text-center">
+                        <i class="fas fa-hourglass-half me-2"></i>Waiting for patient to complete payment.
+                    </div>
+                    {% endif %}
+                    {% elif appointment.status == 'approved' %}
+                    {% if appointment.patient_completed and not appointment.doctor_completed %}
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Patient has marked this appointment as complete. Please confirm completion.
+                    </div>
+                    {% if appointment.prescription_unlocked %}
+                    <!-- ✅ CONSULTATION GATE: UNLOCKED -->
+                    <div class="text-center">
+                        <div class="alert alert-success py-2 mb-3" style="font-size:0.85rem;">
+                            <i class="fas fa-check-circle me-1"></i>
+                            Consultation verified. You may now write the prescription.
+                        </div>
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                            data-bs-target="#doctorCompleteModal"
+                            style="background: rgba(16, 185, 129, 0.8); padding: 0.75rem 2rem; font-weight: 600;">
+                            <i class="fas fa-file-medical me-2"></i>Write Prescription & Complete
+                        </button>
+                    </div>
+                    {% else %}
+                    <!-- 🔒 CONSULTATION GATE: LOCKED -->
+                    <div class="text-center" id="consultationGateWarning">
+                        <span class="d-inline-block" tabindex="0">
+                            <button type="button" class="btn btn-secondary" disabled
+                                style="padding: 0.75rem 2rem; font-weight: 600; opacity: 0.65; cursor: not-allowed;">
+                                <i class="fas fa-lock me-2"></i>Write Prescription & Complete
+                            </button>
+                        </span>
+                        <p class="mt-2 mb-0 small text-muted" id="gateStatus">
+                            <i class="fas fa-video me-1"></i>Video only: both you and the patient must join the call; after <strong>3 minutes</strong> of mutual connection the prescription unlocks (this page refreshes).
+                        </p>
+                    </div>
+                    <script>
+                        (function () {
+                            var appointmentId = parseInt("{{ appointment.id }}", 10);
+                            function checkUnlock() {
+                                fetch('/video/check-unlock/' + appointmentId, { credentials: 'same-origin' })
+                                    .then(function (r) { return r.json(); })
+                                    .then(function (data) {
+                                        if (data.unlocked) {
+                                            window.location.reload();
+                                        } else if (data.remaining_seconds !== undefined) {
+                                            var mins = Math.floor(data.remaining_seconds / 60);
+                                            var secs = data.remaining_seconds % 60;
+                                            var el = document.getElementById('gateStatus');
+                                            if (el) el.innerHTML = '<i class="fas fa-video me-1"></i>Call in progress. Unlocks in ' + mins + 'm ' + secs + 's...';
+                                        }
+                                    }).catch(function () { });
+                            }
+                            setInterval(checkUnlock, 12000);
+                            setTimeout(checkUnlock, 10000);
+                        })();
+                    </script>
+                    {% endif %}
+
+                    {% elif appointment.patient_completed and appointment.doctor_completed %}
+                    <div class="text-center">
+                        <span class="badge badge-success" style="font-size: 1rem; padding: 0.75rem 1.5rem;">
+                            <i class="fas fa-check-circle me-2"></i>Appointment Completed
+                        </span>
+                        <p class="text-muted mt-2 mb-0">Both you and the patient have confirmed completion.</p>
+                    </div>
+                    {% else %}
+                    {# Show chat and video call buttons if payment is approved #}
+                    {% if appointment.payment_status == 'approved' %}
+                    <div class="text-center mb-3">
+                        {% if appointment.status == 'completed' %}
+                        <a href="{{ url_for('appointments.chat', appointment_id=appointment.id) }}"
+                            class="btn btn-outline-secondary"
+                            style="padding: 0.75rem 2rem; font-weight: 600; border-radius: 12px;">
+                            <i class="fas fa-comments me-2"></i>View Chat History (Read-Only)
+                        </a>
+                        <small class="d-block text-muted mt-2">
+                            <i class="fas fa-info-circle me-1"></i>Appointment is completed. Chat is read-only.
+                        </small>
+                        {% else %}
+                        <a href="{{ url_for('appointments.chat', appointment_id=appointment.id) }}"
+                            class="btn btn-success"
+                            style="background: rgba(16, 185, 129, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(16, 185, 129, 0.5); padding: 0.75rem 2rem; font-weight: 600; border-radius: 12px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                            <i class="fas fa-comments me-2"></i>Start Chat with Patient
+                        </a>
+
+                        {% if appointment.appointment_type == 'video' %}
+                        {% if get_current_user().role == 'doctor' %}
+                        {# Doctors go to queue dashboard first #}
+                        <a href="{{ url_for('doctors.doctor_queue', appointment_id=appointment.id) }}"
+                            class="btn btn-primary ms-2"
+                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; padding: 0.75rem 2rem; font-weight: 600; border-radius: 12px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
+                            <i class="fas fa-user-md me-2"></i>Enter Consultation Lobby
+                        </a>
+                        {% else %}
+                        {# Patients go directly to video call #}
+                        {# Calculate time difference #}
+                        {% set now = now_pkt_naive() %}
+                        {% set apt_datetime = date_time_combine(appointment.appointment_date,
+                        appointment.appointment_time) %}
+                        {% set time_diff = (apt_datetime - now).total_seconds() / 60 %}
+
+                        {# Check if call is already active (doctor started, patient late) #}
+                        {% if appointment.is_call_active %}
+                        {# CALL IS ACTIVE - Show prominent "Doctor is waiting" banner #}
+                        <div class="alert alert-success mb-3 animate__animated animate__pulse animate__infinite"
+                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                            <i class="fas fa-video me-2"></i>
+                            <strong>Doctor has started the call!</strong> They are waiting for you to join.
+                            {% if appointment.call_started_at %}
+                            <br><small><i class="fas fa-clock me-1"></i>Call started {{
+                                appointment.call_started_at.strftime('%I:%M %p') }}</small>
+                            {% endif %}
+                        </div>
+                        <button id="join-video-call-btn" data-appointment-id="{{ appointment.id }}"
+                            class="btn btn-primary ms-2"
+                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; padding: 0.75rem 2rem; font-weight: 600; border-radius: 12px; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); animation: pulse 2s infinite;">
+                            <i class="fas fa-video me-2"></i>Join Live Consultation
+                        </button>
+                        {% elif time_diff <= 15 %} {# Time window is open but call not started yet #} <button
+                            id="join-video-call-btn" data-appointment-id="{{ appointment.id }}"
+                            class="btn btn-primary ms-2"
+                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; padding: 0.75rem 2rem; font-weight: 600; border-radius: 12px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
+                            <i class="fas fa-video me-2"></i>Join Video Call
+                            </button>
+                            {% else %}
+                            {# Too early to join #}
+                            <button disabled class="btn btn-secondary ms-2"
+                                style="background: #e2e8f0; color: #64748b; border: none; padding: 0.75rem 2rem; font-weight: 600; border-radius: 12px; cursor: not-allowed;">
+                                <i class="fas fa-clock me-2"></i>Available at {{ (apt_datetime -
+                                timedelta(minutes=15)).strftime('%I:%M %p') }}
+                            </button>
+                            <div class="mt-2 text-muted small">
+                                <i class="fas fa-info-circle me-1"></i>Link activates 15 mins before appointment
+                            </div>
+                            {% endif %}
+                            {% endif %}
+                            {% endif %}
+                            {% endif %}
+                    </div>
+
+                    {# --- Doctor can complete even if patient hasn't --- #}
+                    {# But this is gated by the consultation gate (prescription_unlocked) #}
+                    {% if get_current_user().role == 'doctor' and not appointment.doctor_completed %}
+                    <div class="mt-4 pt-4 text-center" style="border-top: 1px dashed rgba(16, 185, 129, 0.3);">
+                        {% if appointment.prescription_unlocked %}
+                        {# ✅ CONSULTATION GATE: UNLOCKED #}
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                            data-bs-target="#doctorCompleteModal"
+                            style="background: rgba(16, 185, 129, 0.8); padding: 0.75rem 2rem; font-weight: 600;">
+                            <i class="fas fa-file-medical me-2"></i>Write Prescription & Complete
+                        </button>
+                        {% else %}
+                        {# 🔒 CONSULTATION GATE: LOCKED #}
+                        <div class="text-center" id="consultationGateWarning2">
+                            <span class="d-inline-block" tabindex="0">
+                                <button type="button" class="btn btn-secondary" disabled
+                                    style="padding: 0.75rem 2rem; font-weight: 600; opacity: 0.65; cursor: not-allowed;">
+                                    <i class="fas fa-lock me-2"></i>Write Prescription & Complete
+                                </button>
+                            </span>
+                            <p class="mt-2 mb-0 small text-muted" id="gateStatus2">
+                                <i class="fas fa-video me-1"></i>Video only: both parties in the call for <strong>3 minutes</strong> unlocks the prescription.
+                            </p>
+                        </div>
+                        <script>
+                            (function () {
+                                var appointmentId = parseInt("{{ appointment.id }}", 10);
+                                function checkUnlock2() {
+                                    fetch('/video/check-unlock/' + appointmentId, { credentials: 'same-origin' })
+                                        .then(function (r) { return r.json(); })
+                                        .then(function (data) {
+                                            if (data.unlocked) { window.location.reload(); }
+                                        }).catch(function () { });
+                                }
+                                setInterval(checkUnlock2, 12000);
+                                setTimeout(checkUnlock2, 10000);
+                            })();
+                        </script>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="alert alert-warning mb-3">
+                        <i class="fas fa-clock me-2"></i>
+                        Waiting for patient payment approval before chat and video call become available.
+                    </div>
+                    <div class="text-center">
+                        <span class="badge badge-warning" style="font-size: 1rem; padding: 0.75rem 1.5rem;">
+                            <i class="fas fa-check-circle me-2"></i>Appointment Approved
+                        </span>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% elif get_current_user().role == 'patient' %}
+            <div class="card mb-4"
+                style="border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div class="card-body">
+                    {% if appointment.status in ['completed', 'completed_pending_review'] %}
+                    {% set in_review_window = appointment.status == 'completed_pending_review' and not appointment.patient_disputed and (not appointment.completion_review_deadline or now_pkt_naive() < appointment.completion_review_deadline) %}
+
+                    {% if appointment.status == 'completed_pending_review' %}
+                    <div class="alert border-0 mb-3"
+                        style="border-radius:12px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.06) 100%); border: 1px solid rgba(16, 185, 129, 0.25) !important;">
+                        <p class="mb-1 fw-semibold text-dark"><i class="fas fa-file-medical me-1 text-success"></i>Consultation
+                            submitted</p>
+                        <p class="small text-muted mb-0">Your doctor has finished the visit. View your prescription,
+                            rate your experience, then choose <strong>Satisfied</strong>, <strong>Unsatisfied</strong>, or
+                            <strong>Dispute</strong> below. If you take no action within 24 hours, the visit will close
+                            automatically as completed.</p>
+                    </div>
+                    {% endif %}
+
+                    {% if appointment.prescription %}
+                    <div class="text-center mb-4">
+                        <a href="{{ url_for('prescriptions.view_prescription', prescription_id=appointment.prescription.id) }}"
+                            class="btn btn-success px-4 py-2" style="border-radius:12px; font-weight:600;">
+                            <i class="fas fa-prescription-bottle-alt me-2"></i>View my prescription
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {# ─── RATING & (THEN) DISPUTE ─────────────────────────────────────── #}
+                    {% if appointment.review %}
+                    <div class="mt-3 pt-3" style="border-top: 1px dashed rgba(16,185,129,0.25);">
+                        <p class="text-muted small mb-2 text-center"><i class="fas fa-star text-warning me-1"></i>Your
+                            review</p>
+                        <div class="text-center mb-1">
+                            {% for i in range(1, 6) %}
+                            <i class="fas fa-star {% if i <= appointment.review.rating %}text-warning{% else %}text-muted{% endif %}"
+                                style="font-size:1.2rem;"></i>
+                            {% endfor %}
+                        </div>
+                        {% if appointment.review.comment %}
+                        <p class="text-muted small text-center mt-2 fst-italic">"{{ appointment.review.comment }}"</p>
+                        {% endif %}
+                    </div>
+
+                    {% elif appointment.patient_review_skipped and not appointment.review %}
+                    <div class="mt-3 pt-3 text-center" style="border-top: 1px dashed rgba(16,185,129,0.25);">
+                        <p class="text-muted small mb-0"><i class="fas fa-minus-circle me-1"></i>You chose not to leave
+                            a star rating for this visit.</p>
+                    </div>
+
+                    {% elif not appointment.can_review %}
+                    {# Review window expired #}
+                    <div class="mt-3 pt-3 text-center" style="border-top: 1px dashed rgba(16,185,129,0.25);">
+                        <i class="fas fa-clock text-muted fa-2x mb-2"></i>
+                        <p class="text-muted small mb-0">The review period for this appointment has ended.</p>
+                    </div>
+                    {% else %}
+                    {# Interactive rating (stars + required comment) #}
+                    <div id="ratingSection" class="mt-3 pt-3" style="border-top: 1px dashed rgba(16,185,129,0.25);">
+                        <p class="text-center mb-3" style="font-weight:600; color:#374151;">
+                            <i class="fas fa-star-half-alt text-warning me-1"></i>How was your experience with
+                            <strong>Dr. {{ appointment.doctor.user.name }}</strong>?
+                        </p>
+
+                        <div class="d-flex justify-content-center gap-2 mb-3" id="starRow"
+                            style="font-size:2rem; cursor:pointer;">
+                            {% for i in range(1,6) %}
+                            <i class="far fa-star text-warning star-btn" data-value="{{ i }}" id="star{{ i }}"
+                                style="transition: transform 0.15s ease;"></i>
+                            {% endfor %}
+                        </div>
+
+                        <div id="tagSection" class="mb-3 text-center d-none">
+                            <p class="text-muted small mb-2">Select what applied (optional)</p>
+                            <div id="positiveTags" class="d-none flex-wrap justify-content-center gap-2">
+                                {% for tag in ['Listened Carefully', 'Detailed Explanation', 'Friendly', 'Effective
+                                Treatment', 'Punctual'] %}
+                                <button type="button" class="btn btn-sm btn-outline-success tag-chip"
+                                    style="border-radius:999px; font-size:0.8rem;">{{ tag }}</button>
+                                {% endfor %}
+                            </div>
+                            <div id="negativeTags" class="d-none flex-wrap justify-content-center gap-2">
+                                {% for tag in ['Waited Too Long', 'Rushed', 'Technical Issues', 'Unhelpful', 'Poor
+                                Explanation'] %}
+                                <button type="button" class="btn btn-sm btn-outline-danger tag-chip"
+                                    style="border-radius:999px; font-size:0.8rem;">{{ tag }}</button>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div id="commentSection" class="mb-3 d-none">
+                            <label for="reviewComment" class="form-label small mb-1">Written feedback <span
+                                    class="text-danger">*</span></label>
+                            <textarea id="reviewComment" class="form-control" rows="3" required minlength="5"
+                                placeholder="Please write at least a few words about your visit (required)."
+                                style="border-radius:12px; font-size:0.9rem;"></textarea>
+                        </div>
+
+                        <div id="submitSection" class="text-center d-none">
+                            <button type="button" class="btn btn-success me-2" id="submitReviewBtn"
+                                data-appointment-id="{{ appointment.id }}"
+                                style="padding:0.5rem 2rem; font-weight:600; border-radius:999px;">
+                                <i class="fas fa-paper-plane me-1"></i>Submit review
+                            </button>
+                            <form method="POST"
+                                action="{{ url_for('appointments.skip_post_visit_review', appointment_id=appointment.id) }}"
+                                class="d-inline"
+                                onsubmit="return confirm('Skip rating? You can still report an issue afterward if needed.');">
+                                <button type="submit" class="btn btn-link text-muted" style="font-size:0.85rem;">I prefer
+                                    not to rate</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <script>
+                        (function () {
+                            var selectedRating = 0;
+                            var selectedTags = [];
+
+                            function updateStarDisplay(val) {
+                                for (var i = 1; i <= 5; i++) {
+                                    var el = document.getElementById('star' + i);
+                                    el.className = i <= val
+                                        ? 'fas fa-star text-warning star-btn'
+                                        : 'far fa-star text-warning star-btn';
+                                    el.style.transform = 'scale(1)';
+                                }
+                            }
+
+                            function selectStar(val) {
+                                selectedRating = val;
+                                updateStarDisplay(val);
+                                document.getElementById('tagSection').classList.remove('d-none');
+                                document.getElementById('commentSection').classList.remove('d-none');
+                                document.getElementById('submitSection').classList.remove('d-none');
+                                if (val >= 4) {
+                                    document.getElementById('positiveTags').className = 'd-flex flex-wrap justify-content-center gap-2';
+                                    document.getElementById('negativeTags').className = 'd-none flex-wrap justify-content-center gap-2';
+                                } else {
+                                    document.getElementById('positiveTags').className = 'd-none flex-wrap justify-content-center gap-2';
+                                    document.getElementById('negativeTags').className = 'd-flex flex-wrap justify-content-center gap-2';
+                                }
+                                selectedTags = [];
+                                document.querySelectorAll('.tag-chip').forEach(function (b) {
+                                    b.classList.remove('active', 'btn-success', 'btn-danger');
+                                    b.classList.add(val >= 4 ? 'btn-outline-success' : 'btn-outline-danger');
+                                });
+                            }
+
+                            document.querySelectorAll('.star-btn').forEach(function (star) {
+                                var val = parseInt(star.getAttribute('data-value'), 10);
+                                star.addEventListener('mouseenter', function () {
+                                    for (var i = 1; i <= 5; i++) {
+                                        var el = document.getElementById('star' + i);
+                                        el.className = i <= val ? 'fas fa-star text-warning star-btn' : 'far fa-star text-warning star-btn';
+                                        el.style.transform = i <= val ? 'scale(1.2)' : 'scale(1)';
+                                    }
+                                });
+                                star.addEventListener('mouseleave', function () { updateStarDisplay(selectedRating); });
+                                star.addEventListener('click', function () { selectStar(val); });
+                            });
+
+                            document.querySelectorAll('.tag-chip').forEach(function (btn) {
+                                btn.addEventListener('click', function () {
+                                    var label = btn.textContent.trim();
+                                    var idx = selectedTags.indexOf(label);
+                                    if (idx >= 0) {
+                                        selectedTags.splice(idx, 1);
+                                        btn.classList.remove('btn-success', 'btn-danger', 'active');
+                                        btn.classList.add(selectedRating >= 4 ? 'btn-outline-success' : 'btn-outline-danger');
+                                    } else {
+                                        selectedTags.push(label);
+                                        btn.classList.remove('btn-outline-success', 'btn-outline-danger');
+                                        btn.classList.add(selectedRating >= 4 ? 'btn-success' : 'btn-danger', 'active');
+                                    }
+                                });
+                            });
+
+                            var submitBtn = document.getElementById('submitReviewBtn');
+                            if (submitBtn) {
+                                var apptId = parseInt(submitBtn.getAttribute('data-appointment-id'), 10);
+                                submitBtn.addEventListener('click', function () {
+                                    if (!selectedRating) { alert('Please select a star rating.'); return; }
+                                    var comment = document.getElementById('reviewComment').value.trim();
+                                    if (comment.length < 5) {
+                                        alert('Please write a short comment (at least 5 characters) about your visit.');
+                                        return;
+                                    }
+                                    fetch('/reviews/submit', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        credentials: 'same-origin',
+                                        body: JSON.stringify({ appointment_id: apptId, rating: selectedRating, tags: selectedTags, comment: comment })
+                                    })
+                                        .then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
+                                        .then(function (res) {
+                                            if (res.body.success) {
+                                                window.location.reload();
+                                            } else {
+                                                alert(res.body.error || 'Could not submit review. Please try again.');
+                                            }
+                                        })
+                                        .catch(function () { alert('Network error. Please try again.'); });
+                                });
+                            }
+                        })();
+                    </script>
+                    {% endif %}
+
+                    {# ─── VISIT CLOSURE (detail page only) ─────────────────────────────── #}
+                    {% if in_review_window %}
+                    <div id="visitClosureSection" class="mt-4 pt-4" style="border-top: 2px solid rgba(16,185,129,0.2);">
+                        <p class="text-center mb-1 fw-semibold" style="color:#374151;">
+                            <i class="fas fa-clipboard-check me-1 text-success"></i>Close this visit
+                        </p>
+                        <p class="text-center text-muted small mb-3">Tell us how the consultation went. This step is only
+                            on this page — not on the appointments list.</p>
+
+                        <div id="closureChoiceButtons" class="d-flex justify-content-center gap-2 flex-wrap mb-2">
+                            <button type="button" id="btnSatisfied" class="btn btn-success px-4"
+                                style="border-radius:999px; font-weight:600;">
+                                <i class="fas fa-thumbs-up me-1"></i>Satisfied
+                            </button>
+                            <button type="button" id="btnUnsatisfied" class="btn btn-warning px-4 text-dark"
+                                style="border-radius:999px; font-weight:600;">
+                                <i class="fas fa-thumbs-down me-1"></i>Unsatisfied
+                            </button>
+                            <button type="button" class="btn btn-danger px-4" data-bs-toggle="modal"
+                                data-bs-target="#patientDisputeModal" style="border-radius:999px; font-weight:600;">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Dispute
+                            </button>
+                        </div>
+
+                        <div id="satisfiedCompleteSection" class="d-none text-center mt-3 p-3"
+                            style="background:rgba(16,185,129,0.08); border-radius:12px;">
+                            <p class="text-muted small mb-3">Glad the visit went well. Press below to mark this
+                                appointment as <strong>Completed</strong>.</p>
+                            <form method="POST"
+                                action="{{ url_for('appointments.confirm_completion', appointment_id=appointment.id) }}"
+                                class="d-inline">
+                                <button type="submit" class="btn btn-success btn-lg px-5"
+                                    style="border-radius:999px; font-weight:600;">
+                                    <i class="fas fa-check-circle me-2"></i>Complete &amp; Close Visit
+                                </button>
+                            </form>
+                        </div>
+
+                        <div id="unsatisfiedSection" class="d-none text-center mt-3 p-3"
+                            style="background:rgba(245,158,11,0.1); border-radius:12px;">
+                            <p class="text-muted small mb-3">Sorry the visit did not meet your expectations. You can file
+                                a formal dispute for admin review — or wait; if no dispute is filed within 24 hours the
+                                visit will still auto-close as completed.</p>
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
+                                data-bs-target="#patientDisputeModal">
+                                <i class="fas fa-exclamation-triangle me-1"></i>File Dispute
+                            </button>
+                            <button type="button" id="btnBackToChoices" class="btn btn-link text-muted btn-sm d-block mx-auto mt-2">
+                                Back to options
+                            </button>
+                        </div>
+                    </div>
+
+                    <script>
+                        (function () {
+                            var choices = document.getElementById('closureChoiceButtons');
+                            var satisfied = document.getElementById('satisfiedCompleteSection');
+                            var unsatisfied = document.getElementById('unsatisfiedSection');
+                            var btnSat = document.getElementById('btnSatisfied');
+                            var btnUnsat = document.getElementById('btnUnsatisfied');
+                            var btnBack = document.getElementById('btnBackToChoices');
+                            if (!choices || !btnSat) return;
+
+                            function showChoices() {
+                                choices.classList.remove('d-none');
+                                satisfied.classList.add('d-none');
+                                unsatisfied.classList.add('d-none');
+                            }
+
+                            btnSat.addEventListener('click', function () {
+                                choices.classList.add('d-none');
+                                satisfied.classList.remove('d-none');
+                                unsatisfied.classList.add('d-none');
+                            });
+                            btnUnsat.addEventListener('click', function () {
+                                choices.classList.add('d-none');
+                                unsatisfied.classList.remove('d-none');
+                                satisfied.classList.add('d-none');
+                            });
+                            if (btnBack) {
+                                btnBack.addEventListener('click', showChoices);
+                            }
+                        })();
+                    </script>
+                    {% endif %}
+
+                    {% elif appointment.status == 'disputed' %}
+                    <div class="alert border-0 mb-3"
+                        style="border-radius:12px; background: rgba(220,53,69,0.08); border: 1px solid rgba(220,53,69,0.25) !important;">
+                        <p class="mb-1 fw-semibold text-danger"><i class="fas fa-exclamation-triangle me-1"></i>Under Dispute</p>
+                        <p class="small text-muted mb-0">Your report is with admin. The visit will not complete until the
+                            case is resolved.</p>
+                    </div>
+                    {% if appointment.prescription %}
+                    <div class="text-center mb-3">
+                        <a href="{{ url_for('prescriptions.view_prescription', prescription_id=appointment.prescription.id) }}"
+                            class="btn btn-outline-success px-4 py-2" style="border-radius:12px; font-weight:600;">
+                            <i class="fas fa-prescription-bottle-alt me-2"></i>View my prescription
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {% elif appointment.status == 'approved' and appointment.payment_status == 'approved' %}
+                    <div class="text-center mb-4">
+                        <a href="{{ url_for('appointments.chat', appointment_id=appointment.id) }}"
+                            class="btn btn-success"
+                            style="background: rgba(16, 185, 129, 0.8); padding: 0.75rem 2rem; font-weight: 600; border-radius: 12px;">
+                            <i class="fas fa-comments me-2"></i>Start Chat with Doctor
+                        </a>
+                        {% if appointment.appointment_type == 'video' %}
+                        <button id="join-video-call-btn" data-appointment-id="{{ appointment.id }}"
+                            class="btn btn-primary ms-2"
+                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; padding: 0.75rem 2rem; font-weight: 600; border-radius: 12px;">
+                            <i class="fas fa-video me-2"></i>Join Video Call
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% if not appointment.patient_completed %}
+                    {% if appointment.doctor_completed %}
+                    <div class="text-center">
+                        <p class="mb-3">Has your appointment been completed? Mark it as complete to proceed.</p>
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                            data-bs-target="#confirmCompleteModal"
+                            style="background: rgba(16, 185, 129, 0.8); padding: 0.75rem 2rem; font-weight: 600;">
+                            <i class="fas fa-check-circle me-2"></i>Mark Appointment as Complete
+                        </button>
+                    </div>
+
+                    <!-- Confirmation Modal -->
+                    <div class="modal fade" id="confirmCompleteModal" tabindex="-1"
+                        aria-labelledby="confirmCompleteModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header bg-success text-white">
+                                    <h5 class="modal-title" id="confirmCompleteModalLabel">
+                                        <i class="fas fa-check-circle me-2"></i>Confirm Completion
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="mb-3">Are you sure you want to mark this appointment as
+                                        <strong>Complete</strong>?
+                                    </p>
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <strong>Warning:</strong> Only confirm this if you have fully completed your
+                                        consultation with the doctor. This action cannot be undone.
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Cancel</button>
+                                    <form method="POST"
+                                        action="{{ url_for('appointments.patient_complete_appointment', appointment_id=appointment.id) }}"
+                                        class="d-inline">
+                                        <button type="submit" class="btn btn-success">Yes, I have received the
+                                            service</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mb-0 text-center">
+                        <i class="fas fa-user-md me-2"></i>
+                        <strong>Waiting for Doctor:</strong> The doctor must complete the appointment first before you
+                        can mark it as complete.
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Patient dispute modal (detail page only) -->
+{% if get_current_user().role == 'patient' and appointment.status == 'completed_pending_review' and not appointment.patient_disputed and (not appointment.completion_review_deadline or now_pkt_naive() < appointment.completion_review_deadline) %}
+<div class="modal fade" id="patientDisputeModal" tabindex="-1" aria-labelledby="patientDisputeModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="patientDisputeModalLabel"><i class="fas fa-exclamation-triangle text-danger me-2"></i>Report
+                    an issue</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('appointments.dispute_completion', appointment_id=appointment.id) }}">
+                <div class="modal-body">
+                    <p class="text-muted small">Describe what went wrong. An administrator will review your case.</p>
+                    <div class="mb-3">
+                        <label for="patientDisputeReason" class="form-label">Details <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="patientDisputeReason" name="dispute_reason" rows="4" required
+                            placeholder="Example: incorrect medicines, missing prescription, unprofessional conduct…"></textarea>
+                    </div>
+                    <div class="alert alert-warning small mb-0">
+                        <i class="fas fa-info-circle me-1"></i> Submitting a dispute pauses completion until admin review.
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Submit dispute</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Video Call Modal -->
+<div id="video-call-modal">
+    <div class="video-grid">
+        <!-- Connection Status -->
+        <div id="connection-status" class="connection-status"></div>
+
+        <!-- Remote Video (Full Screen) -->
+        <div id="remote-player"></div>
+
+        <!-- Local Video (Picture-in-Picture) -->
+        <div id="local-player"></div>
+
+        <!-- Video Controls -->
+        <div class="video-controls">
+            <button id="toggle-mic" class="control-btn" title="Toggle Microphone">
+                <i class="fas fa-microphone"></i>
+            </button>
+            <div class="video-remote-volume" title="How loudly you hear the other person">
+                <i class="fas fa-volume-up" aria-hidden="true"></i>
+                <input type="range" id="remote-voice-volume" min="0" max="100" value="100"
+                    aria-label="Their voice volume" />
+            </div>
+            <button id="toggle-camera" class="control-btn" title="Toggle Camera">
+                <i class="fas fa-video"></i>
+            </button>
+            <button id="end-call-btn" class="control-btn" title="End Call">
+                <i class="fas fa-phone-slash"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Medical History Modal -->
+{% if get_current_user().role == 'doctor' %}
+<div class="modal fade" id="medicalHistoryModal" tabindex="-1" aria-labelledby="medicalHistoryModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="modal-header"
+                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-bottom: none; padding: 1.5rem;">
+                <h5 class="modal-title" id="medicalHistoryModalLabel" style="font-weight: 600;">
+                    <i class="fas fa-file-medical-alt me-2"></i>{{ appointment.patient.user.name }}'s Medical History
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <ul class="nav nav-tabs mb-4" id="historyTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="consultations-tab" data-bs-toggle="tab"
+                            data-bs-target="#consultations" type="button" role="tab" style="font-weight: 600;">
+                            <i class="fas fa-stethoscope me-1"></i> Past Consultations
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents"
+                            type="button" role="tab" style="font-weight: 600;">
+                            <i class="fas fa-file-alt me-1"></i> Uploaded Documents
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="historyTabsContent">
+                    <!-- Consultations Tab -->
+                    <div class="tab-pane fade show active" id="consultations" role="tabpanel">
+                        {% if patient_history %}
+                        <div class="row">
+                            {% for history in patient_history %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100 shadow-sm"
+                                    style="border-radius: 12px; border-left: 4px solid #10b981;">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <h6 class="mb-0 text-primary fw-bold">{{ history.disease or 'General
+                                                Consultation' }}</h6>
+                                            <small class="text-muted"><i class="fas fa-calendar-alt me-1"></i>{{
+                                                history.created_at.strftime('%b %d, %Y') }}</small>
+                                        </div>
+                                        {% if history.appointment.doctor %}
+                                        <p class="small text-muted mb-2"><i class="fas fa-user-md me-1"></i>{{
+                                            history.appointment.doctor.user.name }}</p>
+                                        {% endif %}
+                                        {% if history.appointment.prescription %}
+                                        <div class="mt-3">
+                                            <strong class="d-block small text-dark mb-1">Prescription:</strong>
+                                            <div class="bg-light p-2 rounded small" style="border: 1px solid #e5e7eb;">
+                                                {% if history.appointment.prescription.medicines %}
+                                                <ul class="mb-1 ps-3">
+                                                    {% for med in history.appointment.prescription.medicines %}
+                                                    <li><strong>{{ med.name }}</strong> ({{ med.dosage }}) - {{
+                                                        med.frequency }} for {{ med.duration }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                                {% endif %}
+                                                {% if history.appointment.prescription.treatment_notes %}
+                                                <span class="d-block mt-2 fst-italic text-muted">Notes: {{
+                                                    history.appointment.prescription.treatment_notes }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <div class="mt-3 bg-light p-2 rounded small text-muted text-center"
+                                            style="border: 1px dashed #cbd5e1;">
+                                            No prescription recorded.
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-history fa-3x mb-3 text-light"></i>
+                            <h5>No Past Consultations Found</h5>
+                            <p>This patient has no previous completed consultations.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <!-- Documents Tab -->
+                    <div class="tab-pane fade" id="documents" role="tabpanel">
+                        {% if patient_documents %}
+                        <div class="row row-cols-1 row-cols-md-3 g-4">
+                            {% for doc in patient_documents %}
+                            <div class="col">
+                                <div class="card h-100 shadow-sm" style="border-radius: 12px;">
+                                    <div class="card-body text-center p-4">
+                                        {% if doc.document_type == 'image' %}
+                                        <i class="fas fa-file-image fa-3x text-info mb-3"></i>
+                                        {% elif doc.document_type == 'pdf' %}
+                                        <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
+                                        {% else %}
+                                        <i class="fas fa-file-medical fa-3x text-secondary mb-3"></i>
+                                        {% endif %}
+                                        <h6 class="card-title text-truncate" title="{{ doc.title }}">{{ doc.title }}
+                                        </h6>
+                                        <p class="small text-muted mb-3">{{ doc.uploaded_at.strftime('%b %d, %Y') }}</p>
+                                        <a href="{{ url_for('static', filename=doc.file_path.replace('uploads/', '', 1) if doc.file_path.startswith('uploads/') else doc.file_path) }}"
+                                            target="_blank" class="btn btn-sm btn-outline-primary w-100"
+                                            style="border-radius: 8px;">
+                                            <i class="fas fa-external-link-alt me-1"></i>View Document
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-folder-open fa-3x mb-3 text-light"></i>
+                            <h5>No Documents Found</h5>
+                            <p>This patient hasn't uploaded any documents or made them visible to doctors.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid rgba(0,0,0,0.05);">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    style="border-radius: 8px; font-weight: 500;">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Socket.IO Client -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+<!-- Agora RTC SDK — self-hosted (external CDNs often blocked/slow in PK) -->
+<script src="{{ url_for('static', filename='vendor/agora/AgoraRTC_N-4.19.0.js') }}" data-agora-sdk="1"></script>
+<!-- Video Call JavaScript -->
+<script src="{{ static_asset('js/video-call.js') }}"></script>
+
+<!-- Socket.IO Video Call Signaling -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const socket = io();
+        // Read appointment ID from data attribute (clean, no linter warnings)
+        const container = document.querySelector('.container[data-appointment-id]');
+        const appointmentId = container ? parseInt(container.dataset.appointmentId) : 0;
+
+
+        socket.on('connect', function () {
+            console.log(`🔌 Connected to Socket.IO! Attempting to join room for appointment ${appointmentId}...`);
+            socket.emit('join_appointment_room', { appointment_id: appointmentId });
+        });
+
+        socket.on('error', function (err) {
+            console.error('❌ Socket.IO Error:', err);
+        });
+
+        socket.on('status', function (status) {
+            console.log('ℹ️ Socket.IO Status:', status);
+        });
+
+        socket.on('call_started', function (data) {
+            console.log('🔔 EVENT RECEIVED: Doctor started call:', data);
+
+            // If patient is in waiting room, transition to live call
+            if (typeof window.onDoctorStartedCall === 'function') {
+                console.log('✅ Calling window.onDoctorStartedCall()');
+                window.onDoctorStartedCall();
+            } else {
+                console.error('❌ window.onDoctorStartedCall is NOT a function. Re-checking in 500ms...');
+                // Retry in case script is still loading
+                setTimeout(() => {
+                    if (typeof window.onDoctorStartedCall === 'function') {
+                        console.log('✅ Retry successful: Calling window.onDoctorStartedCall()');
+                        window.onDoctorStartedCall();
+                    } else {
+                        console.error('❌ Retry failed: window.onDoctorStartedCall is still missing.');
+                        // Fallback: reload page to force state update
+                        window.location.reload();
+                    }
+                }, 500);
+            }
+
+            // Show notification
+            const notification = document.createElement('div');
+            notification.className = 'alert alert-success alert-dismissible fade show position-fixed';
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
+            notification.innerHTML = `
+                <i class="fas fa-video me-2"></i>
+                <strong>Doctor has started the call!</strong>
+                <br>Please join the consultation now.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(notification);
+
+            // Enable join button if disabled (e.g. by time check) and highlight it
+            const joinBtn = document.getElementById('join-video-call-btn');
+            if (joinBtn) {
+                joinBtn.disabled = false;
+                joinBtn.classList.remove('btn-secondary');
+                joinBtn.classList.add('btn-primary');
+                joinBtn.innerHTML = '<i class="fas fa-video me-2"></i>Join Live Consultation';
+                joinBtn.style.animation = 'pulse 2s infinite';
+
+                // Add pulse animation style if not exists
+                if (!document.getElementById('pulse-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'pulse-style';
+                    style.innerHTML = `
+                        @keyframes pulse {
+                            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+                            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+                            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            }
+        });
+    });
+</script>
+
+<!-- Payment Deadline Countdown Timer Script -->
+{% if appointment.payment_deadline and appointment.payment_status == 'pending' %}
+<script>
+    (function () {
+        // Payment deadline from server (PKT +05:00)
+        // Backend stores PKT but as naive timestamp. We must force JS to treat it as UTC+5 (PKT)
+        const deadlineStr = "{{ appointment.payment_deadline.isoformat() }}";
+        const deadline = new Date(deadlineStr + '+05:00'); // Append PKT offset
+
+        // Get DOM elements
+        const countdownEl = document.getElementById('payment-countdown');
+        const progressEl = document.getElementById('payment-progress-bar');
+        const timerContainer = document.getElementById('payment-timer-container');
+
+        if (!countdownEl || !progressEl || !timerContainer) return;
+
+        // Calculate total duration (from now to deadline)
+        const startTime = new Date();
+        const totalDuration = deadline - startTime;
+
+        // Check if already expired on page load
+        const initiallyExpired = totalDuration <= 0;
+
+        function updateCountdown() {
+            const now = new Date();
+            const remainingMs = deadline - now;
+
+            // If expired
+            if (remainingMs <= 0) {
+                clearInterval(countdownInterval); // Stop the timer
+
+                countdownEl.textContent = '00:00';
+                countdownEl.style.color = '#dc2626'; // Red
+                progressEl.style.width = '0%';
+                progressEl.classList.remove('bg-success', 'bg-warning');
+                progressEl.classList.add('bg-danger');
+                timerContainer.style.borderColor = '#dc2626';
+
+                // Only alert and reload if timer expired during this session (not on page load)
+                if (!initiallyExpired) {
+                    alert('Payment deadline has expired. This appointment will be automatically cancelled.');
+                    window.location.reload();
+                }
+
+                return;
+            }
+
+            // Calculate minutes and seconds
+            const totalSeconds = Math.floor(remainingMs / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+
+            // Format as MM:SS
+            const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            countdownEl.textContent = formatted;
+
+            // Calculate progress percentage
+            const progressPercent = (remainingMs / totalDuration) * 100;
+            progressEl.style.width = progressPercent + '%';
+
+            // Color-coded urgency
+            if (remainingMs < 5 * 60 * 1000) {
+                // Less than 5 minutes - RED (Critical)
+                countdownEl.style.color = '#dc2626';
+                progressEl.classList.remove('bg-success', 'bg-warning');
+                progressEl.classList.add('bg-danger');
+                timerContainer.style.borderColor = '#dc2626';
+                timerContainer.style.animation = 'pulse-red 2s infinite';
+            } else if (remainingMs < 10 * 60 * 1000) {
+                // Less than 10 minutes - AMBER (Warning)
+                countdownEl.style.color = '#f59e0b';
+                progressEl.classList.remove('bg-success', 'bg-danger');
+                progressEl.classList.add('bg-warning');
+                timerContainer.style.borderColor = '#f59e0b';
+                timerContainer.style.animation = 'none';
+            } else {
+                // More than 10 minutes - GREEN (Safe)
+                countdownEl.style.color = '#10b981';
+                progressEl.classList.remove('bg-warning', 'bg-danger');
+                progressEl.classList.add('bg-success');
+                timerContainer.style.borderColor = '#10b981';
+                timerContainer.style.animation = 'none';
+            }
+        }
+
+        // Add pulse animation for critical deadline
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes pulse-red {
+                0%, 100% { box-shadow: 0 6px 16px rgba(220, 38, 38, 0.2); }
+                50% { box-shadow: 0 6px 24px rgba(220, 38, 38, 0.5); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Declare interval variable before first call
+        let countdownInterval;
+
+        // Update every second
+        updateCountdown();
+        countdownInterval = setInterval(updateCountdown, 1000);
+    })();
+</script>
+{% endif %}
+
+<!-- Add Join Video Call button for video appointments -->
+{% if get_current_user().role == 'doctor' and appointment.status == 'approved' and not appointment.doctor_completed %}
+<!-- Doctor Complete & Prescription Modal -->
+<div class="modal fade" id="doctorCompleteModal" tabindex="-1" aria-labelledby="doctorCompleteModalLabel"
+    aria-hidden="true" style="text-align: left;">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content"
+            style="border-radius: 16px; border: none; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="modal-header"
+                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-bottom: none; padding: 1.5rem;">
+                <h5 class="modal-title" id="doctorCompleteModalLabel" style="font-weight: 600;">
+                    <i class="fas fa-file-medical me-2"></i>Write Prescription & Complete Appointment
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('doctors.complete_appointment', appointment_id=appointment.id) }}">
+                <div class="modal-body p-4">
+
+                    <!-- Diagnosis -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">
+                            <i class="fas fa-stethoscope me-2 text-success"></i>Diagnosis
+                            <span class="text-muted fw-normal">(Optional)</span>
+                        </label>
+                        <input type="text" class="form-control" name="diagnosis"
+                            placeholder="e.g., Acute Brief Psychotic Disorder / Delusional Ideation"
+                            style="border-radius: 10px; padding: 0.75rem 1rem;">
+                    </div>
+
+                    <hr class="my-3">
+
+                    <!-- Medicines Section -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">
+                            <i class="fas fa-pills me-2" style="color:#dc2626;"></i>Medicines
+                            <span class="text-danger">*</span>
+                            <span class="text-muted fw-normal" style="font-size:0.8rem;"> — Add each medicine
+                                separately</span>
+                        </label>
+
+                        <!-- Medicine Rows Container -->
+                        <div id="medicine-rows-container">
+                            <!-- Row template — cloned by JS -->
+                            <div class="medicine-row mb-2 p-3"
+                                style="background:#f9fafb; border-radius:10px; border:1px solid #e5e7eb;">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-md-3">
+                                        <input type="text" class="form-control form-control-sm" name="med_name[]"
+                                            placeholder="Medicine Name *" required style="border-radius:8px;">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="text" class="form-control form-control-sm" name="med_dosage[]"
+                                            placeholder="Dosage (e.g., 500mg)" required style="border-radius:8px;">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="text" class="form-control form-control-sm" name="med_frequency[]"
+                                            placeholder="Frequency (e.g., 1-0-1)" required style="border-radius:8px;">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="text" class="form-control form-control-sm" name="med_duration[]"
+                                            placeholder="Duration (e.g., 7 Days)" required style="border-radius:8px;">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="text" class="form-control form-control-sm"
+                                            name="med_instructions[]" placeholder="Instructions (optional)"
+                                            style="border-radius:8px;">
+                                    </div>
+                                    <div class="col-md-1 text-center">
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-medicine-row"
+                                            style="border-radius:8px;" disabled>
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="row mt-1" style="font-size:0.7rem; color:#6b7280; padding:0 6px;">
+                                    <div class="col-md-3">Name</div>
+                                    <div class="col-md-2">Dosage</div>
+                                    <div class="col-md-2">Frequency</div>
+                                    <div class="col-md-2">Duration</div>
+                                    <div class="col-md-2">Instructions</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" id="add-medicine-btn" class="btn btn-sm btn-outline-success mt-2"
+                            style="border-radius:8px;">
+                            <i class="fas fa-plus me-1"></i>Add Another Medicine
+                        </button>
+                    </div>
+
+                    <hr class="my-3">
+
+                    <!-- Doctor's Advice -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">
+                            <i class="fas fa-comment-medical me-2" style="color:#1d4ed8;"></i>Doctor's Advice &
+                            Instructions
+                            <span class="text-muted fw-normal">(Optional)</span>
+                        </label>
+                        <textarea class="form-control" name="treatment_notes" rows="4"
+                            placeholder="e.g., Avoid driving. Ensure 8 hours sleep. Follow up in 2 weeks. Blood work recommended."
+                            style="border-radius: 10px; padding: 0.75rem 1rem;"></textarea>
+                    </div>
+
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid rgba(0,0,0,0.05); padding: 1.25rem;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal"
+                        style="border-radius: 10px; font-weight: 500; padding: 0.6rem 1.5rem;">Cancel</button>
+                    <button type="submit" class="btn btn-success"
+                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; border-radius: 10px; font-weight: 600; padding: 0.6rem 2rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                        <i class="fas fa-check-circle me-2"></i>Complete Appointment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Dynamic medicine row add/remove
+    document.addEventListener('DOMContentLoaded', function () {
+        const container = document.getElementById('medicine-rows-container');
+        const addBtn = document.getElementById('add-medicine-btn');
+
+        function updateRemoveButtons() {
+            const rows = container.querySelectorAll('.medicine-row');
+            rows.forEach(row => {
+                const removeBtn = row.querySelector('.remove-medicine-row');
+                removeBtn.disabled = rows.length === 1;
+            });
+        }
+
+        addBtn && addBtn.addEventListener('click', function () {
+            const firstRow = container.querySelector('.medicine-row');
+            const newRow = firstRow.cloneNode(true);
+            // Clear values in the cloned row
+            newRow.querySelectorAll('input').forEach(input => input.value = '');
+            // Enable the remove button on new rows
+            newRow.querySelector('.remove-medicine-row').disabled = false;
+            container.appendChild(newRow);
+            updateRemoveButtons();
+        });
+
+        container && container.addEventListener('click', function (e) {
+            if (e.target.closest('.remove-medicine-row')) {
+                const row = e.target.closest('.medicine-row');
+                row.remove();
+                updateRemoveButtons();
+            }
+        });
+    });
+</script>
+
+{% endif %}
+
+
+{% endblock %}

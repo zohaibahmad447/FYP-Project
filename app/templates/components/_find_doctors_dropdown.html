@@ -1,0 +1,139 @@
+<style>
+/* --- Premium Mega Menu (SSOT) --- */
+.nav-dropdown {
+    position: relative;
+}
+
+.mega-menu {
+    position: absolute;
+    top: 150%;
+    left: -150px;
+    width: 700px;
+    background: var(--white, #ffffff);
+    border-radius: 16px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+    display: flex;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 1000;
+    border: 1px solid var(--border, #eaeaea);
+    overflow: hidden;
+    padding: 24px;
+    gap: 24px;
+}
+
+.nav-dropdown:hover .mega-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    top: 100%;
+}
+
+.mega-left {
+    width: 200px;
+    border-right: 1px solid var(--border, #eaeaea);
+    padding-right: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.mega-left h4 {
+    font-size: 18px;
+    color: var(--text-dark, #1f2937);
+    margin: 0 0 16px 0;
+    font-weight: 600;
+}
+
+.mega-right {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.mega-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid var(--border, #eaeaea);
+    border-radius: 12px;
+    transition: all 0.2s;
+    cursor: pointer;
+    text-decoration: none !important;
+}
+
+.mega-item:hover {
+    background: var(--bg-light, #f8f9fa);
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+}
+
+.mega-item-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 12px;
+    object-fit: contain;
+    mix-blend-mode: multiply; /* Removes white background from icon images */
+}
+
+.mega-item span {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark, #1f2937);
+    transition: color 0.2s;
+}
+
+.mega-item:hover span {
+    color: #10b981;
+}
+
+/* Fix inheritance inside Bootstrap navbars */
+.mega-menu * {
+    text-align: left;
+}
+</style>
+
+<div class="mega-menu desktop-only">
+    <div class="mega-left">
+        <h4 style="color: #10b981;">Choose a Specialty</h4>
+        <a href="{{ url_for('patients.find_doctors') }}" class="btn text-muted" style="font-size: 14px; font-weight: 500; border: 1px solid #e5e7eb; border-radius: 30px; padding: 8px 16px; margin-top: 10px; min-width: max-content; transition: all 0.3s; text-decoration: none;" onmouseover="this.style.borderColor='#10b981'; this.style.color='#10b981';" onmouseout="this.style.borderColor='#e5e7eb'; this.style.color='';">View All Specialties</a>
+    </div>
+    <div class="mega-right">
+        <a href="{{ url_for('patients.find_doctors', specialty='cardiology') }}" class="mega-item">
+            <img src="{{ url_for('static', filename='images/icons/cardiologist_icon_1773084402110.png') }}" class="mega-item-icon" alt="Cardiology">
+            <span>Cardiology</span>
+        </a>
+        <a href="{{ url_for('patients.find_doctors', specialty='neurology') }}" class="mega-item">
+            <img src="{{ url_for('static', filename='images/icons/neurologist_icon_1773084421982.png') }}" class="mega-item-icon" alt="Neurology">
+            <span>Neurology</span>
+        </a>
+        <a href="{{ url_for('patients.find_doctors', specialty='dermatology') }}" class="mega-item">
+            <img src="{{ url_for('static', filename='images/icons/dermatologist_icon_1773084390002.png') }}" class="mega-item-icon" alt="Dermatology">
+            <span>Dermatology</span>
+        </a>
+        <a href="{{ url_for('patients.find_doctors', specialty='gynecology') }}" class="mega-item">
+            <img src="{{ url_for('static', filename='images/icons/gynecologist_icon_1773084347395.png') }}" class="mega-item-icon" alt="Gynecology">
+            <span>Gynecology</span>
+        </a>
+        <a href="{{ url_for('patients.find_doctors', specialty='pediatrics') }}" class="mega-item">
+            <img src="{{ url_for('static', filename='images/icons/pediatrician_icon_1773084449308.png') }}" class="mega-item-icon" alt="Pediatrics">
+            <span>Pediatrics</span>
+        </a>
+        <a href="{{ url_for('patients.find_doctors', specialty='ent') }}" class="mega-item">
+            <img src="{{ url_for('static', filename='images/icons/ent_icon_1773084435709.png') }}" class="mega-item-icon" alt="ENT">
+            <span>Orthopedics / ENT</span>
+        </a>
+        <a href="{{ url_for('patients.find_doctors', specialty='gastroenterology') }}" class="mega-item">
+            <img src="{{ url_for('static', filename='images/icons/gastroenterologist_icon_1773084361627.png') }}" class="mega-item-icon" alt="Gastroenterology">
+            <span>Gastroenterology</span>
+        </a>
+        <a href="{{ url_for('patients.find_doctors', specialty='urology') }}" class="mega-item">
+            <img src="{{ url_for('static', filename='images/icons/urologist_icon_1773084463058.png') }}" class="mega-item-icon" alt="Urology">
+            <span>Urology</span>
+        </a>
+    </div>
+</div>

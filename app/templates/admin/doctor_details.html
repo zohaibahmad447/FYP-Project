@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Details - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-0">
+                        <i class="fas fa-user-md me-2"></i>Doctor Registration Details
+                    </h2>
+                    <p class="text-muted mb-0">Review doctor information and documents</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('admin.doctor_financials', doctor_id=doctor.id) }}" class="btn btn-outline-success me-2">
+                        <i class="fas fa-wallet me-1"></i>Financials
+                    </a>
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Doctor Information -->
+            <div class="row">
+                <!-- Profile Picture -->
+                <div class="col-12 mb-4">
+                    <div class="card qc-admin-card border-0 shadow-sm rounded-4 overflow-hidden">
+                        <div class="card-header bg-white border-bottom py-3 px-4">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user-circle me-2"></i>Profile Picture
+                            </h5>
+                        </div>
+                        <div class="card-body text-center">
+                            {% if user.profile_picture %}
+                                <div class="profile-picture-container">
+                                    <img src="{{ url_for('static', filename='uploads/' + user.profile_picture) }}" 
+                                         alt="{{ user.name }}" 
+                                         class="img-fluid rounded-circle border"
+                                         style="max-width: 200px; max-height: 200px; width: 200px; height: 200px; object-fit: cover; cursor: pointer;"
+                                         onclick="openImageModal('{{ url_for('static', filename='uploads/' + user.profile_picture) }}', 'Profile Picture - {{ user.name }}')">
+                                    <div class="mt-3">
+                                        <a href="{{ url_for('static', filename='uploads/' + user.profile_picture) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-external-link-alt me-1"></i>View Full Size
+                                        </a>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="text-muted">
+                                    <i class="fas fa-user-circle fa-5x mb-3"></i>
+                                    <p>No profile picture uploaded</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Personal Information -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card qc-admin-card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+                        <div class="card-header bg-white border-bottom py-3 px-4">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user me-2"></i>Personal Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Full Name</label>
+                                    <p class="mb-0">{{ user.name }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Email</label>
+                                    <p class="mb-0">{{ user.email }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Phone</label>
+                                    <p class="mb-0">{{ user.phone }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">CNIC</label>
+                                    <p class="mb-0">{{ user.cnic }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Date of Birth</label>
+                                    <p class="mb-0">{{ user.date_of_birth.strftime('%B %d, %Y') if user.date_of_birth else 'Not provided' }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Gender</label>
+                                    <p class="mb-0">{{ user.gender.title() if user.gender else 'Not provided' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Professional Information -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card qc-admin-card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+                        <div class="card-header bg-white border-bottom py-3 px-4">
+                            <h5 class="mb-0">
+                                <i class="fas fa-stethoscope me-2"></i>Professional Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Category</label>
+                                    <p class="mb-0">{{ doctor.category.title() }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Specialization</label>
+                                    <p class="mb-0">{{ doctor.specialization }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Experience</label>
+                                    <p class="mb-0">{{ doctor.experience }} years</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">PMC Code</label>
+                                    <p class="mb-0">{{ doctor.pmc_code }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">City</label>
+                                    <p class="mb-0">{{ doctor.city.title() }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Registration Date</label>
+                                    <p class="mb-0">{{ doctor.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold">Education</label>
+                                    <p class="mb-0">{{ doctor.education }}</p>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold">Professional Bio</label>
+                                    <p class="mb-0">{{ doctor.bio }}</p>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold">Location</label>
+                                    <p class="mb-0">{{ doctor.location }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents Section -->
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <div class="card qc-admin-card border-0 shadow-sm rounded-4 overflow-hidden">
+                        <div class="card-header bg-white border-bottom py-3 px-4">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-alt me-2"></i>Documents & Verification
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-4">
+                                <!-- CNIC Documents -->
+                                <div class="col-md-6">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-id-card me-2"></i>CNIC Documents
+                                    </h6>
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label fw-bold">CNIC Front</label>
+                                            {% if documents.cnic_front %}
+                                                <div class="document-preview">
+                                                    <img src="{{ documents.cnic_front }}" alt="CNIC Front" 
+                                                         class="img-fluid rounded border" style="max-height: 200px; cursor: pointer;"
+                                                         onclick="openImageModal('{{ documents.cnic_front }}', 'CNIC Front')">
+                                                    <div class="mt-2">
+                                                        <a href="{{ documents.cnic_front }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-external-link-alt me-1"></i>View Full Size
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <p class="text-muted">Not provided</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label fw-bold">CNIC Back</label>
+                                            {% if documents.cnic_back %}
+                                                <div class="document-preview">
+                                                    <img src="{{ documents.cnic_back }}" alt="CNIC Back" 
+                                                         class="img-fluid rounded border" style="max-height: 200px; cursor: pointer;"
+                                                         onclick="openImageModal('{{ documents.cnic_back }}', 'CNIC Back')">
+                                                    <div class="mt-2">
+                                                        <a href="{{ documents.cnic_back }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-external-link-alt me-1"></i>View Full Size
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <p class="text-muted">Not provided</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Live Photo -->
+                                <div class="col-md-6">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-camera me-2"></i>Live Face Detection
+                                    </h6>
+                                    {% if documents.live_photo %}
+                                        <div class="document-preview">
+                                            <img src="{{ documents.live_photo }}" alt="Live Photo" 
+                                                 class="img-fluid rounded border" style="max-height: 200px; cursor: pointer;"
+                                                 onclick="openImageModal('{{ documents.live_photo }}', 'Live Photo')">
+                                            <div class="mt-2">
+                                                <a href="{{ documents.live_photo }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-external-link-alt me-1"></i>View Full Size
+                                                </a>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted">Not provided</p>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Degree Documents -->
+                                <div class="col-12">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-graduation-cap me-2"></i>Degree Documents
+                                    </h6>
+                                    {% if documents.degrees %}
+                                        <div class="row g-3">
+                                            {% for degree in documents.degrees %}
+                                            <div class="col-md-4">
+                                                <div class="document-preview">
+                                                    <img src="{{ degree }}" alt="Degree Document" 
+                                                         class="img-fluid rounded border" style="max-height: 200px; cursor: pointer;"
+                                                         onclick="openImageModal('{{ degree }}', 'Degree Document')">
+                                                    <div class="mt-2">
+                                                        <a href="{{ degree }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-external-link-alt me-1"></i>View Full Size
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted">No degree documents provided</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card qc-admin-card border-0 shadow-sm rounded-4">
+                        <div class="card-body text-center">
+                            {% if doctor.appeal_status == 'pending' and doctor.appeal_count == 0 %}
+                                <!-- Initial Review (New Registration) -->
+                                <div class="btn-group" role="group">
+                                    <form method="POST" action="{{ url_for('admin.approve_doctor', doctor_id=doctor.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-success btn-lg me-2">
+                                            <i class="fas fa-check me-2"></i>Approve
+                                        </button>
+                                    </form>
+                                    <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                                        <i class="fas fa-times me-2"></i>Reject
+                                    </button>
+                                </div>
+                            {% elif doctor.appeal_status == 'pending' and doctor.appeal_count > 0 %}
+                                <!-- Appeal Review -->
+                                <div class="btn-group" role="group">
+                                    <form method="POST" action="{{ url_for('admin.process_appeal', doctor_id=doctor.id) }}" class="d-inline">
+                                        <input type="hidden" name="appeal_decision" value="approve">
+                                        <button type="submit" class="btn btn-success btn-lg me-2">
+                                            <i class="fas fa-check me-2"></i>Approve
+                                        </button>
+                                    </form>
+                                    <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#appealRejectModal">
+                                        <i class="fas fa-times me-2"></i>Reject
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Doctor Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectModalLabel">Reject Doctor Registration</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.reject_doctor', doctor_id=doctor.id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="rejection_reason" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="rejection_reason" name="rejection_reason" rows="4" 
+                                  placeholder="Please provide specific reasons for rejection..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times me-1"></i>Reject
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Appeal Modal -->
+<div class="modal fade" id="appealRejectModal" tabindex="-1" aria-labelledby="appealRejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="appealRejectModalLabel">Reject Doctor Appeal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.process_appeal', doctor_id=doctor.id) }}">
+                <input type="hidden" name="appeal_decision" value="reject">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="appeal_reason" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="appeal_reason" name="appeal_reason" rows="4" 
+                                  placeholder="Please provide specific reasons for rejection..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times me-1"></i>Reject
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalLabel">Document View</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" alt="Document" class="img-fluid">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a id="modalDownload" href="" target="_blank" class="btn btn-primary">
+                    <i class="fas fa-download me-1"></i>Download
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openImageModal(imageSrc, title) {
+    document.getElementById('imageModalLabel').textContent = title;
+    document.getElementById('modalImage').src = imageSrc;
+    document.getElementById('modalDownload').href = imageSrc;
+    var modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+}
+
+</script>
+{% endblock %}

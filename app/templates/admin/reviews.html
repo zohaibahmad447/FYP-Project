@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Reviews - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+    .fraud-flag-badge { font-size: 0.68rem; font-weight: 700; }
+    .ip-hint { font-size: 0.72rem; color: #64748b; }
+    tr.review-flagged { background: rgba(251, 191, 36, 0.08); }
+    tr.review-blocked { background: rgba(248, 113, 113, 0.1); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-3 py-4">
+    <div class="row">
+        <div class="col-xl-2 col-lg-3 col-md-4 mb-4 admin-sidebar-col">
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center p-4">
+                    <div class="admin-avatar mb-3 mx-auto" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 2.2rem;">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h5 class="card-title fw-bold mb-1">Admin Panel</h5>
+                    <p class="text-muted small mb-0">{{ admin_display_name() }}</p>
+                </div>
+            </div>
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4 mt-3 overflow-hidden">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h6 class="mb-0 text-uppercase text-muted fw-bold small" style="letter-spacing:1px;"><i class="fas fa-cogs me-2"></i>Management</h6>
+                </div>
+                <div class="card-body p-0">
+                    {% include 'admin/_management_sidebar.html' %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-10 col-lg-9 col-md-8 admin-main-col">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div>
+                    <h2 class="mb-1"><i class="fas fa-star me-2 text-warning"></i>Patient Reviews</h2>
+                    <p class="text-muted small mb-0">IP/network fraud checks run automatically. Flagged reviews are hidden until you approve them.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="badge bg-secondary fs-6">{{ reviews|length }} Total</span>
+                    {% if flagged_count %}
+                    <span class="badge bg-warning text-dark fs-6">{{ flagged_count }} Needs review</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-0">
+                    {% if reviews %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Rating</th>
+                                    <th>Network / location</th>
+                                    <th>Trust</th>
+                                    <th>Comment</th>
+                                    <th>Date</th>
+                                    <th>Public</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for review in reviews %}
+                                {% set fstatus = review.fraud_status or 'clear' %}
+                                <tr class="{% if fstatus == 'blocked' %}review-blocked{% elif fstatus == 'flagged' %}review-flagged{% elif not review.is_visible %}table-secondary{% endif %}">
+                                    <td class="text-muted small">{{ review.id }}</td>
+                                    <td><small>{{ review.patient.user.name }}</small></td>
+                                    <td><small>{{ review.doctor.user.name }}</small></td>
+                                    <td>
+                                        {% for i in range(1, 6) %}
+                                        <i class="fas fa-star {% if i <= review.rating %}text-warning{% else %}text-muted{% endif %}" style="font-size:0.75rem;"></i>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {% if review.geo_city or review.geo_region %}
+                                        <div class="ip-hint"><i class="fas fa-map-marker-alt me-1"></i>{{ review.geo_city or '—' }}{% if review.geo_region %}, {{ review.geo_region }}{% endif %}</div>
+                                        {% else %}
+                                        <div class="ip-hint text-muted">Location n/a</div>
+                                        {% endif %}
+                                        {% if review.submitter_ip_hash %}
+                                        <div class="ip-hint" title="Hashed network fingerprint (not raw IP)">Net: {{ review.submitter_ip_hash[:10] }}…</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if fstatus == 'clear' %}
+                                        <span class="badge bg-success fraud-flag-badge">Clear</span>
+                                        {% elif fstatus == 'flagged' %}
+                                        <span class="badge bg-warning text-dark fraud-flag-badge">Flagged</span>
+                                        {% else %}
+                                        <span class="badge bg-danger fraud-flag-badge">Blocked</span>
+                                        {% endif %}
+                                        {% for reason in (review.flag_reasons or []) %}
+                                        <div class="mt-1"><span class="badge bg-light text-dark border fraud-flag-badge">{{ flag_reason_label(reason) }}</span></div>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {% if review.comment %}
+                                        <small class="text-muted fst-italic">"{{ review.comment[:60] }}{% if review.comment|length > 60 %}…{% endif %}"</small>
+                                        {% else %}<small class="text-muted">—</small>{% endif %}
+                                    </td>
+                                    <td><small class="text-muted">{{ review.created_at.strftime('%d %b %Y') }}</small></td>
+                                    <td>
+                                        {% if review.is_visible %}
+                                        <span class="badge bg-success">Yes</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Hidden</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            {% if fstatus != 'clear' %}
+                                            <form method="post" action="{{ url_for('admin.approve_review', review_id=review.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-success" title="Approve — show publicly"><i class="fas fa-check"></i></button>
+                                            </form>
+                                            <form method="post" action="{{ url_for('admin.reject_review', review_id=review.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-danger" title="Reject — keep hidden"><i class="fas fa-times"></i></button>
+                                            </form>
+                                            {% endif %}
+                                            <form method="post" action="{{ url_for('admin.toggle_review_visibility', review_id=review.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Toggle visibility">
+                                                    <i class="fas {% if review.is_visible %}fa-eye-slash{% else %}fa-eye{% endif %}"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-star fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No reviews yet</h5>
+                        <p class="text-muted">Patient reviews will appear here after appointments are completed.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

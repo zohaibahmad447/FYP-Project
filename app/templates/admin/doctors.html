@@ -1,0 +1,712 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Doctors - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+    .doctor-avatar-premium {
+        width: 54px; height: 54px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden;
+        border: 2px solid #fff;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .doctor-avatar-premium img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .status-pill {
+        font-size: 0.7rem; font-weight: 700;
+        padding: 5px 12px; border-radius: 50px;
+        text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .filter-btn-premium {
+        border: 1px solid #cbd5e1;
+        background: #fff;
+        color: #475569;
+        padding: 0.7rem 1.4rem;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .filter-btn-premium:hover, .filter-btn-premium.active {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2);
+    }
+    
+    /* Slide-up details panel polish */
+    .slide-up-panel-premium {
+        position: fixed; bottom: -100%; left: 0; right: 0;
+        height: 88vh; background: #f8fafc;
+        border-radius: 32px 32px 0 0;
+        box-shadow: 0 -20px 60px rgba(0,0,0,0.12);
+        z-index: 1060; transition: bottom 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        visibility: hidden; display: flex; flex-direction: column;
+    }
+    .slide-up-panel-premium.show { bottom: 0; visibility: visible; }
+    .panel-header-premium {
+        padding: 0.5rem 1.5rem;
+        background: #e2e8f0; /* Darker grey-blue lean background */
+        color: #1e293b; 
+        border-radius: 32px 32px 0 0;
+        border-bottom: 1px solid #cbd5e1;
+    }
+    .panel-body-premium { flex: 1; overflow-y: auto; padding: 0 3rem 2rem 3rem; background: #f8fafc; }
+    .glass-panel-card {
+        background: rgba(16, 185, 129, 0.06);
+        border: 1px solid rgba(16, 185, 129, 0.15);
+        box-shadow: 0 8px 32px rgba(16, 185, 129, 0.08);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+    .glass-section-title {
+        color: #0f172a;
+        letter-spacing: 0.2px;
+    }
+    .glass-action-btn {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(236, 253, 245, 0.72));
+        border: 1px solid rgba(16, 185, 129, 0.18);
+        color: #0f172a;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .glass-action-btn:hover {
+        transform: translateY(-1px);
+        border-color: rgba(16, 185, 129, 0.32);
+        box-shadow: 0 12px 26px rgba(15, 23, 42, 0.1);
+        color: #0f172a;
+    }
+    .glass-action-link {
+        color: #059669;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        text-decoration: none;
+    }
+    .glass-action-link:hover {
+        color: #047857;
+    }
+
+    /* Medical staff stat row — same glass + icon glow language as Q&A / blogs */
+    #status-filter-container .doctor-stat-icon {
+        position: relative;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        font-size: 1.15rem;
+    }
+
+    #status-filter-container .doctor-stat-icon--emerald {
+        background: rgba(16, 185, 129, 0.14);
+    }
+
+    #status-filter-container .doctor-stat-icon--amber {
+        background: rgba(245, 158, 11, 0.14);
+    }
+
+    #status-filter-container .doctor-stat-icon--violet {
+        background: rgba(139, 92, 246, 0.12);
+    }
+
+    #status-filter-container .doctor-stat-icon--rose {
+        background: rgba(244, 63, 94, 0.12);
+    }
+
+    #status-filter-container .doctor-stat-icon--slate {
+        background: rgba(148, 163, 184, 0.18);
+    }
+
+    #status-filter-container .doctor-stat-icon--emerald i {
+        color: #059669;
+    }
+
+    #status-filter-container .doctor-stat-icon--amber i {
+        color: #ca8a04;
+    }
+
+    #status-filter-container .doctor-stat-icon--violet i {
+        color: #7c3aed;
+    }
+
+    #status-filter-container .doctor-stat-icon--rose i {
+        color: #e11d48;
+    }
+
+    #status-filter-container .doctor-stat-icon--slate i {
+        color: #334155;
+    }
+
+    @keyframes doctor-icon-glow-emerald {
+        0%, 100% {
+            box-shadow:
+                0 0 0 1px rgba(52, 211, 153, 0.4),
+                0 3px 12px rgba(16, 185, 129, 0.22),
+                0 0 18px rgba(52, 211, 153, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        50% {
+            box-shadow:
+                0 0 0 1px rgba(167, 243, 208, 0.65),
+                0 5px 16px rgba(16, 185, 129, 0.3),
+                0 0 26px rgba(52, 211, 153, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.62);
+        }
+    }
+
+    @keyframes doctor-icon-glow-amber {
+        0%, 100% {
+            box-shadow:
+                0 0 0 1px rgba(251, 191, 36, 0.42),
+                0 3px 12px rgba(245, 158, 11, 0.22),
+                0 0 18px rgba(251, 191, 36, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        }
+        50% {
+            box-shadow:
+                0 0 0 1px rgba(253, 224, 71, 0.58),
+                0 5px 16px rgba(245, 158, 11, 0.3),
+                0 0 26px rgba(251, 191, 36, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+    }
+
+    @keyframes doctor-icon-glow-violet {
+        0%, 100% {
+            box-shadow:
+                0 0 0 1px rgba(167, 139, 250, 0.42),
+                0 3px 12px rgba(139, 92, 246, 0.22),
+                0 0 18px rgba(167, 139, 250, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+        50% {
+            box-shadow:
+                0 0 0 1px rgba(196, 181, 253, 0.65),
+                0 5px 16px rgba(139, 92, 246, 0.3),
+                0 0 26px rgba(167, 139, 250, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.68);
+        }
+    }
+
+    @keyframes doctor-icon-glow-rose {
+        0%, 100% {
+            box-shadow:
+                0 0 0 1px rgba(251, 113, 133, 0.42),
+                0 3px 12px rgba(244, 63, 94, 0.2),
+                0 0 18px rgba(251, 113, 133, 0.13),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        50% {
+            box-shadow:
+                0 0 0 1px rgba(253, 164, 175, 0.62),
+                0 5px 16px rgba(244, 63, 94, 0.28),
+                0 0 26px rgba(251, 113, 133, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.62);
+        }
+    }
+
+    @keyframes doctor-icon-glow-slate {
+        0%, 100% {
+            box-shadow:
+                0 0 0 1px rgba(148, 163, 184, 0.42),
+                0 3px 12px rgba(71, 85, 105, 0.2),
+                0 0 18px rgba(148, 163, 184, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        }
+        50% {
+            box-shadow:
+                0 0 0 1px rgba(203, 213, 225, 0.65),
+                0 5px 16px rgba(71, 85, 105, 0.26),
+                0 0 26px rgba(148, 163, 184, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+    }
+
+    #status-filter-container .doctor-stat-icon--emerald {
+        border: 1px solid rgba(16, 185, 129, 0.28);
+        animation: doctor-icon-glow-emerald 3.2s ease-in-out infinite;
+    }
+
+    #status-filter-container .doctor-stat-icon--amber {
+        border: 1px solid rgba(217, 119, 6, 0.28);
+        animation: doctor-icon-glow-amber 3.2s ease-in-out infinite 0.28s;
+    }
+
+    #status-filter-container .doctor-stat-icon--violet {
+        border: 1px solid rgba(139, 92, 246, 0.28);
+        animation: doctor-icon-glow-violet 3.2s ease-in-out infinite 0.56s;
+    }
+
+    #status-filter-container .doctor-stat-icon--rose {
+        border: 1px solid rgba(225, 29, 72, 0.26);
+        animation: doctor-icon-glow-rose 3.2s ease-in-out infinite 0.84s;
+    }
+
+    #status-filter-container .doctor-stat-icon--slate {
+        border: 1px solid rgba(100, 116, 139, 0.35);
+        animation: doctor-icon-glow-slate 3.2s ease-in-out infinite 1.05s;
+    }
+
+    #status-filter-container .qc-admin-stat-selectable:hover .doctor-stat-icon {
+        animation-duration: 2.5s;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        #status-filter-container .doctor-stat-icon--emerald,
+        #status-filter-container .doctor-stat-icon--amber,
+        #status-filter-container .doctor-stat-icon--violet,
+        #status-filter-container .doctor-stat-icon--rose,
+        #status-filter-container .doctor-stat-icon--slate {
+            animation: none;
+        }
+
+        #status-filter-container .doctor-stat-icon--emerald {
+            box-shadow:
+                0 0 0 1px rgba(52, 211, 153, 0.48),
+                0 3px 14px rgba(16, 185, 129, 0.24),
+                0 0 20px rgba(52, 211, 153, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        #status-filter-container .doctor-stat-icon--amber {
+            box-shadow:
+                0 0 0 1px rgba(251, 191, 36, 0.48),
+                0 3px 14px rgba(245, 158, 11, 0.24),
+                0 0 20px rgba(251, 191, 36, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        }
+
+        #status-filter-container .doctor-stat-icon--violet {
+            box-shadow:
+                0 0 0 1px rgba(167, 139, 250, 0.48),
+                0 3px 14px rgba(139, 92, 246, 0.24),
+                0 0 20px rgba(167, 139, 250, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+
+        #status-filter-container .doctor-stat-icon--rose {
+            box-shadow:
+                0 0 0 1px rgba(251, 113, 133, 0.48),
+                0 3px 14px rgba(244, 63, 94, 0.22),
+                0 0 20px rgba(251, 113, 133, 0.13),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        #status-filter-container .doctor-stat-icon--slate {
+            box-shadow:
+                0 0 0 1px rgba(148, 163, 184, 0.48),
+                0 3px 14px rgba(71, 85, 105, 0.22),
+                0 0 20px rgba(148, 163, 184, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-3 py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-xl-2 col-lg-3 col-md-4 mb-4 admin-sidebar-col">
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center p-4">
+                    <div class="admin-avatar mb-3 mx-auto" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 2.2rem;">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h5 class="card-title fw-bold mb-1">Admin Panel</h5>
+                    <p class="text-muted small mb-0">{{ get_current_user().name }}</p>
+                </div>
+            </div>
+            <div class="card qc-admin-card border-0 shadow-sm mt-3 rounded-4 overflow-hidden">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h6 class="mb-0 text-uppercase text-muted fw-bold small" style="letter-spacing:1px;"><i class="fas fa-cogs me-2"></i>Management</h6>
+                </div>
+                <div class="card-body p-0">
+                    {% include 'admin/_management_sidebar.html' %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-xl-10 col-lg-9 col-md-8 admin-main-col">
+            <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-4 rounded-4 shadow-sm">
+                <div>
+                    <h3 class="mb-0 fw-bold"><i class="fas fa-user-md me-2 text-primary"></i>Medical Staff Control</h3>
+                    <p class="text-muted mb-0 small">Verify credentials and manage healthcare professional accounts</p>
+                </div>
+            </div>
+
+            <!-- Management Stats Cards -->
+            <div class="row g-4 mb-5" id="status-filter-container">
+                <div class="col">
+                    <div class="qc-admin-stat-selectable card qc-admin-card h-100 border-0 shadow-sm rounded-4 bg-white" data-filter="approved" onclick="filterByStatus('approved', this)">
+                        <div class="card-body p-4 text-center">
+                            <div class="doctor-stat-icon doctor-stat-icon--emerald mx-auto mb-3"><i class="fas fa-check-circle"></i></div>
+                            <h3 class="fw-bold mb-1">{{ stats.doctors.approved }}</h3>
+                            <div class="text-muted small text-uppercase fw-bold" style="letter-spacing:1px;">Approved</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="qc-admin-stat-selectable card qc-admin-card h-100 border-0 shadow-sm rounded-4 bg-white" data-filter="pending" onclick="filterByStatus('pending', this)">
+                        <div class="card-body p-4 text-center">
+                            <div class="doctor-stat-icon doctor-stat-icon--amber mx-auto mb-3"><i class="fas fa-clock"></i></div>
+                            <h3 class="fw-bold mb-1">{{ stats.doctors.pending }}</h3>
+                            <div class="text-muted small text-uppercase fw-bold" style="letter-spacing:1px;">Requests</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="qc-admin-stat-selectable card qc-admin-card h-100 border-0 shadow-sm rounded-4 bg-white" data-filter="appeals" onclick="filterByStatus('appeals', this)">
+                        <div class="card-body p-4 text-center">
+                            <div class="doctor-stat-icon doctor-stat-icon--violet mx-auto mb-3"><i class="fas fa-gavel"></i></div>
+                            <h3 class="fw-bold mb-1">{{ stats.appeals or 0 }}</h3>
+                            <div class="text-muted small text-uppercase fw-bold" style="letter-spacing:1px;">Appeals</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="qc-admin-stat-selectable card qc-admin-card h-100 border-0 shadow-sm rounded-4 bg-white" data-filter="rejected" onclick="filterByStatus('rejected', this)">
+                        <div class="card-body p-4 text-center">
+                            <div class="doctor-stat-icon doctor-stat-icon--rose mx-auto mb-3"><i class="fas fa-times-circle"></i></div>
+                            <h3 class="fw-bold mb-1">{{ stats.doctors.rejected }}</h3>
+                            <div class="text-muted small text-uppercase fw-bold" style="letter-spacing:1px;">Rejected</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="qc-admin-stat-selectable card qc-admin-card h-100 border-0 shadow-sm rounded-4 bg-white" data-filter="suspended" onclick="filterByStatus('suspended', this)">
+                        <div class="card-body p-4 text-center">
+                            <div class="doctor-stat-icon doctor-stat-icon--slate mx-auto mb-3"><i class="fas fa-ban"></i></div>
+                            <h3 class="fw-bold mb-1">{{ stats.doctors.suspended or 0 }}</h3>
+                            <div class="text-muted small text-uppercase fw-bold" style="letter-spacing:1px;">Suspended</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Specialty Search and Filter -->
+            <div class="d-flex flex-wrap align-items-center gap-3 mb-4 bg-white p-4 rounded-4 shadow-sm">
+                <div>
+                    <button class="filter-btn-premium" onclick="clearSearchAndShowAll()" id="allSpecBtn">All Specializations</button>
+                </div>
+                <div class="d-flex align-items-center flex-grow-1" style="max-width: 400px; position: relative;">
+                    <i class="fas fa-search position-absolute text-muted" style="left: 15px; z-index: 10;"></i>
+                    <input type="text" id="specialtySearchInput" class="form-control border bg-light rounded-pill ps-5 py-2" placeholder="Search specializations (e.g. Cardiology)..." autocomplete="off">
+                    <div id="searchSuggestions" class="position-absolute w-100 bg-white rounded-4 shadow border d-none" style="top: 110%; left: 0; z-index: 1000; max-height: 250px; overflow-y: auto;">
+                        <!-- Suggestions appended dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Table -->
+            <div class="card qc-admin-card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="doctors-table-main">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">#</th>
+                                    <th>Doctor Information</th>
+                                    <th>Specialty</th>
+                                    <th>Experience</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th class="text-end pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doctor in doctors %}
+                                <tr class="doctor-row" 
+                                    data-category="{{ doctor.category.lower() }}"
+                                    data-status="{% if doctor.is_approved %}approved{% elif doctor.appeal_status == 'rejected' %}rejected{% elif doctor.appeal_status == 'suspended' %}suspended{% elif doctor.appeal_count > 0 and doctor.appeal_status == 'pending' %}appeals{% else %}pending{% endif %}">
+                                    <td class="ps-4 fw-bold text-muted">{{ loop.index }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="doctor-avatar-premium">
+                                                {% if doctor.user.profile_picture %}
+                                                    <img src="{{ url_for('static', filename='uploads/' + doctor.user.profile_picture) }}" alt="{{ doctor.user.name }}">
+                                                {% else %}
+                                                    <i class="fas fa-user-md text-muted fs-4"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold text-dark">{{ doctor.user.name }}</h6>
+                                                <div class="small text-muted">{{ doctor.user.email }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark border rounded-pill px-3 py-2 fw-bold shadow-sm" style="letter-spacing: 0.3px;"><i class="fas fa-stethoscope me-2 text-primary"></i> {{ doctor.category.title() }}</span></td>
+                                    <td><span class="fw-bold">{{ doctor.experience }}</span> <small class="text-muted">Years</small></td>
+                                    <td><div class="small fw-semibold text-dark">{{ doctor.city.title() }}</div><small class="text-muted">{{ doctor.location|truncate(25) }}</small></td>
+                                    <td>
+                                        {% if doctor.is_approved %}
+                                            <span class="status-pill bg-success-subtle text-success"><i class="fas fa-check-circle me-1"></i>Approved</span>
+                                        {% elif doctor.appeal_status == 'rejected' %}
+                                            <span class="status-pill bg-danger-subtle text-danger"><i class="fas fa-times-circle me-1"></i>Rejected</span>
+                                        {% elif doctor.appeal_status == 'suspended' %}
+                                            <span class="status-pill bg-dark text-white"><i class="fas fa-ban me-1"></i>Suspended</span>
+                                        {% else %}
+                                            <span class="status-pill bg-warning-subtle text-warning"><i class="fas fa-hourglass-half me-1"></i>Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <button onclick="showDoctorDetails('{{ doctor.id }}')" class="btn btn-sm btn-outline-primary rounded-pill px-4">
+                                            <i class="fas fa-eye me-1"></i>Review
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="empty-doctors" class="text-center py-5 d-none">
+                        <i class="fas fa-search fa-3x text-muted opacity-25 mb-3"></i>
+                        <h6 class="text-muted">No healthcare professionals match these filters.</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Premium Slide-Up Panel -->
+<div id="doctor-panel" class="slide-up-panel-premium">
+    <div class="panel-header-premium d-flex justify-content-between align-items-center">
+        <div></div> <!-- Spacer for alignment -->
+        <button class="btn btn-sm rounded-circle text-muted hover-bg-danger hover-text-white transition p-2 d-flex align-items-center justify-content-center border-0 shadow-sm" style="width: 32px; height: 32px; background-color: #f1f5f9;" onclick="hideDoctorDetails()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="panel-body-premium" id="panel-content">
+        <!-- Dynamic content goes here -->
+    </div>
+</div>
+<div id="panel-overlay" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50" style="z-index:1055; display:none; backdrop-filter:blur(4px);" onclick="hideDoctorDetails()"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentStatus = 'all';
+    let currentSelectedCategory = ''; // Explicitly tracked for the dropdown
+
+    document.querySelectorAll('.qc-admin-stat-selectable').forEach(card => {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.qc-admin-stat-selectable').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            currentStatus = this.dataset.filter;
+            applyFilters();
+        });
+    });
+    
+    // Real-time Autocomplete functionality for Specializations
+    const searchInput = document.getElementById('specialtySearchInput');
+    const searchSuggestions = document.getElementById('searchSuggestions');
+    const allSpecBtn = document.getElementById('allSpecBtn');
+    
+    // Inject all possible system categories directly from backend
+    const categoriesArray = {{ categories | tojson }}.map(c => c.toLowerCase().trim());
+
+    function clearSearchAndShowAll() {
+        currentSelectedCategory = '';
+        searchInput.value = '';
+        searchSuggestions.classList.add('d-none');
+        applyFilters();
+    }
+    
+    searchInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        searchSuggestions.innerHTML = '';
+        
+        if (query.length > 0) {
+            allSpecBtn.classList.remove('active');
+            
+            const matches = categoriesArray.filter(cat => cat.includes(query));
+            if (matches.length > 0) {
+                matches.forEach(match => {
+                    const div = document.createElement('div');
+                    div.className = 'py-3 px-4 border-bottom search-suggestion-item text-dark cursor-pointer';
+                    div.style.cursor = 'pointer';
+                    // capitalize first letter
+                    div.textContent = match.charAt(0).toUpperCase() + match.slice(1);
+                    
+                    div.addEventListener('click', function() {
+                        searchInput.value = this.textContent;
+                        currentSelectedCategory = match; // Now filter kicks in
+                        searchSuggestions.classList.add('d-none');
+                        applyFilters();
+                    });
+                    
+                    // Hover states
+                    div.addEventListener('mouseenter', () => {
+                        div.classList.add('bg-light');
+                        div.classList.add('fw-bold');
+                    });
+                    div.addEventListener('mouseleave', () => {
+                        div.classList.remove('bg-light');
+                        div.classList.remove('fw-bold');
+                    });
+                    
+                    searchSuggestions.appendChild(div);
+                });
+                searchSuggestions.classList.remove('d-none');
+            } else {
+                searchSuggestions.classList.add('d-none');
+            }
+        } else {
+            searchSuggestions.classList.add('d-none');
+            // Do not clear the selection here! Keep showing the last selected category's 
+            // doctors even if the text is removed, until a new category is chosen or 'All' is clicked.
+        }
+    });
+
+    // Close dropdown and clear card selection on outside click
+    document.addEventListener('click', function(e) {
+        // Handle search dropdown
+        if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+            searchSuggestions.classList.add('d-none');
+        }
+        
+        // Handle status cards deselection
+        const clickedOnCard = e.target.closest('.qc-admin-stat-selectable');
+        if (!clickedOnCard) {
+            // Only reset if an active card was already selected so we don't trigger unnecessary filter calls
+            if (currentStatus !== 'all') {
+                document.querySelectorAll('.qc-admin-stat-selectable').forEach(c => c.classList.remove('active'));
+                currentStatus = 'all';
+                applyFilters();
+            }
+        }
+    });
+
+    function applyFilters() {
+        const rows = document.querySelectorAll('.doctor-row');
+        let count = 0;
+        
+        rows.forEach(row => {
+            const catText = row.dataset.category || "";
+            // Only apply search match if an exact category is selected from the dropdown
+            const searchMatch = !currentSelectedCategory || catText === currentSelectedCategory;
+            const statusMatch = currentStatus === 'all' || row.dataset.status === currentStatus;
+            
+            if (searchMatch && statusMatch) {
+                row.style.display = '';
+                count++;
+                row.querySelector('.fw-bold.text-muted').textContent = count;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        document.getElementById('empty-doctors').classList.toggle('d-none', count > 0);
+    }
+
+    function showDoctorDetails(id) {
+        const panel = document.getElementById('doctor-panel');
+        const overlay = document.getElementById('panel-overlay');
+        overlay.style.display = 'block';
+        setTimeout(() => panel.classList.add('show'), 10);
+        
+        fetch(`/admin/doctors/${id}/details-json`)
+            .then(res => res.json())
+            .then(data => {
+                
+                document.getElementById('panel-content').innerHTML = `
+                    <div class="row g-4 h-100 position-relative">
+                        <!-- Profile Header Integrated -->
+                        <div class="col-12 mb-2 z-index-1">
+                            <div class="d-flex flex-column align-items-center justify-content-center text-center mt-n4">
+                                <div class="rounded-circle shadow-sm border border-4 border-white overflow-hidden mb-3" style="width: 100px; height: 100px; background-color: #10b981;">
+                                    ${data.user.profile_picture ? 
+                                        `<img src="${data.user.profile_picture}" style="width:100%; height:100%; object-fit:cover;">` : 
+                                        `<div class="w-100 h-100 d-flex align-items-center justify-content-center text-white"><i class="fas fa-user-md fs-1"></i></div>`
+                                    }
+                                </div>
+                                
+                                <h3 class="fw-bold text-dark mb-2">${data.user.name}</h3>
+                                
+                                <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+                                    <span class="badge badge-success" style="padding: 6px 16px; border-radius: 50px; font-size: 0.85rem;">
+                                        ${data.doctor.category || 'Specialist'}
+                                    </span>
+                                    
+                                    ${data.status === 'pending' ? '<span class="badge badge-warning px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.85rem;"><i class="fas fa-hourglass-half me-1"></i> Pending</span>' : 
+                                      data.status === 'approved' ? '<span class="badge badge-success px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.85rem;"><i class="fas fa-check-circle me-1"></i> Approved</span>' : 
+                                      '<span class="badge badge-danger px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.85rem;"><i class="fas fa-times-circle me-1"></i> ' + data.status.charAt(0).toUpperCase() + data.status.slice(1) + '</span>'}
+                                </div>
+                                ${data.status === 'pending' || data.doctor.appeal_status === 'pending' ? `
+                                    <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+                                        <form method="POST" action="/admin/doctors/${data.id}/approve" class="m-0">
+                                            <button type="submit" class="btn btn-success btn-sm rounded-pill px-4 shadow-sm fw-medium">
+                                                Approve
+                                            </button>
+                                        </form>
+                                        <button class="btn btn-outline-danger btn-sm rounded-pill px-4 fw-medium" onclick="showRejectForm()">
+                                            Reject
+                                        </button>
+                                    </div>
+                                ` : ''}
+
+                            </div>
+                        </div>
+
+                        <!-- Full Width Info Section -->
+                        <div class="col-12">
+                            <div class="glass-panel-card p-4 p-md-5 rounded-4">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h6 class="fw-bold m-0 glass-section-title d-flex align-items-center" style="font-size: 1.1rem;">
+                                        <i class="fas fa-stethoscope me-3 text-success"></i> Professional Information
+                                    </h6>
+                                </div>
+                                
+                                <div class="row gx-5 gy-4 mb-4 mt-3">
+                                    <div class="col-md-6">
+                                        <div class="text-dark fw-bold small mb-1">Education</div>
+                                        <div class="text-muted small">${data.doctor.education || 'N/A'}</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-dark fw-bold small mb-1">Specialization</div>
+                                        <div class="text-muted small">${data.doctor.specialization || 'N/A'}</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-dark fw-bold small mb-1">Experience</div>
+                                        <div class="text-muted small">${data.doctor.experience} years</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-dark fw-bold small mb-1">PMC Code</div>
+                                        <div class="text-muted small">${data.doctor.pmc_code || 'N/A'}</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4 mt-5">
+                                    <div class="text-dark fw-bold small mb-2">Professional Bio</div>
+                                    <p class="text-muted small mb-0 lh-lg" style="text-align: justify;">${data.doctor.bio || 'Ms. / Mr. ' + data.user.name + ' has not provided a biography.'}</p>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end mt-4 mb-5 pb-4">
+                                <a href="/admin/doctors/${data.id}/view" class="glass-action-btn btn btn-sm rounded-pill px-4 py-2 glass-action-link shadow-sm mb-4">
+                                    View Full Information <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+    }
+
+    function hideDoctorDetails() {
+        document.getElementById('doctor-panel').classList.remove('show');
+        setTimeout(() => document.getElementById('panel-overlay').style.display = 'none', 600);
+    }
+
+    // Default load
+    document.addEventListener('DOMContentLoaded', () => {
+        applyFilters();
+    });
+</script>
+{% endblock %}

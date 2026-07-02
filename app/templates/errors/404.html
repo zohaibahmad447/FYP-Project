@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found - Quick Care Connect{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/info-pages.css') }}">
+<div class="container py-5">
+    <div class="error-404-wrap">
+        <h1>404</h1>
+        <h2 class="mb-3" style="font-weight: 700;">Page not found</h2>
+        <p class="text-muted mb-4 mx-auto" style="max-width: 420px;">
+            The page you are looking for may have been moved, deleted, or never existed.
+        </p>
+        <div class="d-flex gap-2 justify-content-center flex-wrap">
+            <a href="{{ url_for('home.index') }}" class="btn btn-success px-4"><i class="fas fa-home me-2"></i>Go home</a>
+            <a href="{{ url_for('patients.find_doctors') }}" class="btn btn-outline-success px-4">Find doctors</a>
+            <a href="{{ url_for('home.contact') }}" class="btn btn-outline-secondary px-4">Contact support</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}My Appointments - Quick Care Connect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-calendar-alt me-2" style="color: #10b981;"></i>My Appointments
+            </h2>
+
+            <!-- Filters -->
+            <div class="card mb-4"
+                style="border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('doctors.appointments') }}" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-control">
+                                <option value="all" {% if current_status=='all' %}selected{% endif %}>All Status
+                                </option>
+                                <option value="pending" {% if current_status=='pending' %}selected{% endif %}>Pending
+                                </option>
+                                <option value="approved" {% if current_status=='approved' %}selected{% endif %}>Approved
+                                </option>
+                                <option value="completed" {% if current_status=='completed' %}selected{% endif %}>
+                                    Completed</option>
+                                <option value="rejected" {% if current_status=='rejected' %}selected{% endif %}>Rejected
+                                </option>
+                                <option value="cancelled" {% if current_status=='cancelled' %}selected{% endif %}>
+                                    Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Appointment Type</label>
+                            <select name="type" class="form-control">
+                                <option value="all" {% if current_type=='all' %}selected{% endif %}>All Types</option>
+                                <option value="physical" {% if current_type=='physical' %}selected{% endif %}>Physical
+                                </option>
+                                <option value="video" {% if current_type=='video' %}selected{% endif %}>Video</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Date</label>
+                            <input type="date" name="date" class="form-control"
+                                value="{{ request.args.get('date', '') }}">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100"
+                                style="background: rgba(16, 185, 129, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(16, 185, 129, 0.5);">
+                                <i class="fas fa-filter me-2"></i>Filter
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Appointments List -->
+            <div class="card"
+                style="border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div class="card-header"
+                    style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border-bottom: 2px solid #10b981; border-radius: 16px 16px 0 0;">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2" style="color: #10b981;"></i>Appointments ({{ appointments|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Date & Time</th>
+                                    <th>Type</th>
+                                    <th>Disease Category</th>
+                                    <th>Status</th>
+                                    <th>Charges</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in appointments %}
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <strong>{{ appointment.patient.user.name }}</strong><br>
+                                            <small class="text-muted">{{ appointment.patient.user.email }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <i class="fas fa-calendar me-1"></i>{{
+                                            appointment.appointment_date.strftime('%B %d, %Y') }}<br>
+                                            <i class="fas fa-clock me-1"></i>{{
+                                            appointment.appointment_time.strftime('%I:%M %p') }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="badge badge-{% if appointment.appointment_type == 'video' %}success{% else %}primary{% endif %}"
+                                            style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                            <i
+                                                class="fas fa-{% if appointment.appointment_type == 'video' %}video{% else %}hospital{% endif %} me-1"></i>
+                                            {{ appointment.appointment_type.title() }}
+                                        </span>
+                                    </td>
+                                    <td>{{ appointment.disease_category }}</td>
+                                    <td>
+                                        {% if appointment.status == 'approved' and appointment.payment_status == 'approved' %}
+                                        <span class="badge badge-success"
+                                            style="font-size: 0.85rem; padding: 0.4rem 0.8rem; background-color: #10b981; border: 1px solid #10b981;">
+                                            Approved (Payment Done)
+                                        </span>
+                                        {% else %}
+                                        {% include 'partials/appointment_status_badge.html' %}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>PKR {{ "%.0f"|format(appointment.charges) }}</strong>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1 align-items-center flex-wrap">
+                                            <a href="{{ url_for('appointments.view_appointment', appointment_id=appointment.id) }}"
+                                                class="btn btn-sm btn-outline-primary" title="View Details">
+                                                <i class="fas fa-eye me-1"></i>View
+                                            </a>
+                                            {% if appointment.status == 'pending' and appointment.payment_status == 'approved' %}
+                                            <form method="POST"
+                                                action="{{ url_for('doctors.approve_appointment', appointment_id=appointment.id) }}"
+                                                class="d-inline m-0">
+                                                <button type="submit" class="btn btn-sm btn-success" title="Approve">
+                                                    <i class="fas fa-check me-1"></i>Approve
+                                                </button>
+                                            </form>
+                                            <form method="POST"
+                                                action="{{ url_for('doctors.reject_appointment', appointment_id=appointment.id) }}"
+                                                class="d-inline m-0">
+                                                <button type="submit" class="btn btn-sm btn-danger" title="Reject"
+                                                    onclick="return confirm('Are you sure you want to reject this appointment?');">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </form>
+                                            {% elif appointment.status in ['approved', 'completed', 'completed_pending_review', 'disputed'] %}
+                                            {% if appointment.payment_status == 'approved' and appointment.status in ['approved', 'completed'] %}
+                                            <a href="{{ url_for('appointments.chat', appointment_id=appointment.id) }}"
+                                                class="btn btn-sm {% if appointment.status == 'completed' %}btn-outline-secondary btn-chat-view{% else %}btn-success btn-chat-start{% endif %}"
+                                                title="{% if appointment.status == 'completed' %}View Chat History (Read-Only){% else %}Start Chat{% endif %}">
+                                                <i class="fas fa-comments me-1"></i>{% if appointment.status ==
+                                                'completed' %}View Chat{% else %}Chat{% endif %}
+                                            </a>
+                                            {% endif %}
+
+                                            <!-- Always allow prescription access when it exists -->
+                                            {% if appointment.prescription %}
+                                            <a href="{{ url_for('prescriptions.view_prescription', prescription_id=appointment.prescription.id) }}"
+                                                class="btn btn-sm btn-outline-success" title="View Prescription">
+                                                <i class="fas fa-file-prescription me-1"></i>View Rx
+                                            </a>
+                                            {% endif %}
+
+                                            <!-- Completion Buttons (Hybrid Assurance Model) -->
+                                            {% if appointment.status == 'approved' and not appointment.doctor_completed
+                                            %}
+                                            {% if appointment.prescription %}
+                                            <a href="{{ url_for('appointments.view_appointment', appointment_id=appointment.id) }}"
+                                                class="btn btn-sm btn-success d-inline m-0"
+                                                title="Write Prescription & Complete">
+                                                <i class="fas fa-file-medical me-1"></i>Write Rx & Complete
+                                            </a>
+                                            {% else %}
+                                            <button class="btn btn-sm btn-outline-secondary" disabled
+                                                title="Write a prescription first to enable completion">
+                                                <i class="fas fa-lock me-1"></i>Write Rx First
+                                            </button>
+                                            {% endif %}
+                                            {% elif appointment.status == 'completed_pending_review' %}
+                                            <span class="badge badge-info btn-sm"
+                                                title="Waiting for patient review (Auto-completes in 24h)">
+                                                <i class="fas fa-clock me-1"></i>Pending Review
+                                            </span>
+                                            {% elif appointment.status == 'disputed' %}
+                                            <span class="badge badge-danger btn-sm"
+                                                title="Patient raised a dispute - Admin reviewing">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>Disputed
+                                            </span>
+                                            {% endif %}
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-calendar-times text-muted mb-3" style="font-size: 4rem;"></i>
+                        <h5 class="text-muted mb-3">No appointments found</h5>
+                        <p class="text-muted">You don't have any appointments matching your filters.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<style>
+    /* Chat button status styles */
+    .btn-chat-view {
+        border-color: #6c757d !important;
+        color: #6c757d !important;
+        font-weight: 600;
+    }
+
+    .btn-chat-start {
+        background: rgba(16, 185, 129, 0.9) !important;
+        border-color: rgba(16, 185, 129, 0.9) !important;
+        color: white !important;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
